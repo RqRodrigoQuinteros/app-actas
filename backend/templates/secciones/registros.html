@@ -1,0 +1,39 @@
+<div class="seccion">
+  <h3>REGISTROS</h3>
+  <table>
+    <tr>
+      <td style="width: 70%;">Registro de Historias Clínicas</td>
+      <td style="width: 30%; text-align: center;">{{reg_his_cli}}</td>
+    </tr>
+    <tr>
+      <td>Tipo</td>
+      <td style="text-align: center;">{{tipo}}</td>
+    </tr>
+    <tr>
+      <td>Revisión de HC</td>
+      <td style="text-align: center;">
+        <strong class="{{#if rev_hc}}valor-si{{else}}valor-no{{/if}}">{{#if rev_hc}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Completas</td>
+      <td style="text-align: center;">
+        <strong class="{{#if comp}}valor-si{{else}}valor-no{{/if}}">{{#if comp}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Incompletas</td>
+      <td style="text-align: center;">
+        <strong class="{{#if incomp}}valor-si{{else}}valor-no{{/if}}">{{#if incomp}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Reglamento Interno / Manual de Procedimientos</td>
+      <td style="text-align: center;">{{ri_mc}}</td>
+    </tr>
+    <tr>
+      <td>Aditamento privado / Denominación correcta</td>
+      <td style="text-align: center;">{{ad_priv}}</td>
+    </tr>
+  </table>
+</div>

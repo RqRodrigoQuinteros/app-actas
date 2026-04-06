@@ -1,0 +1,25 @@
+<div class="seccion">
+  <h3>ANÁLISIS DE AGUA</h3>
+  <table>
+    <tr>
+      <td style="width: 70%;">Análisis Fisicoquímico</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if fisquim_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if fisquim_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Fecha último análisis fisicoquímico</td>
+      <td style="text-align: center;">{{ulfisqui_hemodi}}</td>
+    </tr>
+    <tr>
+      <td>Análisis Bacteriológico</td>
+      <td style="text-align: center;">
+        <strong class="{{#if bacterio_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if bacterio_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Fecha último análisis bacteriológico</td>
+      <td style="text-align: center;">{{ulbacte_hemodi}}</td>
+    </tr>
+  </table>
+</div>

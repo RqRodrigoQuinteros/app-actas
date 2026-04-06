@@ -1,0 +1,73 @@
+<div class="seccion">
+  <h3>SEROLOGÍA - HEMODIÁLISIS</h3>
+  <table>
+    <tr>
+      <td colspan="2" style="background-color: #e0e0e0; font-weight: bold;">PERSONAL</td>
+    </tr>
+    <tr>
+      <td style="width: 70%;">HIV</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if hiv_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if hiv_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Hepatitis B</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hepb_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if hepb_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Hepatitis C</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hepc_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if hepc_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Planillas de Personal Enfermería</td>
+      <td style="text-align: center;">
+        <strong class="{{#if perenf_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if perenf_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="background-color: #e0e0e0; font-weight: bold;">PACIENTES</td>
+    </tr>
+    <tr>
+      <td>HIV</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hivpa_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if hivpa_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Hepatitis B</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hb_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if hb_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Hepatitis C</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hc_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if hc_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="background-color: #e0e0e0; font-weight: bold;">REUSOS</td>
+    </tr>
+    <tr>
+      <td>Libro de Reusos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if libreu_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if libreu_hemodi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Cantidad máxima de reusos</td>
+      <td style="text-align: center;">{{cmaxreu_hemodi}}</td>
+    </tr>
+  </table>
+</div>
+
+{{#if obs_hemodi}}
+<div class="observaciones">
+  <strong>Observaciones Hemodiálisis:</strong><br>
+  <p>{{obs_hemodi}}</p>
+</div>
+{{/if}}

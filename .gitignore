@@ -1,0 +1,6 @@
+# App Actas - Archivos generales
+.env
+*.log
+.DS_Store
+node_modules/
+dist/

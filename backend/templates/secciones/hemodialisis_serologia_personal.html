@@ -1,0 +1,27 @@
+<div class="seccion">
+  <h3>SEROLOGÍA DEL PERSONAL</h3>
+  <table>
+    <tr>
+      <td style="width: 70%;">Hepatitis B (HBs Ag)</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if serologia_personal_hepatitis_b}}valor-si{{else}}valor-no{{/if}}">{{#if serologia_personal_hepatitis_b}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Hepatitis C (Anti VHC)</td>
+      <td style="text-align: center;">
+        <strong class="{{#if serologia_personal_hepatitis_c}}valor-si{{else}}valor-no{{/if}}">{{#if serologia_personal_hepatitis_c}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>VIH</td>
+      <td style="text-align: center;">
+        <strong class="{{#if serologia_personal_vih}}valor-si{{else}}valor-no{{/if}}">{{#if serologia_personal_vih}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Fecha último control serológico</td>
+      <td style="text-align: center;">{{fecha_serologia_personal}}</td>
+    </tr>
+  </table>
+</div>

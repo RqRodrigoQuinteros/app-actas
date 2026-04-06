@@ -1,0 +1,29 @@
+<div class="seccion">
+  <h3>INTERNACIÓN - GENERAL</h3>
+  <table>
+    <tr>
+      <td style="width: 70%;">Habitaciones adecuadas</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if int_habitaciones}}valor-si{{else}}valor-no{{/if}}">{{#if int_habitaciones}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Sistema de llamado enfermería</td>
+      <td style="text-align: center;">
+        <strong class="{{#if int_llamado}}valor-si{{else}}valor-no{{/if}}">{{#if int_llamado}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Gases medicinales</td>
+      <td style="text-align: center;">
+        <strong class="{{#if int_gases}}valor-si{{else}}valor-no{{/if}}">{{#if int_gases}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Ropa de cama</td>
+      <td style="text-align: center;">
+        <strong class="{{#if int_ropa}}valor-si{{else}}valor-no{{/if}}">{{#if int_ropa}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+  </table>
+</div>

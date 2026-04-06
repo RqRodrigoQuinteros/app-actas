@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; }
+    
+    .header-ministerio {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+    }
+    .header-ministerio img { height: 55px; object-fit: contain; }
+    
+    .header-text {
+      text-align: center;
+      flex: 1;
+    }
+    .header-text h3 { font-size: 10pt; margin-bottom: 2px; }
+    .header-text p { font-size: 9pt; }
+    
+    h1.titulo-informe {
+      text-align: center;
+      text-decoration: underline;
+      font-size: 16pt;
+      margin: 15px 0;
+    }
+    
+    .subtitulo { text-align: center; margin-bottom: 15px; font-size: 12pt; }
+    
+    p.justificado { text-align: justify; }
+    
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    td, th { border: 1px solid black; padding: 5px 8px; }
+    th { background-color: #f0f0f0; }
+    
+    .seccion { margin-bottom: 20px; }
+    .seccion h3 {
+      background-color: #e0e0e0;
+      padding: 5px 10px;
+      font-size: 12pt;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border: 1px solid #999;
+    }
+    
+    .firma-bloque {
+      margin-top: 50px;
+      text-align: center;
+    }
+    .firma-img { max-width: 200px; max-height: 100px; margin-bottom: 5px; }
+    .linea-firma { border-top: 1px solid black; width: 200px; margin: 0 auto; }
+    
+    .expediente { position: absolute; top: 0; right: 0; font-size: 10pt; }
+  </style>
+</head>
+<body>
+
+  <div class="header-ministerio">
+    <img src="{{logo_ministerio_base64}}" alt="Ministerio de Salud" />
+    <div class="header-text">
+      <h3>DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</h3>
+      <p>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</p>
+    </div>
+    <img src="{{logo_cordoba_base64}}" alt="Gobierno de Córdoba" />
+  </div>
+
+  <div class="expediente">Expte. N°: {{expediente}}</div>
+
+  <h1 class="titulo-informe">INFORME DE ARQUITECTURA</h1>
+  <p class="subtitulo">Fecha: {{fecha}}</p>
+
+  <p class="justificado">
+    El/La arquitecto/a <strong>{{arquitecto_nombre}}</strong> DNI: <strong>{{arquitecto_dni}}</strong>, 
+    comisionado/a por la Dirección General de Regulación Sanitaria, ha procedido a realizar 
+    la inspección del Establecimiento <strong>{{establecimiento_nombre}}</strong> sito en 
+    {{establecimiento_direccion}}, Localidad: <strong>{{establecimiento_localidad}}</strong>, 
+    a los fines de verificar las condiciones de infraestructura y seguridad edilicia.
+  </p>
+
+  <div class="contenido-informe">
+    <p class="justificado">{{datos_formulario.contenido}}</p>
+  </div>
+
+  {{#if observaciones}}
+  <div class="observaciones" style="margin-top: 20px; padding: 10px; border: 1px dashed #666;">
+    <strong>Observaciones:</strong><br>
+    <p class="justificado">{{observaciones}}</p>
+  </div>
+  {{/if}}
+
+  <div class="firma-bloque">
+    {{#if firma_arquitecto}}
+      <img src="{{firma_arquitecto}}" class="firma-img" alt="Firma Arquitecto" />
+    {{/if}}
+    <div class="linea-firma"></div>
+    <p>{{arquitecto_nombre}}</p>
+    <p>DNI: {{arquitecto_dni}}</p>
+    <p>Arquitecto</p>
+  </div>
+
+</body>
+</html>

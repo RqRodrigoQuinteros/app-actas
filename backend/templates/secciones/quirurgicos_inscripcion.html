@@ -1,0 +1,43 @@
+<div class="seccion">
+  <h3>DE LA INSCRIPCIÓN Y HABILITACIÓN</h3>
+  <table>
+    <tr>
+      <td style="width: 70%;">N° Total de Camas</td>
+      <td style="width: 30%; text-align: center;">{{nro_camas_quir}}</td>
+    </tr>
+    <tr>
+      <td>Planos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if planos_quir}}valor-si{{else}}valor-no{{/if}}">{{#if planos_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Tipo de Sociedad</td>
+      <td style="text-align: center;">{{tipo_soc_quir}}</td>
+    </tr>
+    <tr>
+      <td>Aditamiento Privado</td>
+      <td style="text-align: center;">
+        <strong class="{{#if adpriv_quir}}valor-si{{else}}valor-no{{/if}}">{{#if adpriv_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Director y Listado de Profesionales</td>
+      <td style="text-align: center;">
+        <strong class="{{#if dirlis_quir}}valor-si{{else}}valor-no{{/if}}">{{#if dirlis_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Cumple con Edificación</td>
+      <td style="text-align: center;">
+        <strong class="{{#if coined_quir}}valor-si{{else}}valor-no{{/if}}">{{#if coined_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Convenio con Laboratorio</td>
+      <td style="text-align: center;">
+        <strong class="{{#if convlab_quir}}valor-si{{else}}valor-no{{/if}}">{{#if convlab_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+  </table>
+</div>

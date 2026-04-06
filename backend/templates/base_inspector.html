@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; }
+    
+    .header-ministerio {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+    }
+    .header-ministerio img { height: 55px; object-fit: contain; }
+    
+    .header-text {
+      text-align: center;
+      flex: 1;
+    }
+    .header-text h3 {
+      font-size: 10pt;
+      margin-bottom: 2px;
+    }
+    .header-text p { font-size: 9pt; }
+    
+    h1.titulo-acta {
+      text-align: center;
+      text-decoration: underline;
+      font-size: 16pt;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+    
+    .subtitulo { 
+      text-align: center; 
+      margin-bottom: 15px; 
+      font-size: 12pt;
+      font-weight: bold;
+    }
+    
+    p.justificado { text-align: justify; }
+    
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    td, th { border: 1px solid black; padding: 5px 8px; }
+    th { background-color: #f0f0f0; font-weight: bold; }
+    .valor-si { color: black; }
+    .valor-no { color: red; font-weight: bold; }
+    
+    .seccion { margin-bottom: 20px; }
+    .seccion h3 {
+      background-color: #e0e0e0;
+      padding: 5px 10px;
+      font-size: 12pt;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border: 1px solid #999;
+    }
+    
+    .page-break { page-break-before: always; }
+    
+    .foto-pagina {
+      page-break-before: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 270mm;
+      padding: 10px;
+    }
+    .foto-pagina-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .foto-pagina-header img { height: 45px; }
+    .foto-item {
+      max-width: 100%;
+      max-height: 45%;
+      object-fit: contain;
+      margin: 5px 0;
+    }
+    
+    .firmas {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      page-break-inside: avoid;
+    }
+    .bloque-firma {
+      width: 45%;
+      text-align: center;
+    }
+    .firma-img {
+      max-width: 180px;
+      max-height: 80px;
+      margin-bottom: 5px;
+    }
+    .linea-firma {
+      border-top: 1px solid black;
+      margin-top: 5px;
+    }
+    .firma-label { font-size: 10pt; margin-top: 3px; }
+    .firma-datos { font-size: 9pt; }
+    
+    .emplazamiento {
+      margin-top: 25px;
+      padding: 15px;
+      border: 2px solid black;
+      text-align: center;
+      font-size: 11pt;
+      text-transform: uppercase;
+    }
+    
+    .observaciones {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px dashed #666;
+      background-color: #fafafa;
+    }
+    
+    .expediente {
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-ministerio">
+    <img src="{{logo_ministerio_base64}}" alt="Ministerio de Salud" />
+    <div class="header-text">
+      <h3>DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</h3>
+      <p>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</p>
+    </div>
+    <img src="{{logo_cordoba_base64}}" alt="Gobierno de Córdoba" />
+  </div>
+
+  <div class="expediente">Expte. N°: {{expediente}}</div>
+
+  <h1 class="titulo-acta">ACTA DE INSPECCIÓN {{#if expediente}}- Expte. N° {{expediente}}{{/if}}</h1>
+  <p class="subtitulo">INSPECCIÓN: VIRTUAL: {{virtual}} - PRESENCIAL: {{presencial}}</p>
+
+  <p class="justificado">
+    En el día {{fecha}} siendo las {{hora}} horas, el/la que suscribe inspector/a
+    <strong>{{inspector_nombre}}</strong> DNI: <strong>{{inspector_dni}}</strong>, 
+    comisionado/a por la <em>Dirección General de Regulación Sanitaria</em>, del 
+    <em>Ministerio de Salud</em> de la Provincia de Córdoba, a los fines de efectuar 
+    inspección al Establecimiento <strong>{{establecimiento_nombre}}</strong> sito en 
+    {{establecimiento_direccion}}, Localidad: <strong>{{establecimiento_localidad}}</strong>, 
+    se constituye en el lugar a fin de cumplir las exigencias de la Ley 6.222, 
+    Decreto 033/08 y Resolución Ministerial N° 1226/2025, según el formulario de 
+    Inspección provisto por la repartición. Se solicita la presencia del responsable 
+    del Establecimiento y se hace presente el/la Sr./Sra. 
+    <strong>{{responsable_nombre}}</strong> DNI <strong>{{responsable_dni}}</strong> 
+    en su carácter de <strong>{{responsable_caracter}}</strong>. 
+    Efectuada la inspección, se constata:
+  </p>
+
+  <div class="secciones-dinamicas">
+    {{{seccionesHTML}}}
+  </div>
+
+  {{#if observaciones}}
+  <div class="observaciones">
+    <strong>Observaciones:</strong><br>
+    <p class="justificado">{{observaciones}}</p>
+  </div>
+  {{/if}}
+
+  {{#if fotos}}
+  <div class="seccion">
+    <h3>FOTOS DE LA INSPECCIÓN</h3>
+  </div>
+  
+  {{#each (chunk fotos 2)}}
+  <div class="foto-pagina">
+    <div class="foto-pagina-header">
+      <img src="{{@root.logo_ministerio_base64}}" alt="Ministerio" />
+      <img src="{{@root.logo_cordoba_base64}}" alt="Córdoba" />
+    </div>
+    {{#each this}}
+    <img src="{{this}}" alt="Foto" class="foto-item" />
+    {{/each}}
+  </div>
+  {{/each}}
+  {{/if}}
+
+  <div class="firmas">
+    <div class="bloque-firma">
+      {{#if firma_inspector}}
+        <img src="{{firma_inspector}}" class="firma-img" alt="Firma Inspector" />
+      {{else}}
+        <div style="height: 80px;"></div>
+      {{/if}}
+      <div class="linea-firma"></div>
+      <p class="firma-label">Firma del Inspector</p>
+      <p class="firma-datos">{{inspector_nombre}}</p>
+      <p class="firma-datos">DNI: {{inspector_dni}}</p>
+    </div>
+    <div class="bloque-firma">
+      {{#if firma_responsable}}
+        <img src="{{firma_responsable}}" class="firma-img" alt="Firma Responsable" />
+      {{else}}
+        <div style="height: 80px;"></div>
+      {{/if}}
+      <div class="linea-firma"></div>
+      <p class="firma-label">Firma del Responsable</p>
+      <p class="firma-datos">{{responsable_nombre}}</p>
+      <p class="firma-datos">DNI: {{responsable_dni}}</p>
+    </div>
+  </div>
+
+  <div class="emplazamiento">
+    SE EMPLAZA POR EL TÉRMINO DE <strong>{{emplazamiento_valor}} {{emplazamiento_tipo}}</strong> 
+    A CUMPLIMENTAR LAS OBSERVACIONES FORMULADAS BAJO APERCIBIMIENTO DE CLAUSURA, 
+    SUMARIO Y DENUNCIA PENAL SI CORRESPONDIERE, EN CASO DE INCUMPLIMIENTO.
+  </div>
+
+</body>
+</html>

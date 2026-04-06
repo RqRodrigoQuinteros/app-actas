@@ -1,0 +1,29 @@
+<div class="seccion">
+  <h3>EMERGENCIAS - GENERAL</h3>
+  <table>
+    <tr>
+      <td style="width: 70%;">Shock room</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if eme_shockroom}}valor-si{{else}}valor-no{{/if}}">{{#if eme_shockroom}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Ambulancia propia</td>
+      <td style="text-align: center;">
+        <strong class="{{#if eme_ambulancia}}valor-si{{else}}valor-no{{/if}}">{{#if eme_ambulancia}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Cardioversor</td>
+      <td style="text-align: center;">
+        <strong class="{{#if eme_cardioversor}}valor-si{{else}}valor-no{{/if}}">{{#if eme_cardioversor}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>Oxígeno medicinal</td>
+      <td style="text-align: center;">
+        <strong class="{{#if eme_oxigeno}}valor-si{{else}}valor-no{{/if}}">{{#if eme_oxigeno}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+  </table>
+</div>
