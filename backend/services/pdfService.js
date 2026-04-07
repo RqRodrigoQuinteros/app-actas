@@ -11,7 +11,7 @@ handlebars.registerHelper('eq', (a, b) => a === b)
 handlebars.registerHelper('gte', (a, b) => a >= b)
 handlebars.registerHelper('lte', (a, b) => a <= b)
 handlebars.registerHelper('and', (a, b) => a && b)
-handlebars.registerHelper('or', function(...args) {
+handlebars.registerHelper('orFunc', function(...args) {
   const options = args.pop();
   const values = args;
   return values.some(v => v);

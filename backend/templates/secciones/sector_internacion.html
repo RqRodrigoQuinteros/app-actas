@@ -20,7 +20,7 @@
   </table>
   {{/if}}
   
-  {{#or h1_inc h1_con h2_inc h2_con h3_inc h3_con otr tot_habit cam_ort_nro llam_banio}}
+  {{#if (orFunc h1_inc h1_con h2_inc h2_con h3_inc h3_con otr tot_habit cam_ort_nro llam_banio)}}
   <h4 style="margin-top: 15px;">N° de Camas y Baños por Habitación</h4>
   <table>
     {{#if h1_inc}}
@@ -88,7 +88,7 @@
   </table>
   {{/if}}
   
-  {{#or loc_dep per_vent ubi_are_ser}}
+  {{#if (orFunc loc_dep per_vent ubi_are_ser)}}
   <h4 style="margin-top: 15px;">Depósito de Cadáveres</h4>
   <table>
     {{#if loc_dep}}
@@ -118,7 +118,7 @@
   </table>
   {{/if}}
   
-  {{#or ilu_nat vent_natu cli_fri_cal ilu_art_cen ilu_art_ind llam_ind priv}}
+  {{#if (orFunc ilu_nat vent_natu cli_fri_cal ilu_art_cen ilu_art_ind llam_ind priv)}}
   <h4 style="margin-top: 15px;">Ambientes de Internación y Atención</h4>
   <table>
     {{#if ilu_nat}}
