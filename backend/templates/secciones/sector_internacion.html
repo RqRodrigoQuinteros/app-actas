@@ -1,7 +1,8 @@
 <div class="seccion">
   <h3>SECTOR DE INTERNACIÓN — CUMPLE Y ÁREA DE RESIDUOS</h3>
-  {{#if cond_edil}}
+  {{#if (orFunc cond_edil are_res)}}
   <table>
+    {{#if cond_edil}}
     <tr>
       <td style="width: 70%;">Condiciones Edilicias</td>
       <td style="width: 30%; text-align: center;">
