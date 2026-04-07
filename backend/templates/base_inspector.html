@@ -58,35 +58,45 @@
       text-transform: uppercase;
       border: 1px solid #999;
     }
+    .seccion h4 {
+      font-size: 11pt;
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
     
     .page-break { page-break-before: always; }
     
-    .foto-pagina {
-      page-break-before: always;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 270mm;
-      padding: 10px;
+    .foto-contenedor {
+      margin-top: 20px;
     }
-    .foto-pagina-header {
-      display: flex;
-      justify-content: space-between;
+    .foto-titulo {
+      background-color: #e0e0e0;
+      padding: 5px 10px;
+      font-size: 12pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      border: 1px solid #999;
       margin-bottom: 10px;
     }
-    .foto-pagina-header img { height: 45px; }
     .foto-item {
+      page-break-after: always;
+      text-align: center;
+      margin: 20px 0;
+      padding: 10px;
+    }
+    .foto-item img {
       max-width: 100%;
-      max-height: 45%;
+      max-height: 220mm;
       object-fit: contain;
-      margin: 5px 0;
+    }
+    .foto-item:last-child {
+      page-break-after: avoid;
     }
     
     .firmas {
       display: flex;
       justify-content: space-between;
       margin-top: 40px;
-      page-break-inside: avoid;
     }
     .bloque-firma {
       width: 45%;
@@ -105,7 +115,8 @@
     .firma-datos { font-size: 9pt; }
     
     .emplazamiento {
-      margin-top: 25px;
+      margin-top: 30px;
+      margin-bottom: 30px;
       padding: 15px;
       border: 2px solid black;
       text-align: center;
@@ -129,15 +140,6 @@
   </style>
 </head>
 <body>
-
-  <div class="header-ministerio">
-    <img src="{{logo_ministerio_base64}}" alt="Ministerio de Salud" />
-    <div class="header-text">
-      <h3>DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</h3>
-      <p>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</p>
-    </div>
-    <img src="{{logo_cordoba_base64}}" alt="Gobierno de Córdoba" />
-  </div>
 
   <div class="expediente">Expte. N°: {{expediente}}</div>
 
@@ -172,22 +174,21 @@
   {{/if}}
 
   {{#if fotos}}
-  <div class="seccion">
-    <h3>FOTOS DE LA INSPECCIÓN</h3>
-  </div>
-  
-  {{#each (chunk fotos 2)}}
-  <div class="foto-pagina">
-    <div class="foto-pagina-header">
-      <img src="{{@root.logo_ministerio_base64}}" alt="Ministerio" />
-      <img src="{{@root.logo_cordoba_base64}}" alt="Córdoba" />
+  <div class="foto-contenedor">
+    <div class="foto-titulo">FOTOS DE LA INSPECCIÓN</div>
+    {{#each fotos}}
+    <div class="foto-item">
+      <img src="{{this}}" alt="Foto de inspección" />
     </div>
-    {{#each this}}
-    <img src="{{this}}" alt="Foto" class="foto-item" />
     {{/each}}
   </div>
-  {{/each}}
   {{/if}}
+
+  <div class="emplazamiento">
+    SE EMPLAZA POR EL TÉRMINO DE <strong>{{emplazamiento_valor}} {{emplazamiento_tipo}}</strong> 
+    A CUMPLIMENTAR LAS OBSERVACIONES FORMULADAS BAJO APERCIBIMIENTO DE CLAUSURA, 
+    SUMARIO Y DENUNCIA PENAL SI CORRESPONDIERE, EN CASO DE INCUMPLIMIENTO.
+  </div>
 
   <div class="firmas">
     <div class="bloque-firma">
@@ -212,12 +213,6 @@
       <p class="firma-datos">{{responsable_nombre}}</p>
       <p class="firma-datos">DNI: {{responsable_dni}}</p>
     </div>
-  </div>
-
-  <div class="emplazamiento">
-    SE EMPLAZA POR EL TÉRMINO DE <strong>{{emplazamiento_valor}} {{emplazamiento_tipo}}</strong> 
-    A CUMPLIMENTAR LAS OBSERVACIONES FORMULADAS BAJO APERCIBIMIENTO DE CLAUSURA, 
-    SUMARIO Y DENUNCIA PENAL SI CORRESPONDIERE, EN CASO DE INCUMPLIMIENTO.
   </div>
 
 </body>

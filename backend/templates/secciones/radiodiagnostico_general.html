@@ -1,41 +1,37 @@
 <div class="seccion">
-  <h3>RADIOFÍSICA</h3>
+  <h3>RADIODIAGNÓSTICO - GENERAL</h3>
   <table>
+    {{#if radio_equipos}}
     <tr>
-      <td style="width: 70%;">Diagnóstico por imagen habilitados</td>
-      <td style="width: 30%; text-align: center;">{{dia_ima_hab}}</td>
+      <td style="width: 70%;">Equipos de Rayos X</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if radio_equipos}}valor-si{{else}}valor-no{{/if}}">{{#if radio_equipos}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if radio_proteccion}}
     <tr>
-      <td>Densitometría ósea habilitados</td>
-      <td style="text-align: center;">{{den_os}}</td>
+      <td>Protección radiológica</td>
+      <td style="text-align: center;">
+        <strong class="{{#if radio_proteccion}}valor-si{{else}}valor-no{{/if}}">{{#if radio_proteccion}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if radio_dosimetro}}
     <tr>
-      <td>TAC habilitados</td>
-      <td style="text-align: center;">{{tac}}</td>
+      <td>Dosímetro personal</td>
+      <td style="text-align: center;">
+        <strong class="{{#if radio_dosimetro}}valor-si{{else}}valor-no{{/if}}">{{#if radio_dosimetro}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if radio_licencia}}
     <tr>
-      <td>Radiología simple habilitados</td>
-      <td style="text-align: center;">{{rad_sim_hab}}</td>
+      <td>Licencia de Radiofísica</td>
+      <td style="text-align: center;">
+        <strong class="{{#if radio_licencia}}valor-si{{else}}valor-no{{/if}}">{{#if radio_licencia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
-    <tr>
-      <td>Ecografía habilitados</td>
-      <td style="text-align: center;">{{eco_hab}}</td>
-    </tr>
-    <tr>
-      <td>Mamografía habilitados</td>
-      <td style="text-align: center;">{{mam_hab}}</td>
-    </tr>
-    <tr>
-      <td>PET habilitados</td>
-      <td style="text-align: center;">{{pet}}</td>
-    </tr>
-    <tr>
-      <td>RMN habilitados</td>
-      <td style="text-align: center;">{{rmn}}</td>
-    </tr>
-    <tr>
-      <td>Radiología contrastada habilitados</td>
-      <td style="text-align: center;">{{rad_con_hab}}</td>
-    </tr>
+    {{/if}}
   </table>
 </div>

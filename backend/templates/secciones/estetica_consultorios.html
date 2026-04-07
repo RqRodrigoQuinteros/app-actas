@@ -1,67 +1,89 @@
 <div class="seccion">
   <h3>CONSULTORIOS - ESTÉTICA/ONCOLÓGICO</h3>
   <table>
+    {{#if nro}}
     <tr>
       <td style="width: 70%;">Número de consultorios</td>
       <td style="width: 30%; text-align: center;">{{nro}}</td>
     </tr>
+    {{/if}}
+    {{#if vent}}
     <tr>
       <td>Ventilación</td>
       <td style="text-align: center;">
         <strong class="{{#if vent}}valor-si{{else}}valor-no{{/if}}">{{#if vent}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if lavabos}}
     <tr>
       <td>Lavabos</td>
       <td style="text-align: center;">
         <strong class="{{#if lavabos}}valor-si{{else}}valor-no{{/if}}">{{#if lavabos}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if sup}}
     <tr>
       <td>Superficie</td>
       <td style="text-align: center;">{{sup}}</td>
     </tr>
+    {{/if}}
+    {{#if ba_disc}}
     <tr>
       <td>Baño para discapacitados</td>
       <td style="text-align: center;">
         <strong class="{{#if ba_disc}}valor-si{{else}}valor-no{{/if}}">{{#if ba_disc}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if ilum}}
     <tr>
       <td>Iluminación</td>
       <td style="text-align: center;">
         <strong class="{{#if ilum}}valor-si{{else}}valor-no{{/if}}">{{#if ilum}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if priva}}
     <tr>
       <td>Privacidad</td>
       <td style="text-align: center;">
         <strong class="{{#if priva}}valor-si{{else}}valor-no{{/if}}">{{#if priva}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if ar_es}}
     <tr>
       <td>Área de Espera</td>
       <td style="text-align: center;">
         <strong class="{{#if ar_es}}valor-si{{else}}valor-no{{/if}}">{{#if ar_es}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if cons_c_ba}}
     <tr>
       <td>Consultorio c/baño incluido</td>
       <td style="text-align: center;">
         <strong class="{{#if cons_c_ba}}valor-si{{else}}valor-no{{/if}}">{{#if cons_c_ba}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if mi_ad_pres}}
     <tr>
       <td>Microscopio adecuado a las prestaciones</td>
       <td style="text-align: center;">
         <strong class="{{#if mi_ad_pres}}valor-si{{else}}valor-no{{/if}}">{{#if mi_ad_pres}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if con_emp_aut}}
     <tr>
       <td>Contrato con empresa autorizada</td>
       <td style="text-align: center;">
         <strong class="{{#if con_emp_aut}}valor-si{{else}}valor-no{{/if}}">{{#if con_emp_aut}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>

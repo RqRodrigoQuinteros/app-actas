@@ -1,67 +1,89 @@
 <div class="seccion">
   <h3>INSCRIPCIÓN Y HABILITACIÓN - ESTÉTICA/ONCOLÓGICO</h3>
   <table>
+    {{#if nro_cam_rec}}
     <tr>
       <td style="width: 70%;">N° Total de Camas de recuperación</td>
       <td style="width: 30%; text-align: center;">{{nro_cam_rec}}</td>
     </tr>
+    {{/if}}
+    {{#if ti_soc}}
     <tr>
       <td>Tipo de Sociedad</td>
       <td style="text-align: center;">{{ti_soc}}</td>
     </tr>
+    {{/if}}
+    {{#if ad_priv}}
     <tr>
       <td>Aditamento Privado</td>
       <td style="text-align: center;">
         <strong class="{{#if ad_priv}}valor-si{{else}}valor-no{{/if}}">{{#if ad_priv}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if pla}}
     <tr>
       <td>Planos</td>
       <td style="text-align: center;">
         <strong class="{{#if pla}}valor-si{{else}}valor-no{{/if}}">{{#if pla}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if cer_au_lab}}
     <tr>
       <td>Certificado autorización Laboratorio</td>
       <td style="text-align: center;">
         <strong class="{{#if cer_au_lab}}valor-si{{else}}valor-no{{/if}}">{{#if cer_au_lab}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if cer_au_ind}}
     <tr>
       <td>Certificado autorización Individual</td>
       <td style="text-align: center;">
         <strong class="{{#if cer_au_ind}}valor-si{{else}}valor-no{{/if}}">{{#if cer_au_ind}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if cer_hab_hemo}}
     <tr>
       <td>Certificado Habilitación Hemoterapia</td>
       <td style="text-align: center;">
         <strong class="{{#if cer_hab_hemo}}valor-si{{else}}valor-no{{/if}}">{{#if cer_hab_hemo}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if cer_au_dia_ima}}
     <tr>
       <td>Certificado autorización Diagnóstico x Imágenes</td>
       <td style="text-align: center;">
         <strong class="{{#if cer_au_dia_ima}}valor-si{{else}}valor-no{{/if}}">{{#if cer_au_dia_ima}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if dir_lis_pro}}
     <tr>
       <td>Director y Listado de Profesionales</td>
       <td style="text-align: center;">
         <strong class="{{#if dir_lis_pro}}valor-si{{else}}valor-no{{/if}}">{{#if dir_lis_pro}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if org_func}}
     <tr>
       <td>Organigrama funcional</td>
       <td style="text-align: center;">
         <strong class="{{#if org_func}}valor-si{{else}}valor-no{{/if}}">{{#if org_func}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if conv_serv}}
     <tr>
       <td>Convenio Servicio de Emergencias / Unidades Móviles</td>
       <td style="text-align: center;">
         <strong class="{{#if conv_serv}}valor-si{{else}}valor-no{{/if}}">{{#if conv_serv}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>

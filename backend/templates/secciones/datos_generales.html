@@ -1,61 +1,113 @@
 <div class="seccion">
   <h3>DATOS GENERALES</h3>
   <table>
+    {{#if cant_pl}}
     <tr>
       <td style="width: 70%;">Cantidad de Plantas</td>
       <td style="width: 30%; text-align: center;">{{cant_pl}}</td>
     </tr>
+    {{/if}}
+    {{#if fec_ult_ins}}
     <tr>
       <td>Fecha última inspección del conservador</td>
       <td style="text-align: center;">{{fec_ult_ins}}</td>
     </tr>
+    {{/if}}
+    {{#if pos_mon_asc}}
     <tr>
       <td>Posee Montacamillas / Ascensores</td>
-      <td style="text-align: center;">{{pos_mon_asc}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if pos_mon_asc}}valor-si{{else}}valor-no{{/if}}">{{#if pos_mon_asc}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if banio_dis}}
     <tr>
       <td>Baño para público discapacitado mixtos</td>
-      <td style="text-align: center;">{{banio_dis}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if banio_dis}}valor-si{{else}}valor-no{{/if}}">{{#if banio_dis}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if lib_ing}}
     <tr>
       <td>Libre ingreso, circulación y giro de camillas</td>
-      <td style="text-align: center;">{{lib_ing}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lib_ing}}valor-si{{else}}valor-no{{/if}}">{{#if lib_ing}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if luc_aut}}
     <tr>
       <td>Luces autónomas de emergencia</td>
-      <td style="text-align: center;">{{luc_aut}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if luc_aut}}valor-si{{else}}valor-no{{/if}}">{{#if luc_aut}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if equi_ele}}
     <tr>
       <td>Equipo Electrógeno</td>
-      <td style="text-align: center;">{{equi_ele}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if equi_ele}}valor-si{{else}}valor-no{{/if}}">{{#if equi_ele}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if pl_ev_vi}}
     <tr>
       <td>Plan Evacuación vigente</td>
-      <td style="text-align: center;">{{pl_ev_vi}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if pl_ev_vi}}valor-si{{else}}valor-no{{/if}}">{{#if pl_ev_vi}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ex_inc}}
     <tr>
       <td>Extinguidores de Incendios (vigente o no)</td>
-      <td style="text-align: center;">{{ex_inc}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ex_inc}}valor-si{{else}}valor-no{{/if}}">{{#if ex_inc}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if sal_eme}}
     <tr>
       <td>Salida de Emergencia</td>
-      <td style="text-align: center;">{{sal_eme}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if sal_eme}}valor-si{{else}}valor-no{{/if}}">{{#if sal_eme}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if hab_bomb}}
     <tr>
       <td>Habilitación Bomberos</td>
-      <td style="text-align: center;">{{hab_bomb}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hab_bomb}}valor-si{{else}}valor-no{{/if}}">{{#if hab_bomb}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if sil_rue}}
     <tr>
       <td>Silla de Ruedas</td>
-      <td style="text-align: center;">{{sil_rue}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if sil_rue}}valor-si{{else}}valor-no{{/if}}">{{#if sil_rue}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if to_cam_ort}}
     <tr>
       <td>Todas las camas tipo Ortopedia</td>
-      <td style="text-align: center;">{{to_cam_ort}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if to_cam_ort}}valor-si{{else}}valor-no{{/if}}">{{#if to_cam_ort}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if pos_pla}}
     <tr>
       <td>Posee planos inclinados</td>
-      <td style="text-align: center;">{{pos_pla}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if pos_pla}}valor-si{{else}}valor-no{{/if}}">{{#if pos_pla}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
   </table>
 </div>

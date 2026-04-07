@@ -1,29 +1,37 @@
 <div class="seccion">
   <h3>SALUD MENTAL - GENERAL</h3>
   <table>
+    {{#if sm_habitaciones}}
     <tr>
       <td style="width: 70%;">Habitaciones seguras</td>
       <td style="width: 30%; text-align: center;">
         <strong class="{{#if sm_habitaciones}}valor-si{{else}}valor-no{{/if}}">{{#if sm_habitaciones}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if sm_terapia}}
     <tr>
       <td>Sala de terapia grupal</td>
       <td style="text-align: center;">
         <strong class="{{#if sm_terapia}}valor-si{{else}}valor-no{{/if}}">{{#if sm_terapia}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if sm_psiquiatra}}
     <tr>
       <td>Psiquiatra de guardia</td>
       <td style="text-align: center;">
         <strong class="{{#if sm_psiquiatra}}valor-si{{else}}valor-no{{/if}}">{{#if sm_psiquiatra}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if sm_contencion}}
     <tr>
       <td>Registro de contención</td>
       <td style="text-align: center;">
         <strong class="{{#if sm_contencion}}valor-si{{else}}valor-no{{/if}}">{{#if sm_contencion}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>

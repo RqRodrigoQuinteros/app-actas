@@ -1,109 +1,235 @@
 <div class="seccion">
   <h3>ÁREA INTERNACIÓN</h3>
   <table>
+    {{#if habrec_quir}}
     <tr>
-      <td style="width: 70%;">Habitación de recuperación/prácticas clínicas</td>
+      <td style="width: 70%;">Habitación de recuperación y/o prácticas clínicas</td>
       <td style="width: 30%; text-align: center;">
         <strong class="{{#if habrec_quir}}valor-si{{else}}valor-no{{/if}}">{{#if habrec_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if boc_quir}}
     <tr>
-      <td>Boca de Oxígeno</td>
+      <td>Boca de oxígeno</td>
       <td style="text-align: center;">
         <strong class="{{#if boc_quir}}valor-si{{else}}valor-no{{/if}}">{{#if boc_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if poban_quir}}
     <tr>
       <td>Posee baño privado o compartido</td>
       <td style="text-align: center;">
         <strong class="{{#if poban_quir}}valor-si{{else}}valor-no{{/if}}">{{#if poban_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if pocamort_quir}}
     <tr>
       <td>Posee cama ortopédica</td>
       <td style="text-align: center;">
         <strong class="{{#if pocamort_quir}}valor-si{{else}}valor-no{{/if}}">{{#if pocamort_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if libgir_quir}}
     <tr>
       <td>Libre giro de camillas</td>
       <td style="text-align: center;">
         <strong class="{{#if libgir_quir}}valor-si{{else}}valor-no{{/if}}">{{#if libgir_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if can_quir}}
     <tr>
       <td>Cantidad</td>
       <td style="text-align: center;">{{can_quir}}</td>
     </tr>
+    {{/if}}
+    {{#if lav_quiru}}
+    <tr>
+      <td>Lavabos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lav_quiru}}valor-si{{else}}valor-no{{/if}}">{{#if lav_quiru}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if priva_quir}}
     <tr>
       <td>Privacidad</td>
       <td style="text-align: center;">
         <strong class="{{#if priva_quir}}valor-si{{else}}valor-no{{/if}}">{{#if priva_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if llamind_quir}}
     <tr>
       <td>Llamador individual</td>
       <td style="text-align: center;">
         <strong class="{{#if llamind_quir}}valor-si{{else}}valor-no{{/if}}">{{#if llamind_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if climat_quir}}
     <tr>
       <td>Climatización</td>
       <td style="text-align: center;">
         <strong class="{{#if climat_quir}}valor-si{{else}}valor-no{{/if}}">{{#if climat_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-  </table>
-</div>
-
-<div class="seccion">
-  <h3>QUIRÓFANOS</h3>
-  <table>
+    {{/if}}
+    {{#if tuoxig_quir}}
     <tr>
-      <td style="width: 70%;">N° de Quirófanos</td>
-      <td style="width: 30%; text-align: center;">{{nro_quirofnos_quir}}</td>
-    </tr>
-    <tr>
-      <td>Cumple Normas Paredes</td>
+      <td>Tubo de Oxígeno</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_n_par}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_par}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if tuoxig_quir}}valor-si{{else}}valor-no{{/if}}">{{#if tuoxig_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if bovac_quir}}
     <tr>
-      <td>Cumple Normas Pisos</td>
+      <td>Boca de Vacío</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_n_pis}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_pis}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if bovac_quir}}valor-si{{else}}valor-no{{/if}}">{{#if bovac_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if habped_quir}}
     <tr>
-      <td>Cumple Normas Techos</td>
+      <td>Habitación Pediátrica Diferenciada</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_n_tec}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_tec}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if habped_quir}}valor-si{{else}}valor-no{{/if}}">{{#if habped_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if habpacesp_quir}}
     <tr>
-      <td>Circulación exclusiva</td>
+      <td>Habitación Pacientes Especiales</td>
       <td style="text-align: center;">
-        <strong class="{{#if cir_exc}}valor-si{{else}}valor-no{{/if}}">{{#if cir_exc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if habpacesp_quir}}valor-si{{else}}valor-no{{/if}}">{{#if habpacesp_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if nro_quirofnos_quir}}
+    <tr>
+      <td>N° de quirófanos</td>
+      <td style="text-align: center;">{{nro_quirofnos_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if obs1_quir}}
+    <tr>
+      <td>Observaciones quirófano</td>
+      <td style="text-align: center;">{{obs1_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if quir_dimen}}
+    <tr>
+      <td>Quirófano: dimensiones</td>
+      <td style="text-align: center;">{{quir_dimen}}</td>
+    </tr>
+    {{/if}}
+    {{#if pisos_quir}}
+    <tr>
+      <td>Pisos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if pisos_quir}}valor-si{{else}}valor-no{{/if}}">{{#if pisos_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if paredes_quir}}
+    <tr>
+      <td>Paredes</td>
+      <td style="text-align: center;">
+        <strong class="{{#if paredes_quir}}valor-si{{else}}valor-no{{/if}}">{{#if paredes_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if vest_quir}}
     <tr>
       <td>Vestuarios</td>
       <td style="text-align: center;">
         <strong class="{{#if vest_quir}}valor-si{{else}}valor-no{{/if}}">{{#if vest_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if ingtran_quir}}
     <tr>
-      <td>Iluminación adecuada</td>
+      <td>Ingreso y Transferencia de Pacientes</td>
       <td style="text-align: center;">
-        <strong class="{{#if il_adec}}valor-si{{else}}valor-no{{/if}}">{{#if il_adec}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if ingtran_quir}}valor-si{{else}}valor-no{{/if}}">{{#if ingtran_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if comdir_quir}}
+    <tr>
+      <td>Comunicación directa a Quirófano</td>
+      <td style="text-align: center;">
+        <strong class="{{#if comdir_quir}}valor-si{{else}}valor-no{{/if}}">{{#if comdir_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if obs2_quir}}
+    <tr>
+      <td>Observaciones sala recuperación</td>
+      <td style="text-align: center;">{{obs2_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if techos_quir}}
+    <tr>
+      <td>Techo</td>
+      <td style="text-align: center;">
+        <strong class="{{#if techos_quir}}valor-si{{else}}valor-no{{/if}}">{{#if techos_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if salrecu_quir}}
     <tr>
       <td>Sala de Recuperación</td>
       <td style="text-align: center;">
         <strong class="{{#if salrecu_quir}}valor-si{{else}}valor-no{{/if}}">{{#if salrecu_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if ilum_quir}}
+    <tr>
+      <td>Iluminación</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ilum_quir}}valor-si{{else}}valor-no{{/if}}">{{#if ilum_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if climati_quir}}
+    <tr>
+      <td>Climatización</td>
+      <td style="text-align: center;">
+        <strong class="{{#if climati_quir}}valor-si{{else}}valor-no{{/if}}">{{#if climati_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if lavprev_quir}}
+    <tr>
+      <td>Lavabos filtro previo por Vestuario</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lavprev_quir}}valor-si{{else}}valor-no{{/if}}">{{#if lavprev_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if salpre_quir}}
+    <tr>
+      <td>Sala de Pre-Anestesia</td>
+      <td style="text-align: center;">
+        <strong class="{{#if salpre_quir}}valor-si{{else}}valor-no{{/if}}">{{#if salpre_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if arapoy_quir}}
+    <tr>
+      <td>Área de Apoyo para material sucio</td>
+      <td style="text-align: center;">
+        <strong class="{{#if arapoy_quir}}valor-si{{else}}valor-no{{/if}}">{{#if arapoy_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
   </table>
 </div>

@@ -1,73 +1,125 @@
 <div class="seccion">
   <h3>HOSPITAL DE DÍA</h3>
   <table>
+    {{#if nro_camas_hdd}}
     <tr>
       <td style="width: 70%;">N° de Camas</td>
       <td style="width: 30%; text-align: center;">{{nro_camas_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if plan_hdd}}
     <tr>
       <td>Planos</td>
-      <td style="text-align: center;">{{plan_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if plan_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if plan_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if coed_hdd}}
     <tr>
-      <td>Cumple con edificación</td>
-      <td style="text-align: center;">{{coed_hdd}}</td>
+      <td>Coincide con edificación</td>
+      <td style="text-align: center;">
+        <strong class="{{#if coed_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if coed_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if jefserv_hdd}}
     <tr>
       <td>Jefe de Servicio</td>
       <td style="text-align: center;">{{jefserv_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if medonc_hdd}}
     <tr>
       <td>Médico oncológico</td>
       <td style="text-align: center;">{{medonc_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if trsoc_hdd}}
     <tr>
       <td>Trabajador social</td>
       <td style="text-align: center;">{{trsoc_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if enf_hdd}}
     <tr>
       <td>Enfermeros</td>
       <td style="text-align: center;">{{enf_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if kine_hdd}}
     <tr>
       <td>Kinesiólogo</td>
       <td style="text-align: center;">{{kine_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if psico_hdd}}
     <tr>
       <td>Psicólogo</td>
       <td style="text-align: center;">{{psico_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if nutri_hdd}}
     <tr>
       <td>Nutricionista</td>
       <td style="text-align: center;">{{nutri_hdd}}</td>
     </tr>
+    {{/if}}
+    {{#if sillonc_hdd}}
     <tr>
       <td>Sillón de Oncología</td>
-      <td style="text-align: center;">{{sillon_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if sillonc_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if sillonc_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if colanti_hdd}}
     <tr>
       <td>Colchón antiescaras</td>
-      <td style="text-align: center;">{{colanti_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if colanti_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if colanti_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if bominf_hdd}}
     <tr>
       <td>Bomba de infusión</td>
-      <td style="text-align: center;">{{bominf_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if bominf_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if bominf_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if caflula_hdd}}
     <tr>
       <td>Campana de flujo laminar</td>
-      <td style="text-align: center;">{{caflula_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if caflula_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if caflula_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if bala_hdd}}
     <tr>
       <td>Balanza de uso clínico con cartabón</td>
-      <td style="text-align: center;">{{bala_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if bala_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if bala_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if equimon_hdd}}
     <tr>
       <td>Equipo de monitoreo presión arterial</td>
-      <td style="text-align: center;">{{equimon_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if equimon_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if equimon_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if oxipul_hdd}}
     <tr>
       <td>Oxímetro de pulso</td>
-      <td style="text-align: center;">{{oxipul_hdd}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if oxipul_hdd}}valor-si{{else}}valor-no{{/if}}">{{#if oxipul_hdd}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
   </table>
 </div>

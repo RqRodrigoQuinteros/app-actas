@@ -1,41 +1,101 @@
 <div class="seccion">
   <h3>ENFERMERÍA</h3>
   <table>
+    {{#if locprop_quir}}
     <tr>
       <td style="width: 70%;">Local propio</td>
       <td style="width: 30%; text-align: center;">
         <strong class="{{#if locprop_quir}}valor-si{{else}}valor-no{{/if}}">{{#if locprop_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if tubox_quir}}
     <tr>
-      <td>Tubo Oxígeno</td>
+      <td>Tubo oxígeno</td>
       <td style="text-align: center;">
         <strong class="{{#if tubox_quir}}valor-si{{else}}valor-no{{/if}}">{{#if tubox_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if este_quir}}
     <tr>
-      <td>Botiquín Urgencia</td>
+      <td>Estetoscopio</td>
       <td style="text-align: center;">
-        <strong class="{{#if boturg_quir}}valor-si{{else}}valor-no{{/if}}">{{#if boturg_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if este_quir}}valor-si{{else}}valor-no{{/if}}">{{#if este_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if cacur_quir}}
     <tr>
-      <td>Mesada con Pileta</td>
+      <td>Caja de Curaciones</td>
       <td style="text-align: center;">
-        <strong class="{{#if mepil_quir}}valor-si{{else}}valor-no{{/if}}">{{#if mepil_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if cacur_quir}}valor-si{{else}}valor-no{{/if}}">{{#if cacur_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if arproc_quir}}
+    <tr>
+      <td>Área procesamiento Limpios y Usados</td>
+      <td style="text-align: center;">
+        <strong class="{{#if arproc_quir}}valor-si{{else}}valor-no{{/if}}">{{#if arproc_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if arm_quir}}
     <tr>
       <td>Armario o Vitrinas</td>
       <td style="text-align: center;">
         <strong class="{{#if arm_quir}}valor-si{{else}}valor-no{{/if}}">{{#if arm_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if boturg_quir}}
     <tr>
-      <td>Silla de Ruedas</td>
+      <td>Botiquín urgencia</td>
+      <td style="text-align: center;">
+        <strong class="{{#if boturg_quir}}valor-si{{else}}valor-no{{/if}}">{{#if boturg_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if mepil_quir}}
+    <tr>
+      <td>Mesada con pileta</td>
+      <td style="text-align: center;">
+        <strong class="{{#if mepil_quir}}valor-si{{else}}valor-no{{/if}}">{{#if mepil_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if est_quir}}
+    <tr>
+      <td>Estantes</td>
+      <td style="text-align: center;">
+        <strong class="{{#if est_quir}}valor-si{{else}}valor-no{{/if}}">{{#if est_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if sirue_quir}}
+    <tr>
+      <td>Silla de ruedas</td>
       <td style="text-align: center;">
         <strong class="{{#if sirue_quir}}valor-si{{else}}valor-no{{/if}}">{{#if sirue_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if hel_quir}}
+    <tr>
+      <td>Heladera</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hel_quir}}valor-si{{else}}valor-no{{/if}}">{{#if hel_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if tensi_quir}}
+    <tr>
+      <td>Tensiómetro</td>
+      <td style="text-align: center;">
+        <strong class="{{#if tensi_quir}}valor-si{{else}}valor-no{{/if}}">{{#if tensi_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
   </table>
 </div>

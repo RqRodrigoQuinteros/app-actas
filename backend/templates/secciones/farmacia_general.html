@@ -1,29 +1,37 @@
 <div class="seccion">
   <h3>FARMACIA - GENERAL</h3>
   <table>
+    {{#if farma_deposito}}
     <tr>
       <td style="width: 70%;">Depósito de medicamentos</td>
       <td style="width: 30%; text-align: center;">
         <strong class="{{#if farma_deposito}}valor-si{{else}}valor-no{{/if}}">{{#if farma_deposito}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if farma_control_temp}}
     <tr>
       <td>Control de temperatura</td>
       <td style="text-align: center;">
         <strong class="{{#if farma_control_temp}}valor-si{{else}}valor-no{{/if}}">{{#if farma_control_temp}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if farma_farmaceutico}}
     <tr>
       <td>Farmacéutico</td>
       <td style="text-align: center;">
         <strong class="{{#if farma_farmaceutico}}valor-si{{else}}valor-no{{/if}}">{{#if farma_farmaceutico}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if farma_stock}}
     <tr>
       <td>Stock de emergencia</td>
       <td style="text-align: center;">
         <strong class="{{#if farma_stock}}valor-si{{else}}valor-no{{/if}}">{{#if farma_stock}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>

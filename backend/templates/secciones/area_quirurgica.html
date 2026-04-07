@@ -1,101 +1,203 @@
 <div class="seccion">
   <h3>ÁREA QUIRÚRGICA</h3>
   <table>
+    {{#if cant_quir}}
     <tr>
       <td style="width: 70%;">Cantidad de quirófanos</td>
       <td style="width: 30%; text-align: center;">{{cant_quir}}</td>
     </tr>
+    {{/if}}
+    {{#if c_n_par}}
     <tr>
       <td>Cumple Normas Paredes</td>
-      <td style="text-align: center;">{{c_n_par}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_n_par}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_par}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if c_n_pis}}
     <tr>
       <td>Cumple Normas Pisos</td>
-      <td style="text-align: center;">{{c_n_pis}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_n_pis}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_pis}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if c_n_tec}}
     <tr>
       <td>Cumple Normas Techos</td>
-      <td style="text-align: center;">{{c_n_tec}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_n_tec}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_tec}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if cir_exc}}
     <tr>
       <td>Circulación exclusiva</td>
-      <td style="text-align: center;">{{cir_exc}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if cir_exc}}valor-si{{else}}valor-no{{/if}}">{{#if cir_exc}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if in_tr_pac}}
     <tr>
       <td>Ingreso y transferencia de pacientes</td>
-      <td style="text-align: center;">{{in_tr_pac}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if in_tr_pac}}valor-si{{else}}valor-no{{/if}}">{{#if in_tr_pac}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ves_prop}}
     <tr>
       <td>Vestuario propio</td>
-      <td style="text-align: center;">{{ves_prop}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ves_prop}}valor-si{{else}}valor-no{{/if}}">{{#if ves_prop}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if po_ve_pa_fi}}
+    <tr>
+      <td>Posee ventana con paño fijo</td>
+      <td style="text-align: center;">
+        <strong class="{{#if po_ve_pa_fi}}valor-si{{else}}valor-no{{/if}}">{{#if po_ve_pa_fi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if s_suc}}
     <tr>
       <td>Sector sucio</td>
-      <td style="text-align: center;">{{s_suc}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if s_suc}}valor-si{{else}}valor-no{{/if}}">{{#if s_suc}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if c_dir_quir}}
     <tr>
       <td>Comunicación directa a quirófano</td>
-      <td style="text-align: center;">{{c_dir_quir}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_dir_quir}}valor-si{{else}}valor-no{{/if}}">{{#if c_dir_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if dep_mat_es}}
     <tr>
       <td>Depósito material estéril</td>
-      <td style="text-align: center;">{{dep_mat_es}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if dep_mat_es}}valor-si{{else}}valor-no{{/if}}">{{#if dep_mat_es}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if il_adec}}
     <tr>
       <td>Iluminación adecuada</td>
-      <td style="text-align: center;">{{il_adec}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if il_adec}}valor-si{{else}}valor-no{{/if}}">{{#if il_adec}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if cli_fio_calor}}
     <tr>
       <td>Climatización frío-calor</td>
-      <td style="text-align: center;">{{cli_frio_cal}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if cli_fio_calor}}valor-si{{else}}valor-no{{/if}}">{{#if cli_fio_calor}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ac_comp_pre}}
     <tr>
       <td>Acorde a la complejidad prestacional</td>
-      <td style="text-align: center;">{{ac_comp_pre}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ac_comp_pre}}valor-si{{else}}valor-no{{/if}}">{{#if ac_comp_pre}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if card}}
     <tr>
       <td>Cardiodesfibrilador</td>
-      <td style="text-align: center;">{{card}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if card}}valor-si{{else}}valor-no{{/if}}">{{#if card}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if bot_anes}}
     <tr>
       <td>Botiquín básico anestesia</td>
-      <td style="text-align: center;">{{bot_anes}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if bot_anes}}valor-si{{else}}valor-no{{/if}}">{{#if bot_anes}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if bot_rea}}
     <tr>
       <td>Botiquín básico reanimación CV</td>
-      <td style="text-align: center;">{{bot_rea}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if bot_rea}}valor-si{{else}}valor-no{{/if}}">{{#if bot_rea}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if larin}}
     <tr>
       <td>Laringoscopía</td>
-      <td style="text-align: center;">{{larin}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if larin}}valor-si{{else}}valor-no{{/if}}">{{#if larin}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if tub_endo}}
     <tr>
       <td>Tubos endotraqueales</td>
-      <td style="text-align: center;">{{tub_endo}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if tub_endo}}valor-si{{else}}valor-no{{/if}}">{{#if tub_endo}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ca_traq}}
     <tr>
       <td>Caja de traqueotomía</td>
-      <td style="text-align: center;">{{ca_traq}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ca_traq}}valor-si{{else}}valor-no{{/if}}">{{#if ca_traq}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if mon_multi}}
     <tr>
       <td>Monitor multiparamétrico</td>
-      <td style="text-align: center;">{{mon_multi}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if mon_multi}}valor-si{{else}}valor-no{{/if}}">{{#if mon_multi}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if res_auto}}
     <tr>
       <td>Respirador automático</td>
-      <td style="text-align: center;">{{res_auto}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if res_auto}}valor-si{{else}}valor-no{{/if}}">{{#if res_auto}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if me_mayo}}
     <tr>
       <td>Mesa de cirugía Tipo Mayo o similar</td>
-      <td style="text-align: center;">{{me_mayo}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if me_mayo}}valor-si{{else}}valor-no{{/if}}">{{#if me_mayo}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if elec}}
     <tr>
       <td>Electrobisturí</td>
-      <td style="text-align: center;">{{elec}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if elec}}valor-si{{else}}valor-no{{/if}}">{{#if elec}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ins_esp}}
     <tr>
       <td>Instrumental s/especialidades</td>
-      <td style="text-align: center;">{{ins_esp}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ins_esp}}valor-si{{else}}valor-no{{/if}}">{{#if ins_esp}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
   </table>
 </div>

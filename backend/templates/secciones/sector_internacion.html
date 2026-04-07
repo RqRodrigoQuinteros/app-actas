@@ -1,73 +1,182 @@
 <div class="seccion">
   <h3>SECTOR DE INTERNACIÓN — CUMPLE Y ÁREA DE RESIDUOS</h3>
+  {{#if cond_edil}}
   <table>
     <tr>
       <td style="width: 70%;">Condiciones Edilicias</td>
-      <td style="width: 30%; text-align: center;">{{cond_edil}}</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if cond_edil}}valor-si{{else}}valor-no{{/if}}">{{#if cond_edil}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if are_res}}
     <tr>
       <td>Área de Residuos</td>
-      <td style="text-align: center;">{{are_res}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if are_res}}valor-si{{else}}valor-no{{/if}}">{{#if are_res}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
   </table>
+  {{/if}}
   
+  {{#if (or h1_inc h1_con h2_inc h2_con h3_inc h3_con otr tot_habit cam_ort_nro llam_banio)}}
   <h4 style="margin-top: 15px;">N° de Camas y Baños por Habitación</h4>
   <table>
+    {{#if h1_inc}}
     <tr>
       <td style="width: 70%;">Habitación 1 cama — Baño incluido</td>
       <td style="width: 30%; text-align: center;">{{h1_inc}}</td>
     </tr>
+    {{/if}}
+    {{#if h1_con}}
     <tr>
       <td>Habitación 1 cama — Baño contiguo</td>
       <td style="text-align: center;">{{h1_con}}</td>
     </tr>
+    {{/if}}
+    {{#if h2_inc}}
     <tr>
       <td>Habitación 2 camas — Baño incluido</td>
       <td style="text-align: center;">{{h2_inc}}</td>
     </tr>
+    {{/if}}
+    {{#if h2_con}}
     <tr>
       <td>Habitación 2 camas — Baño contiguo</td>
       <td style="text-align: center;">{{h2_con}}</td>
     </tr>
+    {{/if}}
+    {{#if h3_inc}}
     <tr>
       <td>Habitación 3 camas — Baño incluido</td>
       <td style="text-align: center;">{{h3_inc}}</td>
     </tr>
+    {{/if}}
+    {{#if h3_con}}
     <tr>
       <td>Habitación 3 camas — Baño contiguo</td>
       <td style="text-align: center;">{{h3_con}}</td>
     </tr>
+    {{/if}}
+    {{#if otr}}
     <tr>
       <td>Otras habitaciones</td>
       <td style="text-align: center;">{{otr}}</td>
     </tr>
+    {{/if}}
+    {{#if tot_habit}}
     <tr>
       <td>Total de Habitaciones</td>
       <td style="text-align: center; font-weight: bold;">{{tot_habit}}</td>
     </tr>
+    {{/if}}
+    {{#if cam_ort_nro}}
     <tr>
       <td>Camas ortopédicas N°</td>
       <td style="text-align: center;">{{cam_ort_nro}}</td>
     </tr>
+    {{/if}}
+    {{#if llam_banio}}
     <tr>
       <td>Llamador en los baños</td>
-      <td style="text-align: center;">{{llam_banio}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if llam_banio}}valor-si{{else}}valor-no{{/if}}">{{#if llam_banio}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
   </table>
+  {{/if}}
   
+  {{#if (or loc_dep per_vent ubi_are_ser)}}
   <h4 style="margin-top: 15px;">Depósito de Cadáveres</h4>
   <table>
+    {{#if loc_dep}}
     <tr>
       <td style="width: 70%;">Local dimensiones apropiadas depósito</td>
-      <td style="width: 30%; text-align: center;">{{loc_dep}}</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if loc_dep}}valor-si{{else}}valor-no{{/if}}">{{#if loc_dep}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if per_vent}}
     <tr>
       <td>Perfectamente ventilado</td>
-      <td style="text-align: center;">{{per_vent}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if per_vent}}valor-si{{else}}valor-no{{/if}}">{{#if per_vent}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ubi_are_ser}}
     <tr>
       <td>Ubicado en área de servicio</td>
-      <td style="text-align: center;">{{ubi_are_ser}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ubi_are_ser}}valor-si{{else}}valor-no{{/if}}">{{#if ubi_are_ser}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
   </table>
+  {{/if}}
+  
+  {{#if (or ilu_nat vent_natu cli_fri_cal ilu_art_cen ilu_art_ind llam_ind priv)}}
+  <h4 style="margin-top: 15px;">Ambientes de Internación y Atención</h4>
+  <table>
+    {{#if ilu_nat}}
+    <tr>
+      <td style="width: 70%;">Iluminación natural</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if ilu_nat}}valor-si{{else}}valor-no{{/if}}">{{#if ilu_nat}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if vent_natu}}
+    <tr>
+      <td>Ventilación natural</td>
+      <td style="text-align: center;">
+        <strong class="{{#if vent_natu}}valor-si{{else}}valor-no{{/if}}">{{#if vent_natu}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if cli_fri_cal}}
+    <tr>
+      <td>Climatización frío-calor</td>
+      <td style="text-align: center;">
+        <strong class="{{#if cli_fri_cal}}valor-si{{else}}valor-no{{/if}}">{{#if cli_fri_cal}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if ilu_art_cen}}
+    <tr>
+      <td>Iluminación artificial central</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ilu_art_cen}}valor-si{{else}}valor-no{{/if}}">{{#if ilu_art_cen}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if ilu_art_ind}}
+    <tr>
+      <td>Iluminación artificial individual</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ilu_art_ind}}valor-si{{else}}valor-no{{/if}}">{{#if ilu_art_ind}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if llam_ind}}
+    <tr>
+      <td>Llamador individual</td>
+      <td style="text-align: center;">
+        <strong class="{{#if llam_ind}}valor-si{{else}}valor-no{{/if}}">{{#if llam_ind}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if priv}}
+    <tr>
+      <td>Privacidad</td>
+      <td style="text-align: center;">
+        <strong class="{{#if priv}}valor-si{{else}}valor-no{{/if}}">{{#if priv}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+  </table>
+  {{/if}}
 </div>

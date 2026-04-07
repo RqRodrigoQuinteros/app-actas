@@ -1,17 +1,37 @@
 <div class="seccion">
-  <h3>LABORATORIO</h3>
+  <h3>LABORATORIO - GENERAL</h3>
   <table>
+    {{#if lab_equipos}}
     <tr>
-      <td style="width: 70%;">Habilitación por COBICO</td>
-      <td style="width: 30%; text-align: center;">{{hab_cob}}</td>
+      <td style="width: 70%;">Equipos analizadores</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if lab_equipos}}valor-si{{else}}valor-no{{/if}}">{{#if lab_equipos}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if lab_cabinas}}
     <tr>
-      <td>Tipo (Interno / Externo)</td>
-      <td style="text-align: center;">{{son}}</td>
+      <td>Cabinas de bioseguridad</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lab_cabinas}}valor-si{{else}}valor-no{{/if}}">{{#if lab_cabinas}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if lab_residuos}}
     <tr>
-      <td>Servicio (Propio / Contratado)</td>
-      <td style="text-align: center;">{{es}}</td>
+      <td>Contenedores de residuos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lab_residuos}}valor-si{{else}}valor-no{{/if}}">{{#if lab_residuos}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if lab_personal}}
+    <tr>
+      <td>Personal técnico capacitado</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lab_personal}}valor-si{{else}}valor-no{{/if}}">{{#if lab_personal}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
   </table>
 </div>

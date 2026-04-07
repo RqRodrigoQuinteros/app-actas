@@ -1,45 +1,79 @@
 <div class="seccion">
   <h3>GUARDIA</h3>
   <table>
+    {{#if nro_camas_guardia}}
     <tr>
       <td style="width: 70%;">N° de Camas</td>
       <td style="width: 30%; text-align: center;">{{nro_camas_guardia}}</td>
     </tr>
+    {{/if}}
+    {{#if c_e_guardia}}
     <tr>
-      <td>Cumple con edificación</td>
-      <td style="text-align: center;">{{c_e_guardia}}</td>
+      <td>Coincide con edificación</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_e_guardia}}valor-si{{else}}valor-no{{/if}}">{{#if c_e_guardia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if p_guardia}}
     <tr>
       <td>Planos</td>
-      <td style="text-align: center;">{{p_guardia}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if p_guardia}}valor-si{{else}}valor-no{{/if}}">{{#if p_guardia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if medicos_guardia}}
     <tr>
       <td>Médicos (N°)</td>
       <td style="text-align: center;">{{medicos_guardia}}</td>
     </tr>
+    {{/if}}
+    {{#if enfermeras_guardia}}
     <tr>
       <td>Enfermeras (N°)</td>
       <td style="text-align: center;">{{enfermeras_guardia}}</td>
     </tr>
+    {{/if}}
+    {{#if cardi_guardia}}
     <tr>
       <td>Cardiodesfibrilador</td>
-      <td style="text-align: center;">{{cardi_guardia}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if cardi_guardia}}valor-si{{else}}valor-no{{/if}}">{{#if cardi_guardia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if elec_guardia}}
     <tr>
       <td>Electrocardiógrafo</td>
-      <td style="text-align: center;">{{elec_guardia}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if elec_guardia}}valor-si{{else}}valor-no{{/if}}">{{#if elec_guardia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if m_m_guardia}}
     <tr>
       <td>Oxímetro de pulso / monitor multiparamétrico</td>
-      <td style="text-align: center;">{{m_m_guardia}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if m_m_guardia}}valor-si{{else}}valor-no{{/if}}">{{#if m_m_guardia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if e_p_n_guardia}}
     <tr>
       <td>Equipo para nebulizaciones</td>
-      <td style="text-align: center;">{{e_p_n_guardia}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if e_p_n_guardia}}valor-si{{else}}valor-no{{/if}}">{{#if e_p_n_guardia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if c_d_p_guardia}}
     <tr>
       <td>Carro de paro completo</td>
-      <td style="text-align: center;">{{c_d_p_guardia}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_d_p_guardia}}valor-si{{else}}valor-no{{/if}}">{{#if c_d_p_guardia}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
   </table>
 </div>

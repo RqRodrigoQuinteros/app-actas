@@ -1,21 +1,31 @@
 <div class="seccion">
   <h3>CONSULTORIOS SALUD MENTAL</h3>
   <table>
+    {{#if con_sal_men}}
     <tr>
       <td style="width: 70%;">Posee Consultorios Salud Mental</td>
-      <td style="width: 30%; text-align: center;">{{con_sal_men}}</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if con_sal_men}}valor-si{{else}}valor-no{{/if}}">{{#if con_sal_men}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ven_plan_evac}}
     <tr>
       <td>Fecha vencimiento Plan Evacuación</td>
       <td style="text-align: center;">{{ven_plan_evac}}</td>
     </tr>
+    {{/if}}
+    {{#if ven_bomb}}
     <tr>
       <td>Fecha vencimiento Bomberos</td>
       <td style="text-align: center;">{{ven_bomb}}</td>
     </tr>
+    {{/if}}
+    {{#if ven_exti}}
     <tr>
       <td>Fecha vencimiento Extinguidores</td>
       <td style="text-align: center;">{{ven_exti}}</td>
     </tr>
+    {{/if}}
   </table>
 </div>

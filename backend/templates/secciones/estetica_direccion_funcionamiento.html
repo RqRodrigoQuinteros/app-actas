@@ -1,84 +1,107 @@
 <div class="seccion">
   <h3>DIRECCIÓN Y FUNCIONAMIENTO - ESTÉTICA/ONCOLÓGICO</h3>
   <table>
+    {{#if reg_enf_trans}}
     <tr>
       <td style="width: 70%;">Registro de Enfermedades Transmisibles</td>
       <td style="width: 30%; text-align: center;">
         <strong class="{{#if reg_enf_trans}}valor-si{{else}}valor-no{{/if}}">{{#if reg_enf_trans}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if reg_int}}
     <tr>
       <td>Reglamento Interno</td>
       <td style="text-align: center;">
         <strong class="{{#if reg_int}}valor-si{{else}}valor-no{{/if}}">{{#if reg_int}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if reg_psico}}
     <tr>
       <td>Registro de Psicofármacos</td>
       <td style="text-align: center;">
         <strong class="{{#if reg_psico}}valor-si{{else}}valor-no{{/if}}">{{#if reg_psico}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if reg_his_cli_comp}}
     <tr>
       <td>Registro de Historias Clínicas Completo</td>
       <td style="text-align: center;">
         <strong class="{{#if reg_his_cli_comp}}valor-si{{else}}valor-no{{/if}}">{{#if reg_his_cli_comp}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if nro_plantas}}
     <tr>
       <td>Número de Plantas</td>
       <td style="text-align: center;">{{nro_plantas}}</td>
     </tr>
+    {{/if}}
+    {{#if asc_mon}}
     <tr>
       <td>Ascensor / Montacamillas</td>
       <td style="text-align: center;">
         <strong class="{{#if asc_mon}}valor-si{{else}}valor-no{{/if}}">{{#if asc_mon}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if pla_inc}}
     <tr>
       <td>Plano inclinado</td>
       <td style="text-align: center;">
         <strong class="{{#if pla_inc}}valor-si{{else}}valor-no{{/if}}">{{#if pla_inc}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if sal_emerg}}
     <tr>
       <td>Salida de Emergencia</td>
       <td style="text-align: center;">
         <strong class="{{#if sal_emerg}}valor-si{{else}}valor-no{{/if}}">{{#if sal_emerg}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if pl_eva_inc}}
     <tr>
       <td>Plan de evacuación de Incendios</td>
       <td style="text-align: center;">
         <strong class="{{#if pl_eva_inc}}valor-si{{else}}valor-no{{/if}}">{{#if pl_eva_inc}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-    <tr>
-      <td colspan="2" style="background-color: #e0e0e0; font-weight: bold;">SERVICIOS</td>
-    </tr>
+    {{/if}}
+    {{#if minu}}
     <tr>
       <td>Municipalidad</td>
       <td style="text-align: center;">
         <strong class="{{#if minu}}valor-si{{else}}valor-no{{/if}}">{{#if minu}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if gas}}
     <tr>
       <td>Gas</td>
       <td style="text-align: center;">
         <strong class="{{#if gas}}valor-si{{else}}valor-no{{/if}}">{{#if gas}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if agua}}
     <tr>
       <td>Agua</td>
       <td style="text-align: center;">
         <strong class="{{#if agua}}valor-si{{else}}valor-no{{/if}}">{{#if agua}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if luz}}
     <tr>
       <td>Luz</td>
       <td style="text-align: center;">
         <strong class="{{#if luz}}valor-si{{else}}valor-no{{/if}}">{{#if luz}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>

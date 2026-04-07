@@ -1,71 +1,101 @@
 <div class="seccion">
-  <h3>LOCAL - ÓPTICAS (Art. 7, 11, 12, 13)</h3>
+  <h3>LOCALS</h3>
   <table>
+    {{#if art11}}
     <tr>
       <td style="width: 70%;">Óptico regente presente (Art. 11)</td>
       <td style="width: 30%; text-align: center;">
         <strong class="{{#if art11}}valor-si{{else}}valor-no{{/if}}">{{#if art11}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if art7}}
     <tr>
       <td>Presentó Planos Art. 7</td>
       <td style="text-align: center;">
         <strong class="{{#if art7}}valor-si{{else}}valor-no{{/if}}">{{#if art7}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if librec}}
     <tr>
       <td>Libro Recetario / Fichero / Respaldo informático</td>
       <td style="text-align: center;">
         <strong class="{{#if librec}}valor-si{{else}}valor-no{{/if}}">{{#if librec}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if ilad_loc}}
     <tr>
       <td>Iluminación adecuada Art. 13 a)</td>
       <td style="text-align: center;">
         <strong class="{{#if ilad_loc}}valor-si{{else}}valor-no{{/if}}">{{#if ilad_loc}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if interpu}}
     <tr>
       <td>Interpupilómetro Art. 13 a)</td>
       <td style="text-align: center;">
-        <strong class="{{#if interpup}}valor-si{{else}}valor-no{{/if}}">{{#if interpup}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if interpu}}valor-si{{else}}valor-no{{/if}}">{{#if interpu}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if car_pru}}
     <tr>
       <td>Cartilla de prueba para visión cercana</td>
       <td style="text-align: center;">
         <strong class="{{#if car_pru}}valor-si{{else}}valor-no{{/if}}">{{#if car_pru}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if art12_anexo}}
+    <tr>
+      <td>Anexo o dependientes de consultorios médicos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if art12_anexo}}valor-si{{else}}valor-no{{/if}}">{{#if art12_anexo}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if diplo_exhi}}
     <tr>
       <td>Diploma/s exhibido/s Art. 7</td>
       <td style="text-align: center;">
-        <strong class="{{#if dipl_exhi}}valor-si{{else}}valor-no{{/if}}">{{#if dipl_exhi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if diplo_exhi}}valor-si{{else}}valor-no{{/if}}">{{#if diplo_exhi}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if mostr}}
     <tr>
       <td>Mostrador Art. 13 a)</td>
       <td style="text-align: center;">
         <strong class="{{#if mostr}}valor-si{{else}}valor-no{{/if}}">{{#if mostr}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if esp_mostr}}
     <tr>
       <td>Espejo para mostrador</td>
       <td style="text-align: center;">
         <strong class="{{#if esp_mostr}}valor-si{{else}}valor-no{{/if}}">{{#if esp_mostr}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if mue_col}}
     <tr>
       <td>Muestrario de colores de cristales</td>
       <td style="text-align: center;">
         <strong class="{{#if mue_col}}valor-si{{else}}valor-no{{/if}}">{{#if mue_col}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if car_opt}}
     <tr>
       <td>Cartel de optotipo Art. 13 a)</td>
       <td style="text-align: center;">
         <strong class="{{#if car_opt}}valor-si{{else}}valor-no{{/if}}">{{#if car_opt}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>

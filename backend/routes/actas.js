@@ -264,10 +264,22 @@ router.patch('/:id/cidi', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { rol } = req.user;
+    const { rol, id: userId } = req.user;
 
-    if (rol !== 'supervisor') {
-      return res.status(403).json({ error: 'Solo el supervisor puede eliminar actas' });
+    const { data: acta } = await supabase
+      .from('actas')
+      .select('inspector_id, estado')
+      .eq('id', id)
+      .single();
+
+    if (!acta) {
+      return res.status(404).json({ error: 'Acta no encontrada' });
+    }
+
+    const puedeEliminar = rol === 'supervisor' || (rol === 'inspector' && acta.inspector_id === userId && acta.estado === 'borrador');
+
+    if (!puedeEliminar) {
+      return res.status(403).json({ error: 'No puedes eliminar esta acta' });
     }
 
     const { error } = await supabase

@@ -1,17 +1,25 @@
 <div class="seccion">
   <h3>LABORATORIO</h3>
   <table>
+    {{#if hab_cob}}
     <tr>
       <td style="width: 70%;">Habilitación por COBICO</td>
-      <td style="width: 30%; text-align: center;">{{hab_cob}}</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if hab_cob}}valor-si{{else}}valor-no{{/if}}">{{#if hab_cob}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if son}}
     <tr>
       <td>Interno / Externo</td>
       <td style="text-align: center;">{{son}}</td>
     </tr>
+    {{/if}}
+    {{#if es}}
     <tr>
       <td>Propio / Contratado</td>
       <td style="text-align: center;">{{es}}</td>
     </tr>
+    {{/if}}
   </table>
 </div>

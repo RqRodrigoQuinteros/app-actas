@@ -1,65 +1,211 @@
 <div class="seccion">
   <h3>OBSTETRICIA</h3>
   <table>
+    {{#if sal_par}}
     <tr>
       <td style="width: 70%;">Posee sala de parto</td>
-      <td style="width: 30%; text-align: center;">{{sal_par}}</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{#if sal_par}}valor-si{{else}}valor-no{{/if}}">{{#if sal_par}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if sal_rec}}
     <tr>
       <td>Posee sala de recuperación</td>
-      <td style="text-align: center;">{{sal_rec}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if sal_rec}}valor-si{{else}}valor-no{{/if}}">{{#if sal_rec}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if rec_recnac}}
     <tr>
       <td>Posee recepción de recién nacido</td>
-      <td style="text-align: center;">{{rec_recnac}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if rec_recnac}}valor-si{{else}}valor-no{{/if}}">{{#if rec_recnac}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if cant_sal_par}}
     <tr>
       <td>Cantidad de salas de partos</td>
       <td style="text-align: center;">{{cant_sal_par}}</td>
     </tr>
+    {{/if}}
+    {{#if c_normas_par}}
     <tr>
       <td>Cumple normas paredes</td>
-      <td style="text-align: center;">{{c_normas_par}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_normas_par}}valor-si{{else}}valor-no{{/if}}">{{#if c_normas_par}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if c_normas_pis}}
     <tr>
       <td>Cumple normas pisos</td>
-      <td style="text-align: center;">{{c_normas_pis}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_normas_pis}}valor-si{{else}}valor-no{{/if}}">{{#if c_normas_pis}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if c_normas_tec}}
     <tr>
       <td>Cumple normas techos</td>
-      <td style="text-align: center;">{{c_normas_tec}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if c_normas_tec}}valor-si{{else}}valor-no{{/if}}">{{#if c_normas_tec}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if circ_excl}}
     <tr>
       <td>Circulación exclusiva</td>
-      <td style="text-align: center;">{{circ_excl}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if circ_excl}}valor-si{{else}}valor-no{{/if}}">{{#if circ_excl}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if ie_pac}}
+    <tr>
+      <td>Ingreso y transferencia de pacientes</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ie_pac}}valor-si{{else}}valor-no{{/if}}">{{#if ie_pac}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if cl_frio_calor}}
     <tr>
       <td>Climatización frío-calor</td>
-      <td style="text-align: center;">{{cl_frio_calor}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if cl_frio_calor}}valor-si{{else}}valor-no{{/if}}">{{#if cl_frio_calor}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if sal_recep}}
     <tr>
-      <td>Sala de Recepción (1 caja de paro / 2 RN simultáneos)</td>
-      <td style="text-align: center;">{{sal_recep}}</td>
+      <td>Sala de Recepción</td>
+      <td style="text-align: center;">
+        <strong class="{{#if sal_recep}}valor-si{{else}}valor-no{{/if}}">{{#if sal_recep}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if 1c3_par}}
+    <tr>
+      <td>1 c/3 sala de partos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if 1c3_par}}valor-si{{else}}valor-no{{/if}}">{{#if 1c3_par}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if 6e}}
+    <tr>
+      <td>6 enchufes</td>
+      <td style="text-align: center;">
+        <strong class="{{#if 6e}}valor-si{{else}}valor-no{{/if}}">{{#if 6e}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if ve_pro}}
     <tr>
       <td>Vestuario propio</td>
-      <td style="text-align: center;">{{ve_pro}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ve_pro}}valor-si{{else}}valor-no{{/if}}">{{#if ve_pro}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if lav_pre}}
     <tr>
       <td>Lavabos previo filtro de vestuarios</td>
-      <td style="text-align: center;">{{lav_pre}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lav_pre}}valor-si{{else}}valor-no{{/if}}">{{#if lav_pre}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if s_sucio}}
+    <tr>
+      <td>Sector sucio</td>
+      <td style="text-align: center;">
+        <strong class="{{#if s_sucio}}valor-si{{else}}valor-no{{/if}}">{{#if s_sucio}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if ccd_sp}}
+    <tr>
+      <td>Comunicación directa a SP</td>
+      <td style="text-align: center;">
+        <strong class="{{#if ccd_sp}}valor-si{{else}}valor-no{{/if}}">{{#if ccd_sp}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if s_limp}}
     <tr>
       <td>Sector Limpio</td>
-      <td style="text-align: center;">{{s_limp}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if s_limp}}valor-si{{else}}valor-no{{/if}}">{{#if s_limp}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if cc_dir_sp}}
+    <tr>
+      <td>Comunicación directa de SP</td>
+      <td style="text-align: center;">
+        <strong class="{{#if cc_dir_sp}}valor-si{{else}}valor-no{{/if}}">{{#if cc_dir_sp}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if hpre_are}}
+    <tr>
+      <td>Habitación preparto en el área</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hpre_are}}valor-si{{else}}valor-no{{/if}}">{{#if hpre_are}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if hpre_inte}}
+    <tr>
+      <td>Habitación preparto en el internado</td>
+      <td style="text-align: center;">
+        <strong class="{{#if hpre_inte}}valor-si{{else}}valor-no{{/if}}">{{#if hpre_inte}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if il_adecuada}}
     <tr>
       <td>Iluminación adecuada</td>
-      <td style="text-align: center;">{{il_adequada}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if il_adecuada}}valor-si{{else}}valor-no{{/if}}">{{#if il_adecuada}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if pro_des_tie}}
+    <tr>
+      <td>Protección con descarga a tierra</td>
+      <td style="text-align: center;">
+        <strong class="{{#if pro_des_tie}}valor-si{{else}}valor-no{{/if}}">{{#if pro_des_tie}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if 1cp_2rn}}
+    <tr>
+      <td>1 caja de paro c/equipamiento para 2 RN simultáneos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if 1cp_2rn}}valor-si{{else}}valor-no{{/if}}">{{#if 1cp_2rn}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if 1p_c2ox}}
     <tr>
       <td>1 panel c/2 oxígenos 1 aspiración 1 aire comprimido</td>
-      <td style="text-align: center;">{{1p_c2ox}}</td>
+      <td style="text-align: center;">
+        <strong class="{{#if 1p_c2ox}}valor-si{{else}}valor-no{{/if}}">{{#if 1p_c2ox}}SI{{else}}NO{{/if}}</strong>
+      </td>
     </tr>
+    {{/if}}
+    {{#if m_rec_rn}}
+    <tr>
+      <td>Mesa de recepción acolchada c/calorificación p/2 RN</td>
+      <td style="text-align: center;">
+        <strong class="{{#if m_rec_rn}}valor-si{{else}}valor-no{{/if}}">{{#if m_rec_rn}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
   </table>
 </div>

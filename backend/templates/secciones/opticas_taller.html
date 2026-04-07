@@ -1,65 +1,141 @@
 <div class="seccion">
-  <h3>TALLER - ÓPTICAS (Art. 8)</h3>
+  <h3>ÓPTICAS - TALLER</h3>
   <table>
+    {{#if fronto}}
     <tr>
       <td style="width: 70%;">Frontofocómetro</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if front}}valor-si{{else}}valor-no{{/if}}">{{#if front}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if fronto}}valor-si{{else}}valor-no{{/if}}">{{#if fronto}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if esfero}}
     <tr>
       <td>Esferómetro</td>
       <td style="text-align: center;">
         <strong class="{{#if esfero}}valor-si{{else}}valor-no{{/if}}">{{#if esfero}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if pin_adap}}
     <tr>
       <td>Pinzas de adaptación</td>
       <td style="text-align: center;">
         <strong class="{{#if pin_adap}}valor-si{{else}}valor-no{{/if}}">{{#if pin_adap}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if ban_opt}}
     <tr>
       <td>Banco Óptico o Mesa de Trabajo</td>
       <td style="text-align: center;">
         <strong class="{{#if ban_opt}}valor-si{{else}}valor-no{{/if}}">{{#if ban_opt}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if des_var}}
     <tr>
       <td>Destornilladores Varios</td>
       <td style="text-align: center;">
         <strong class="{{#if des_var}}valor-si{{else}}valor-no{{/if}}">{{#if des_var}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if stock_cris}}
     <tr>
       <td>Stock de Cristales</td>
       <td style="text-align: center;">
         <strong class="{{#if stock_cris}}valor-si{{else}}valor-no{{/if}}">{{#if stock_cris}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if arm_metal}}
     <tr>
       <td>Armazones metal (50)</td>
       <td style="text-align: center;">
         <strong class="{{#if arm_metal}}valor-si{{else}}valor-no{{/if}}">{{#if arm_metal}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if calis}}
     <tr>
-      <td>Armazones inyectados (50)</td>
+      <td>Calisoires Varios</td>
       <td style="text-align: center;">
-        <strong class="{{#if arm_iny}}valor-si{{else}}valor-no{{/if}}">{{#if arm_iny}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if calis}}valor-si{{else}}valor-no{{/if}}">{{#if calis}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if pu_vidia}}
+    <tr>
+      <td>Punta de Vidia o Máquina Cortadora</td>
+      <td style="text-align: center;">
+        <strong class="{{#if pu_vidia}}valor-si{{else}}valor-no{{/if}}">{{#if pu_vidia}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if especi}}
+    <tr>
+      <td>Especímetro</td>
+      <td style="text-align: center;">
+        <strong class="{{#if especi}}valor-si{{else}}valor-no{{/if}}">{{#if especi}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if calef}}
+    <tr>
+      <td>Calefactor</td>
+      <td style="text-align: center;">
+        <strong class="{{#if calef}}valor-si{{else}}valor-no{{/if}}">{{#if calef}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if ma_bise}}
     <tr>
       <td>Máquina Biseladora o Calibradora</td>
       <td style="text-align: center;">
         <strong class="{{#if ma_bise}}valor-si{{else}}valor-no{{/if}}">{{#if ma_bise}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if lim_var}}
+    <tr>
+      <td>Limas Varias</td>
+      <td style="text-align: center;">
+        <strong class="{{#if lim_var}}valor-si{{else}}valor-no{{/if}}">{{#if lim_var}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if mart}}
+    <tr>
+      <td>Martillo</td>
+      <td style="text-align: center;">
+        <strong class="{{#if mart}}valor-si{{else}}valor-no{{/if}}">{{#if mart}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if arm_iny}}
+    <tr>
+      <td>Armazones inyectados (50)</td>
+      <td style="text-align: center;">
+        <strong class="{{#if arm_iny}}valor-si{{else}}valor-no{{/if}}">{{#if arm_iny}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if tal_perf}}
     <tr>
       <td>Taladro o Perforador de Mano</td>
       <td style="text-align: center;">
         <strong class="{{#if tal_perf}}valor-si{{else}}valor-no{{/if}}">{{#if tal_perf}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if mach_var}}
+    <tr>
+      <td>Machos Varios</td>
+      <td style="text-align: center;">
+        <strong class="{{#if mach_var}}valor-si{{else}}valor-no{{/if}}">{{#if mach_var}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
   </table>
 </div>

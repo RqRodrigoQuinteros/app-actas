@@ -1,97 +1,165 @@
 <div class="seccion">
   <h3>DE LA DIRECCIÓN Y FUNCIONAMIENTO</h3>
   <table>
+    {{#if regcnftra_quir}}
     <tr>
       <td style="width: 70%;">Registro de Enfermedades Transmisibles</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if regenftra_quir}}valor-si{{else}}valor-no{{/if}}">{{#if regenftra_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if regcnftra_quir}}valor-si{{else}}valor-no{{/if}}">{{#if regcnftra_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if regint_quir}}
     <tr>
       <td>Reglamento Interno</td>
       <td style="text-align: center;">
         <strong class="{{#if regint_quir}}valor-si{{else}}valor-no{{/if}}">{{#if regint_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if nropla_quir}}
     <tr>
-      <td>N° de Plantas</td>
+      <td>Número de Plantas</td>
       <td style="text-align: center;">{{nropla_quir}}</td>
     </tr>
+    {{/if}}
+    {{#if ascmon_quir}}
     <tr>
       <td>Ascensor / Montacamillas</td>
       <td style="text-align: center;">
         <strong class="{{#if ascmon_quir}}valor-si{{else}}valor-no{{/if}}">{{#if ascmon_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if disdif_quir}}
     <tr>
-      <td>Plan de Evacuación de Incendios</td>
+      <td>Disyuntor diferencial</td>
+      <td style="text-align: center;">
+        <strong class="{{#if disdif_quir}}valor-si{{else}}valor-no{{/if}}">{{#if disdif_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if evainc_quir}}
+    <tr>
+      <td>Plan de evacuación de Incendios</td>
       <td style="text-align: center;">
         <strong class="{{#if evainc_quir}}valor-si{{else}}valor-no{{/if}}">{{#if evainc_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if reghisclin_quir}}
     <tr>
       <td>Registro de Historias Clínicas Completo</td>
       <td style="text-align: center;">
         <strong class="{{#if reghisclin_quir}}valor-si{{else}}valor-no{{/if}}">{{#if reghisclin_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if ext_quir}}
     <tr>
       <td>Extinguidores</td>
       <td style="text-align: center;">
         <strong class="{{#if ext_quir}}valor-si{{else}}valor-no{{/if}}">{{#if ext_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if habbomb_quir}}
     <tr>
       <td>Habilitación de Bomberos</td>
       <td style="text-align: center;">
-        <strong class="{{#if habbom_quir}}valor-si{{else}}valor-no{{/if}}">{{#if habbom_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if habbomb_quir}}valor-si{{else}}valor-no{{/if}}">{{#if habbomb_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if plincl_quir}}
     <tr>
-      <td>Plano Inclinado</td>
+      <td>Plano inclinado</td>
       <td style="text-align: center;">
         <strong class="{{#if plincl_quir}}valor-si{{else}}valor-no{{/if}}">{{#if plincl_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if saleme_quir}}
     <tr>
       <td>Salida de Emergencia</td>
       <td style="text-align: center;">
         <strong class="{{#if saleme_quir}}valor-si{{else}}valor-no{{/if}}">{{#if saleme_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if arpatho_quir}}
     <tr>
-      <td>Área para Residuos Patógenos</td>
+      <td>Área para residuos patógenos</td>
       <td style="text-align: center;">
-        <strong class="{{#if arpat_quir}}valor-si{{else}}valor-no{{/if}}">{{#if arpat_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if arpatho_quir}}valor-si{{else}}valor-no{{/if}}">{{#if arpatho_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if nrocons_quir}}
     <tr>
       <td>N° de Consultorios</td>
       <td style="text-align: center;">{{nrocons_quir}}</td>
     </tr>
+    {{/if}}
+    {{#if il_quir}}
     <tr>
       <td>Iluminación</td>
       <td style="text-align: center;">
         <strong class="{{#if il_quir}}valor-si{{else}}valor-no{{/if}}">{{#if il_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if vent_quir}}
     <tr>
       <td>Ventilación</td>
       <td style="text-align: center;">
         <strong class="{{#if vent_quir}}valor-si{{else}}valor-no{{/if}}">{{#if vent_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if pri_quir}}
+    <tr>
+      <td>Privacidad</td>
+      <td style="text-align: center;">
+        <strong class="{{#if pri_quir}}valor-si{{else}}valor-no{{/if}}">{{#if pri_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if lav_quir}}
     <tr>
       <td>Lavabos</td>
       <td style="text-align: center;">
         <strong class="{{#if lav_quir}}valor-si{{else}}valor-no{{/if}}">{{#if lav_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if aresp_quir}}
     <tr>
-      <td>Baño para público/personal</td>
+      <td>Área de Espera</td>
+      <td style="text-align: center;">
+        <strong class="{{#if aresp_quir}}valor-si{{else}}valor-no{{/if}}">{{#if aresp_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if sup_quir}}
+    <tr>
+      <td>Superficie</td>
+      <td style="text-align: center;">{{sup_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if nroasi_quir}}
+    <tr>
+      <td>N° de asientos</td>
+      <td style="text-align: center;">{{nroasi_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if banpub_quir}}
+    <tr>
+      <td>Baño para público / personal</td>
       <td style="text-align: center;">
         <strong class="{{#if banpub_quir}}valor-si{{else}}valor-no{{/if}}">{{#if banpub_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>

@@ -7,19 +7,33 @@ export default function Dashboard() {
   const { usuario, logout } = useAuth();
   const [actas, setActas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filtroCidi, setFiltroCidi] = useState('');
+  const [mostrarModal, setMostrarModal] = useState(null);
 
   useEffect(() => {
     loadActas();
-  }, []);
+  }, [filtroCidi]);
 
   const loadActas = async () => {
     try {
-      const response = await actasAPI.getAll();
+      const params = filtroCidi !== '' ? { subido_cidi: filtroCidi } : {};
+      const response = await actasAPI.getAll(params);
       setActas(response.data);
     } catch (err) {
       console.error('Error cargando actas:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const eliminarActa = async (id) => {
+    try {
+      await actasAPI.delete(id);
+      loadActas();
+      setMostrarModal(null);
+    } catch (err) {
+      console.error('Error eliminando acta:', err);
+      alert('Error al eliminar el acta');
     }
   };
 
@@ -50,7 +64,7 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-4xl mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Mis Actas</h2>
           <Link
             to="/nueva-acta"
@@ -58,6 +72,18 @@ export default function Dashboard() {
           >
             + Nueva Acta
           </Link>
+        </div>
+
+        <div className="flex gap-4 mb-4">
+          <select
+            value={filtroCidi}
+            onChange={(e) => setFiltroCidi(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg"
+          >
+            <option value="">Todas</option>
+            <option value="false">No subidas a CIDI</option>
+            <option value="true">Subidas a CIDI</option>
+          </select>
         </div>
 
         {loading ? (
@@ -74,8 +100,8 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-4">
             {actas.map((acta) => (
-              <Link key={acta.id} to={`/acta/${acta.id}`} className="block">
-                <div className="card hover:shadow-lg transition-shadow">
+              <div key={acta.id} className="card hover:shadow-lg transition-shadow">
+                <Link to={`/acta/${acta.id}`} className="block">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h3 className="font-semibold text-lg">
@@ -100,12 +126,43 @@ export default function Dashboard() {
                     <span>Expte: {acta.expediente || 'Sin expediente'}</span>
                     <span>{acta.fecha}</span>
                   </div>
+                </Link>
+                <div className="mt-3 pt-3 border-t border-gray-200 flex justify-end">
+                  <button
+                    onClick={() => setMostrarModal(acta.id)}
+                    className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200"
+                  >
+                    Eliminar
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
       </main>
+
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-4">
+            <h3 className="text-lg font-bold mb-4">Confirmar eliminación</h3>
+            <p className="text-gray-600 mb-6">¿Está seguro de eliminar esta acta? Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setMostrarModal(null)}
+                className="px-4 py-2 bg-gray-200 rounded-lg"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => eliminarActa(mostrarModal)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

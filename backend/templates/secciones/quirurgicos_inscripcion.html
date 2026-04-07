@@ -1,43 +1,113 @@
 <div class="seccion">
   <h3>DE LA INSCRIPCIÓN Y HABILITACIÓN</h3>
   <table>
+    {{#if nro_camas_quir}}
     <tr>
       <td style="width: 70%;">N° Total de Camas</td>
       <td style="width: 30%; text-align: center;">{{nro_camas_quir}}</td>
     </tr>
+    {{/if}}
+    {{#if plan_quir}}
     <tr>
       <td>Planos</td>
       <td style="text-align: center;">
-        <strong class="{{#if planos_quir}}valor-si{{else}}valor-no{{/if}}">{{#if planos_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if plan_quir}}valor-si{{else}}valor-no{{/if}}">{{#if plan_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if tisoc_quir}}
     <tr>
       <td>Tipo de Sociedad</td>
-      <td style="text-align: center;">{{tipo_soc_quir}}</td>
+      <td style="text-align: center;">{{tisoc_quir}}</td>
     </tr>
+    {{/if}}
+    {{#if adpriv_quir}}
     <tr>
       <td>Aditamiento Privado</td>
       <td style="text-align: center;">
         <strong class="{{#if adpriv_quir}}valor-si{{else}}valor-no{{/if}}">{{#if adpriv_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if dirlis_quir}}
     <tr>
       <td>Director y Listado de Profesionales</td>
       <td style="text-align: center;">
         <strong class="{{#if dirlis_quir}}valor-si{{else}}valor-no{{/if}}">{{#if dirlis_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if noprac_quir}}
     <tr>
-      <td>Cumple con Edificación</td>
+      <td>Nómina de prácticas ambulatorias</td>
+      <td style="text-align: center;">
+        <strong class="{{#if noprac_quir}}valor-si{{else}}valor-no{{/if}}">{{#if noprac_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if conest_quir}}
+    <tr>
+      <td>Convenio con establecimientos polivalentes</td>
+      <td style="text-align: center;">
+        <strong class="{{#if conest_quir}}valor-si{{else}}valor-no{{/if}}">{{#if conest_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if consereme_quir}}
+    <tr>
+      <td>Convenio con Servicio de Emergencias</td>
+      <td style="text-align: center;">
+        <strong class="{{#if consereme_quir}}valor-si{{else}}valor-no{{/if}}">{{#if consereme_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if consertras_quir}}
+    <tr>
+      <td>Convenio con Traslado de Residuos Patógenos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if consertras_quir}}valor-si{{else}}valor-no{{/if}}">{{#if consertras_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if orgfunc_quir}}
+    <tr>
+      <td>Organigrama funcional</td>
+      <td style="text-align: center;">
+        <strong class="{{#if orgfunc_quir}}valor-si{{else}}valor-no{{/if}}">{{#if orgfunc_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if apa_quir}}
+    <tr>
+      <td>Aparatología</td>
+      <td style="text-align: center;">
+        <strong class="{{#if apa_quir}}valor-si{{else}}valor-no{{/if}}">{{#if apa_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if coined_quir}}
+    <tr>
+      <td>Coincide con edificación</td>
       <td style="text-align: center;">
         <strong class="{{#if coined_quir}}valor-si{{else}}valor-no{{/if}}">{{#if coined_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
+    {{#if noproc_quir}}
+    <tr>
+      <td>Nómina de procedimientos</td>
+      <td style="text-align: center;">
+        <strong class="{{#if noproc_quir}}valor-si{{else}}valor-no{{/if}}">{{#if noproc_quir}}SI{{else}}NO{{/if}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if conlab_quir}}
     <tr>
       <td>Convenio con Laboratorio</td>
       <td style="text-align: center;">
-        <strong class="{{#if convlab_quir}}valor-si{{else}}valor-no{{/if}}">{{#if convlab_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{#if conlab_quir}}valor-si{{else}}valor-no{{/if}}">{{#if conlab_quir}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
+    {{/if}}
   </table>
 </div>
