@@ -59,7 +59,6 @@ export default function SubidaFotos({ onFotosChange }) {
           type="file"
           accept="image/*"
           multiple
-          capture="environment"
           onChange={handleFileSelect}
           disabled={uploading}
           className="hidden"
