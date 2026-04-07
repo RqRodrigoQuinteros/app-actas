@@ -12,7 +12,8 @@ handlebars.registerHelper('gte', (a, b) => a >= b)
 handlebars.registerHelper('lte', (a, b) => a <= b)
 handlebars.registerHelper('and', (a, b) => a && b)
 handlebars.registerHelper('or', function(...args) {
-  const values = args.slice(0, -1);
+  const options = args.pop();
+  const values = args;
   return values.some(v => v);
 });
 
