@@ -9,7 +9,7 @@ router.use(authenticateToken);
 router.get('/', async (req, res) => {
   try {
     const { rol, id: userId } = req.user;
-    const { inspector_id, estado, fechaDesde, fechaHasta } = req.query;
+    const { inspector_id, estado, fechaDesde, fechaHasta, subido_cidi } = req.query;
 
     let query = supabase
       .from('actas')
@@ -35,6 +35,10 @@ router.get('/', async (req, res) => {
 
     if (fechaHasta) {
       query = query.lte('fecha', fechaHasta);
+    }
+
+    if (subido_cidi !== undefined) {
+      query = query.eq('subido_cidi', subido_cidi === 'true');
     }
 
     const { data, error } = await query;
@@ -276,7 +280,7 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Acta no encontrada' });
     }
 
-    const puedeEliminar = rol === 'supervisor' || (rol === 'inspector' && acta.inspector_id === userId && acta.estado === 'borrador');
+    const puedeEliminar = rol === 'supervisor' || (rol === 'inspector' && acta.inspector_id === userId);
 
     if (!puedeEliminar) {
       return res.status(403).json({ error: 'No puedes eliminar esta acta' });
