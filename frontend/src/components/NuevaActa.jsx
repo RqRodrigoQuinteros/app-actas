@@ -138,11 +138,12 @@ export default function NuevaActa() {
       setLoading(true);
       setErrorModal(null);
 
-      if (!actaId) {
-        await crearActa();
-      }
+      // actaId puede ser null si el acta nunca se guardó como borrador antes de llegar acá.
+      // crearActa() actualiza el estado pero React no lo refleja en el mismo ciclo,
+      // por eso capturamos el ID del retorno directamente.
+      const idParaUsar = actaId || (await crearActa());
 
-      await actasAPI.update(actaId, {
+      await actasAPI.update(idParaUsar, {
         datos_formulario: datos.datos_formulario,
         observaciones: datos.observaciones,
         emplazamiento_valor: datos.emplazamiento_valor,
@@ -152,7 +153,7 @@ export default function NuevaActa() {
         fotos_urls: datos.fotos_urls,
       });
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/pdf/generar/${actaId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/pdf/generar/${idParaUsar}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -174,7 +175,7 @@ export default function NuevaActa() {
         window.URL.revokeObjectURL(url);
       }
 
-      navigate(`/acta/${actaId}`);
+      navigate(`/acta/${idParaUsar}`);
     } catch (err) {
       console.error('Error generando PDF:', err);
       alert('Error al generar el PDF');
