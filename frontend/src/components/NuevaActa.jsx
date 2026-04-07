@@ -334,7 +334,9 @@ export default function NuevaActa() {
               <div className="mb-4">
                 <label className="label-field">DNI</label>
                 <input
-                  type="text"
+                  type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={datos.responsable_dni}
                   onChange={(e) => setDatos(prev => ({ ...prev, responsable_dni: e.target.value }))}
                   className="input-field"
