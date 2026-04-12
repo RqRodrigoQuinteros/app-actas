@@ -15,11 +15,11 @@ export default function SubidaFotos({ onFotosChange }) {
     try {
       const response = await fotosAPI.subir(selectedFiles);
       const newUrls = response.data.urls;
-      
-      const newPreviews = newUrls.map(url => url);
-      setPreviews(prev => [...prev, ...newPreviews]);
+
+      const allUrls = [...previews, ...newUrls];
+      setPreviews(allUrls);
       setFiles(prev => [...prev, ...selectedFiles]);
-      onFotosChange(newUrls); // Pasar las URLs base64 en lugar de los archivos
+      onFotosChange(allUrls);
     } catch (err) {
       console.error('Error subiendo fotos:', err);
       alert('Error al subir las fotos');

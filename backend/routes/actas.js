@@ -14,7 +14,9 @@ router.get('/', async (req, res) => {
     let query = supabase
       .from('actas')
       .select(`
-        *,
+        id, expediente, estado, fecha, hora, subido_cidi, created_at,
+        establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
+        responsable_nombre, virtual, presencial, inspector_id,
         inspector:usuarios!actas_inspector_id_fkey(nombre, dni)
       `)
       .order('created_at', { ascending: false });
