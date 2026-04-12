@@ -1,8 +1,48 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const handlebars = require('handlebars')
+
+// Detectar la ruta de Chromium disponible (para Railway/producción)
+function getChromiumPath() {
+  // 1. Variable de entorno explícita (configurar en Railway)
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    return process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  // 2. Intentar encontrar chromium en el PATH del sistema (nix/nixpacks)
+  try {
+    const found = execSync('which chromium 2>/dev/null || which chromium-browser 2>/dev/null || which google-chrome 2>/dev/null || echo ""', {
+      encoding: 'utf8', timeout: 3000
+    }).trim();
+    if (found) return found;
+  } catch {}
+  // 3. Fallback al Chrome bundleado de Puppeteer
+  return puppeteer.executablePath();
+}
+
+async function launchBrowser() {
+  const executablePath = getChromiumPath();
+  console.log(`[PDF] Usando Chrome en: ${executablePath}`);
+  return puppeteer.launch({
+    headless: true,
+    executablePath,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-extensions',
+      '--disable-accelerated-2d-canvas',
+      '--disable-web-security',
+      '--font-render-hinting=none',
+      '--run-all-compositor-stages-before-draw',
+    ],
+  });
+}
 
 // Registrar helpers personalizados
 handlebars.registerHelper('gt', (a, b) => a > b)
@@ -288,14 +328,12 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
       console.log(`[PDF] HTML generado, tamaño: ${htmlFinal.length} chars`);
 
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-      });
+      const browser = await launchBrowser();
       console.log(`[PDF] Puppeteer launch OK`);
 
       const page = await browser.newPage();
-      await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
+      page.setDefaultNavigationTimeout(60000);
+      await page.setContent(htmlFinal, { waitUntil: 'load' });
       console.log(`[PDF] Contenido seteado en página`);
 
       const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
@@ -356,13 +394,11 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
     logo_cordoba_base64: logoCordobaBase64 || ''
   });
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-  });
-  
+  const browser = await launchBrowser();
+
   const page = await browser.newPage();
-  await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
+  page.setDefaultNavigationTimeout(60000);
+  await page.setContent(htmlFinal, { waitUntil: 'load' });
 
   const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
   const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
@@ -430,13 +466,11 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
         logo_cordoba_base64: logoCordobaBase64 || '',
       });
 
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-      });
+      const browser = await launchBrowser();
 
       const page = await browser.newPage();
-      await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
+      page.setDefaultNavigationTimeout(60000);
+      await page.setContent(htmlFinal, { waitUntil: 'load' });
 
       const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
       const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
