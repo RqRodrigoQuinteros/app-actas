@@ -1,4 +1,5 @@
 export const TIPOLOGIAS = [
+  { value: 'notificacion', label: 'Acta de Notificación' },
   { value: 'quirurgicos', label: 'Quirúrgicos' },
   { value: 'hemodialisis', label: 'Hemodiálisis' },
   { value: 'estetica', label: 'Estética' },
@@ -161,6 +162,7 @@ export const SECCION_LABELS = {
   odontologia_general: 'Odontología - General',
   farmacia_general: 'Farmacia - General',
   direccion_funcionamiento: 'Dirección y Funcionamiento',
+  notificacion: 'Acta de Notificación',
 };
 
 export const INSPECTORES = [

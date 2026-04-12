@@ -205,7 +205,10 @@ export default function NuevaActa() {
         fotos_urls: datos.fotos_urls,
       });
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/pdf/generar/${idParaUsar}`, {
+      const endpoint = datos.tipologia === 'notificacion'
+        ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/pdf/generar-notificacion/${idParaUsar}`
+        : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/pdf/generar/${idParaUsar}`;
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -286,7 +289,11 @@ export default function NuevaActa() {
 
       <div className="max-w-2xl mx-auto p-4">
         <div className="flex justify-between mb-6 overflow-x-auto pb-2">
-          {PASOS.map((p) => (
+          {PASOS.filter(p => {
+              // Para notificación, ocultar pasos 4 (secciones) y 5 (formulario)
+              if (datos.tipologia === 'notificacion' && (p.id === 4 || p.id === 5)) return false;
+              return true;
+            }).map((p) => (
             <button
               key={p.id}
               onClick={() => p.id <= paso && setPaso(p.id)}
@@ -482,10 +489,10 @@ export default function NuevaActa() {
                   ← Anterior
                 </button>
                 <button onClick={() => {
-                  // Si la tipología tiene selector de secciones, ir al paso de selección
-                  // Si no, saltear directo al formulario (paso 5)
-                  if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) {
-                    // Inicializar con secciones base si no hay selección previa
+                  if (datos.tipologia === 'notificacion') {
+                    // Notificación: sin secciones ni formulario, ir directo a fotos
+                    setPaso(6);
+                  } else if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) {
                     if (seccionesSeleccionadas.length === 0) {
                       setSeccionesSeleccionadas(SECCIONES_BASE[datos.tipologia] || []);
                     }
@@ -567,7 +574,7 @@ export default function NuevaActa() {
             </div>
           )}
 
-          {paso === 5 && (
+          {paso === 5 && datos.tipologia !== 'notificacion' && (
             <div>
               <h2 className="text-xl font-bold mb-4">Formulario de Inspección</h2>
               
@@ -659,7 +666,10 @@ export default function NuevaActa() {
               <SubidaFotos onFotosChange={guardarFotos} />
 
               <div className="flex gap-4 mt-6">
-                <button onClick={() => setPaso(5)} className="btn-secondary">
+                <button onClick={() => {
+                  if (datos.tipologia === 'notificacion') setPaso(3);
+                  else setPaso(5);
+                }} className="btn-secondary">
                   ← Anterior
                 </button>
                 <button onClick={() => setPaso(7)} className="btn-primary">

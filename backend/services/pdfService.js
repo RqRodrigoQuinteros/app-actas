@@ -191,7 +191,13 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
       const baseTemplatePath = path.join(__dirname, '../templates/base_inspector.html');
       const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
 
-      const secciones = SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion_inspeccion'];
+      // Si el acta tiene secciones seleccionadas manualmente (clínica/quirúrgicos con selector),
+      // usarlas; si no, usar las secciones por defecto de la tipología.
+      // Mapear 'conclusion' -> 'conclusion_inspeccion' por compatibilidad frontend/backend.
+      const mapSeccion = s => s === 'conclusion' ? 'conclusion_inspeccion' : s;
+      const secciones = acta.secciones_inspeccionadas && acta.secciones_inspeccionadas.length > 0
+        ? acta.secciones_inspeccionadas.map(mapSeccion)
+        : SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion_inspeccion'];
       
       // Preparar contexto enriquecido para secciones con arrays (UTI/UCO múltiples)
       const df = acta.datos_formulario || {};
@@ -384,8 +390,161 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
   return pdfBuffer;
 }
 
+
+async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
+  const baseTemplatePath = path.join(__dirname, '../templates/base_notificacion.html');
+  const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
+  const template = handlebars.compile(baseTemplate);
+
+  const htmlFinal = template({
+    expediente: acta.expediente || '',
+    fecha: acta.fecha,
+    hora: acta.hora,
+    inspector_nombre: acta.inspector_nombre || '',
+    inspector_dni: acta.inspector_dni || '',
+    establecimiento_nombre: acta.establecimiento_nombre || '',
+    establecimiento_direccion: acta.establecimiento_direccion || '',
+    establecimiento_localidad: acta.establecimiento_localidad || '',
+    responsable_nombre: acta.responsable_nombre || '',
+    responsable_dni: acta.responsable_dni || '',
+    responsable_caracter: acta.responsable_caracter || '',
+    observaciones: acta.observaciones || '',
+    emplazamiento_valor: acta.emplazamiento_valor || acta.emplazamiento_dias || 0,
+    emplazamiento_tipo: (() => {
+      const tipo = acta.emplazamiento_tipo || 'HORAS';
+      const valor = acta.emplazamiento_valor || 0;
+      if (valor === 1) return tipo === 'HORAS' ? 'HORA' : (tipo.startsWith('D') ? 'DÍA' : tipo);
+      return tipo;
+    })(),
+    firma_inspector: acta.firma_inspector_base64 || '',
+    firma_responsable: acta.firma_responsable_base64 || '',
+    logo_ministerio_base64: logoMinisterioBase64 || '',
+    logo_cordoba_base64: logoCordobaBase64 || '',
+  });
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+  });
+  const page = await browser.newPage();
+  await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
+
+  const headerLogoMin = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+  const headerLogoCba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+
+  const pdfBuffer = await page.pdf({
+    format: 'A4',
+    printBackground: true,
+    margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' },
+    displayHeaderFooter: true,
+    headerTemplate: `
+      <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 10mm; font-size: 9pt; font-family: Arial, sans-serif;">
+        ${headerLogoMin}
+        <div style="text-align: center;">
+          <div style="font-weight: bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div>
+          <div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div>
+        </div>
+        ${headerLogoCba}
+      </div>
+    `,
+    footerTemplate: `
+      <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+      </div>
+    `
+  });
+
+  await browser.close();
+  return pdfBuffer;
+}
+
+
+async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
+  const maxRetries = 3;
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const baseTemplatePath = path.join(__dirname, '../templates/base_notificacion.html');
+      const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
+
+      const template = handlebars.compile(baseTemplate);
+      const htmlFinal = template({
+        expediente: acta.expediente || '',
+        fecha: acta.fecha,
+        hora: acta.hora,
+        inspector_nombre: acta.inspector_nombre || '',
+        inspector_dni: acta.inspector_dni || '',
+        establecimiento_nombre: acta.establecimiento_nombre || '',
+        establecimiento_direccion: acta.establecimiento_direccion || '',
+        establecimiento_localidad: acta.establecimiento_localidad || '',
+        responsable_nombre: acta.responsable_nombre || '',
+        responsable_dni: acta.responsable_dni || '',
+        responsable_caracter: acta.responsable_caracter || '',
+        observaciones: acta.observaciones || '',
+        emplazamiento_valor: acta.emplazamiento_valor || acta.emplazamiento_dias || 0,
+        emplazamiento_tipo: (() => {
+          const tipo = acta.emplazamiento_tipo || 'HORAS';
+          const valor = acta.emplazamiento_valor || acta.emplazamiento_dias || 0;
+          if (valor === 1) {
+            return tipo === 'HORAS' ? 'HORA' : (tipo === 'DIAS' || tipo === 'DÍAS' ? 'DÍA' : tipo);
+          }
+          return tipo;
+        })(),
+        firma_inspector: acta.firma_inspector_base64 || '',
+        firma_responsable: acta.firma_responsable_base64 || '',
+        logo_ministerio_base64: logoMinisterioBase64 || '',
+        logo_cordoba_base64: logoCordobaBase64 || '',
+      });
+
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      });
+
+      const page = await browser.newPage();
+      await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
+
+      const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+      const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' },
+        displayHeaderFooter: true,
+        headerTemplate: `
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 10mm; font-size: 9pt; font-family: Arial, sans-serif;">
+            ${headerLogoMinisterio}
+            <div style="text-align: center;">
+              <div style="font-weight: bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div>
+              <div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div>
+            </div>
+            ${headerLogoCordoba}
+          </div>
+        `,
+        footerTemplate: `
+          <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+            Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+          </div>
+        `
+      });
+
+      await browser.close();
+      return pdfBuffer;
+    } catch (err) {
+      lastError = err;
+      console.log(`Notificación intento ${attempt}/3 falló:`, err.message);
+      if (attempt < maxRetries) await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+  throw lastError;
+}
+
 module.exports = {
   generarActaPDF,
   generarInformePDF,
+  generarNotificacionPDF,
+  generarNotificacionPDF,
   SECCIONES_POR_TIPOLOGIA
 };

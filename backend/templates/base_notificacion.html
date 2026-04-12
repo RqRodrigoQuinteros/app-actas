@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; }
+
+    .expediente { position: absolute; top: 0; right: 0; font-size: 10pt; }
+
+    h1.titulo-acta {
+      text-align: center;
+      text-decoration: underline;
+      font-size: 16pt;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+
+    p.justificado { text-align: justify; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    td, th { border: 1px solid black; padding: 5px 8px; }
+    th { background-color: #f0f0f0; font-weight: bold; }
+
+    .seccion { margin-bottom: 20px; }
+    .seccion h3 {
+      background-color: #e0e0e0;
+      padding: 5px 10px;
+      font-size: 12pt;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border: 1px solid #999;
+    }
+    .datos-establecimiento table td:first-child {
+      font-weight: bold;
+      width: 35%;
+      background-color: #f9f9f9;
+    }
+
+    .observaciones {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px dashed #666;
+      background-color: #fafafa;
+    }
+
+    .emplazamiento {
+      margin-top: 30px;
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 2px solid black;
+      text-align: center;
+      font-size: 11pt;
+      text-transform: uppercase;
+    }
+
+    .firmas {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+    }
+    .bloque-firma { width: 45%; text-align: center; }
+    .firma-img { max-width: 180px; max-height: 80px; margin-bottom: 5px; }
+    .linea-firma { border-top: 1px solid black; margin-top: 5px; }
+    .firma-label { font-size: 10pt; margin-top: 3px; }
+    .firma-datos { font-size: 9pt; }
+  </style>
+</head>
+<body>
+
+  <div class="expediente">Expte. N°: {{expediente}}</div>
+
+  <h1 class="titulo-acta">ACTA DE NOTIFICACIÓN {{#if expediente}}- Expte. N° {{expediente}}{{/if}}</h1>
+
+  <p class="justificado">
+    En el día <strong>{{fecha}}</strong> siendo las <strong>{{hora}}</strong> horas, el/la que suscribe inspector/a
+    <strong>{{inspector_nombre}}</strong> DNI: <strong>{{inspector_dni}}</strong>,
+    comisionado/a por la <em>Dirección General de Regulación Sanitaria</em>, del
+    <em>Ministerio de Salud</em> de la Provincia de Córdoba, procede a notificar al
+    Establecimiento <strong>{{establecimiento_nombre}}</strong> sito en
+    <strong>{{establecimiento_direccion}}</strong>, Localidad: <strong>{{establecimiento_localidad}}</strong>.
+    Se solicita la presencia del responsable del Establecimiento y se hace presente el/la Sr./Sra.
+    <strong>{{responsable_nombre}}</strong> DNI <strong>{{responsable_dni}}</strong>
+    en su carácter de <strong>{{responsable_caracter}}</strong>.
+  </p>
+
+  <div class="datos-establecimiento">
+    <div class="seccion" style="margin-top: 20px;">
+      <h3>DATOS DEL ESTABLECIMIENTO</h3>
+      <table>
+        <tr><td>Establecimiento</td><td>{{establecimiento_nombre}}</td></tr>
+        <tr><td>Dirección</td><td>{{establecimiento_direccion}}</td></tr>
+        <tr><td>Localidad</td><td>{{establecimiento_localidad}}</td></tr>
+        {{#if expediente}}<tr><td>N° Expediente</td><td>{{expediente}}</td></tr>{{/if}}
+        <tr><td>Responsable</td><td>{{responsable_nombre}}</td></tr>
+        <tr><td>DNI Responsable</td><td>{{responsable_dni}}</td></tr>
+        <tr><td>Carácter</td><td>{{responsable_caracter}}</td></tr>
+        <tr><td>Fecha</td><td>{{fecha}}</td></tr>
+        <tr><td>Inspector/a</td><td>{{inspector_nombre}} — DNI {{inspector_dni}}</td></tr>
+      </table>
+    </div>
+  </div>
+
+  {{#if observaciones}}
+  <div class="observaciones">
+    <strong>Observaciones / Motivo de Notificación:</strong><br>
+    <p class="justificado">{{observaciones}}</p>
+  </div>
+  {{/if}}
+
+  <div class="emplazamiento">
+    SE EMPLAZA POR EL TÉRMINO DE <strong>{{emplazamiento_valor}} {{emplazamiento_tipo}}</strong>
+    A CUMPLIMENTAR LAS OBSERVACIONES FORMULADAS BAJO APERCIBIMIENTO DE CLAUSURA,
+    SUMARIO Y DENUNCIA PENAL SI CORRESPONDIERE, EN CASO DE INCUMPLIMIENTO.
+  </div>
+
+  <div class="firmas">
+    <div class="bloque-firma">
+      {{#if firma_inspector}}
+        <img src="{{firma_inspector}}" class="firma-img" alt="Firma Inspector" />
+      {{else}}
+        <div style="height: 80px;"></div>
+      {{/if}}
+      <div class="linea-firma"></div>
+      <p class="firma-label">Firma del Inspector</p>
+      <p class="firma-datos">{{inspector_nombre}}</p>
+      <p class="firma-datos">DNI: {{inspector_dni}}</p>
+    </div>
+    <div class="bloque-firma">
+      {{#if firma_responsable}}
+        <img src="{{firma_responsable}}" class="firma-img" alt="Firma Responsable" />
+      {{else}}
+        <div style="height: 80px;"></div>
+      {{/if}}
+      <div class="linea-firma"></div>
+      <p class="firma-label">Firma del Responsable / Notificado</p>
+      <p class="firma-datos">{{responsable_nombre}}</p>
+      <p class="firma-datos">DNI: {{responsable_dni}}</p>
+    </div>
+  </div>
+
+</body>
+</html>
