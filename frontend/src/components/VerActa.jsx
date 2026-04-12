@@ -34,31 +34,20 @@ export default function VerActa() {
     }
   };
 
-  const decodeBase64Pdf = (base64) => {
-    const cleaned = typeof base64 === 'string'
-      ? base64.replace(/[^A-Za-z0-9+/=]/g, '')
-      : '';
-    return Uint8Array.from(atob(cleaned), c => c.charCodeAt(0));
-  };
-
   const generarPDF = async () => {
     try {
       setGenerandoPDF(true);
       const response = await pdfAPI.generarActa(id);
-      
-      if (response.data.pdfBuffer) {
-        const blob = decodeBase64Pdf(response.data.pdfBuffer);
-        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        const nombreArchivo = `Acta ${acta.establecimiento_nombre || 'SinNombre'}${acta.expediente ? ' - ' + acta.expediente : ''}.pdf`;
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = nombreArchivo;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
-      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const nombreArchivo = `Acta ${acta.establecimiento_nombre || 'SinNombre'}${acta.expediente ? ' - ' + acta.expediente : ''}.pdf`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nombreArchivo;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
       loadActa();
     } catch (err) {
       console.error('Error generando PDF:', err);

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { actasAPI } from '../utils/api';
+import { actasAPI, pdfAPI } from '../utils/api';
 import { TIPOLOGIAS, SECCIONES_POR_TIPOLOGIA, SECCION_LABELS } from '../utils/constants';
 import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
@@ -147,13 +147,6 @@ export default function NuevaActa() {
     setDatos(prev => ({ ...prev, firma_responsable_base64: firma }));
   };
 
-  const decodeBase64Pdf = (base64) => {
-    const cleaned = typeof base64 === 'string'
-      ? base64.replace(/[^A-Za-z0-9+/=]/g, '')
-      : '';
-    return Uint8Array.from(atob(cleaned), c => c.charCodeAt(0));
-  };
-
   const validarActa = () => {
     const errores = [];
 
@@ -205,30 +198,20 @@ export default function NuevaActa() {
         fotos_urls: datos.fotos_urls,
       });
 
-      const endpoint = datos.tipologia === 'notificacion'
-        ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/pdf/generar-notificacion/${idParaUsar}`
-        : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/pdf/generar/${idParaUsar}`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const pdfResponse = datos.tipologia === 'notificacion'
+        ? await pdfAPI.generarNotificacion(idParaUsar)
+        : await pdfAPI.generarActa(idParaUsar);
 
-      const data = await response.json();
-      
-      if (data.pdfBuffer) {
-        const blob = decodeBase64Pdf(data.pdfBuffer);
-        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        const nombreArchivo = `Acta ${datos.establecimiento_nombre || 'SinNombre'}${datos.expediente ? ' - ' + datos.expediente : ''}.pdf`;
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = nombreArchivo;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
+      const blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const nombreArchivo = `Acta ${datos.establecimiento_nombre || 'SinNombre'}${datos.expediente ? ' - ' + datos.expediente : ''}.pdf`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nombreArchivo;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
 
       navigate(`/acta/${idParaUsar}`);
     } catch (err) {

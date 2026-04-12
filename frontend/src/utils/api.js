@@ -47,8 +47,9 @@ export const actasAPI = {
 };
 
 export const pdfAPI = {
-  generarActa: (id) => api.post(`/pdf/generar/${id}`),
-  generarInforme: (id) => api.post(`/pdf/informe/${id}`),
+  generarActa: (id) => api.post(`/pdf/generar/${id}`, {}, { responseType: 'blob' }),
+  generarInforme: (id) => api.post(`/pdf/informe/${id}`, {}, { responseType: 'blob' }),
+  generarNotificacion: (id) => api.post(`/pdf/generar-notificacion/${id}`, {}, { responseType: 'blob' }),
 };
 
 export const fotosAPI = {

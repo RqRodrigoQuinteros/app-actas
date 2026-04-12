@@ -50,7 +50,9 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
     const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba);
-    res.json({ pdfBuffer: pdfBuffer.toString('base64') });
+    res.set('Content-Type', 'application/pdf');
+    res.set('Content-Disposition', `attachment; filename="acta.pdf"`);
+    res.send(pdfBuffer);
   } catch (err) {
     console.error('Error generando PDF del acta:', err);
     res.status(500).json({ error: 'Error al generar el PDF' });
@@ -81,7 +83,9 @@ router.post('/informe/:id', authenticateToken, async (req, res) => {
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
     const pdfBuffer = await generarInformePDF(informeCompleto, logoMinisterio, logoCordoba);
-    res.json({ pdfBuffer: pdfBuffer.toString('base64') });
+    res.set('Content-Type', 'application/pdf');
+    res.set('Content-Disposition', `attachment; filename="informe.pdf"`);
+    res.send(pdfBuffer);
   } catch (err) {
     console.error('Error generando PDF del informe:', err);
     res.status(500).json({ error: 'Error al generar el PDF del informe' });
@@ -117,7 +121,9 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
     const pdfBuffer = await generarNotificacionPDF(actaCompleta, logoMinisterio, logoCordoba);
-    res.json({ pdfBuffer: pdfBuffer.toString('base64') });
+    res.set('Content-Type', 'application/pdf');
+    res.set('Content-Disposition', `attachment; filename="notificacion.pdf"`);
+    res.send(pdfBuffer);
   } catch (err) {
     console.error('Error generando PDF de notificación:', err);
     res.status(500).json({ error: 'Error al generar el PDF de notificación' });
