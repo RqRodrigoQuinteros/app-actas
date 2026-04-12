@@ -204,19 +204,26 @@ export default function NuevaActa() {
 
       const blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
-      const nombreArchivo = `Acta ${datos.establecimiento_nombre || 'SinNombre'}${datos.expediente ? ' - ' + datos.expediente : ''}.pdf`;
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = nombreArchivo;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+
+      // Abrir en nueva pestaña (más confiable en Android que a.click())
+      window.open(url, '_blank');
+      // No revocar inmediatamente para que el browser pueda usarlo
+      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
 
       navigate(`/acta/${idParaUsar}`);
     } catch (err) {
       console.error('Error generando PDF:', err);
-      alert('Error al generar el PDF');
+      if (err.response?.data instanceof Blob) {
+        const text = await err.response.data.text();
+        try {
+          const json = JSON.parse(text);
+          alert(`Error del servidor: ${json.error || text}`);
+        } catch {
+          alert(`Error del servidor: ${text}`);
+        }
+      } else {
+        alert(`Error al generar el PDF: ${err.message || ''}`);
+      }
     } finally {
       setLoading(false);
     }

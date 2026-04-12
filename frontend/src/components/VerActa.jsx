@@ -13,6 +13,7 @@ export default function VerActa() {
   const [loading, setLoading] = useState(true);
   const [generandoPDF, setGenerandoPDF] = useState(false);
   const [actualizandoCidi, setActualizandoCidi] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
 
   useEffect(() => {
     loadActa();
@@ -42,20 +43,30 @@ export default function VerActa() {
       const response = esNotificacion
         ? await pdfAPI.generarNotificacion(id)
         : await pdfAPI.generarActa(id);
+
       const blob = new Blob([response.data], { type: 'application/pdf' });
+      // Liberar URL anterior si existe
+      if (pdfBlobUrl) window.URL.revokeObjectURL(pdfBlobUrl);
       const url = window.URL.createObjectURL(blob);
-      const nombreArchivo = `Acta ${acta.establecimiento_nombre || 'SinNombre'}${acta.expediente ? ' - ' + acta.expediente : ''}.pdf`;
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = nombreArchivo;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      setPdfBlobUrl(url);
+
+      // Abrir en nueva pestaña funciona mejor en Android que a.click()
+      window.open(url, '_blank');
       loadActa();
     } catch (err) {
       console.error('Error generando PDF:', err);
-      alert('Error al generar el PDF');
+      // Leer el error real del servidor (responseType blob guarda el JSON como blob)
+      if (err.response?.data instanceof Blob) {
+        const text = await err.response.data.text();
+        try {
+          const json = JSON.parse(text);
+          alert(`Error del servidor: ${json.error || text}`);
+        } catch {
+          alert(`Error del servidor: ${text}`);
+        }
+      } else {
+        alert(`Error al generar el PDF: ${err.message || ''}`);
+      }
     } finally {
       setGenerandoPDF(false);
     }
@@ -280,7 +291,7 @@ export default function VerActa() {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-3">
           <button
             onClick={generarPDF}
             disabled={generandoPDF}
@@ -288,6 +299,16 @@ export default function VerActa() {
           >
             {generandoPDF ? 'Generando PDF...' : 'Generar/Actualizar PDF'}
           </button>
+          {pdfBlobUrl && (
+            <a
+              href={pdfBlobUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+            >
+              Ver PDF generado →
+            </a>
+          )}
         </div>
       </main>
     </div>
