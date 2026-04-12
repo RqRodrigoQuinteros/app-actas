@@ -1,6 +1,6 @@
 import { SECCION_LABELS } from '../utils/constants';
 
-const CAMPOS_POR_SECCION = {
+export const CAMPOS_POR_SECCION = {
   conclusion: [
     { key: 'observado', label: 'Observado' },
     { key: 'director_tecnico', label: 'Director Técnico' },

@@ -46,10 +46,11 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
       inspector_dni: acta.inspector?.dni || '',
     };
 
+    const logoMembrete = cargarLogoBase64('img6.jpg');
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba);
+    const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="acta.pdf"`);
     res.send(pdfBuffer);
@@ -79,10 +80,11 @@ router.post('/informe/:id', authenticateToken, async (req, res) => {
       arquitecto_dni: informe.arquitecto?.dni || '',
     };
 
+    const logoMembrete = cargarLogoBase64('img6.jpg');
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarInformePDF(informeCompleto, logoMinisterio, logoCordoba);
+    const pdfBuffer = await generarInformePDF(informeCompleto, logoMinisterio, logoCordoba, logoMembrete);
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="informe.pdf"`);
     res.send(pdfBuffer);
@@ -117,10 +119,11 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
       inspector_dni: acta.inspector?.dni || '',
     };
 
+    const logoMembrete = cargarLogoBase64('img6.jpg');
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarNotificacionPDF(actaCompleta, logoMinisterio, logoCordoba);
+    const pdfBuffer = await generarNotificacionPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="notificacion.pdf"`);
     res.send(pdfBuffer);

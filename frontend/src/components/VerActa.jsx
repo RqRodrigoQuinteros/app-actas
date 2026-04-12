@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, pdfAPI } from '../utils/api';
 import { SECCION_LABELS, SECCIONES_POR_TIPOLOGIA } from '../utils/constants';
+import { CAMPOS_POR_SECCION } from './SeccionDinamica';
 
 export default function VerActa() {
   const { id } = useParams();
@@ -37,7 +38,10 @@ export default function VerActa() {
   const generarPDF = async () => {
     try {
       setGenerandoPDF(true);
-      const response = await pdfAPI.generarActa(id);
+      const esNotificacion = acta.establecimiento_tipologia === 'notificacion';
+      const response = esNotificacion
+        ? await pdfAPI.generarNotificacion(id)
+        : await pdfAPI.generarActa(id);
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const nombreArchivo = `Acta ${acta.establecimiento_nombre || 'SinNombre'}${acta.expediente ? ' - ' + acta.expediente : ''}.pdf`;
@@ -156,27 +160,36 @@ export default function VerActa() {
           <p><strong>Carácter:</strong> {acta.responsable_caracter}</p>
         </div>
 
-        {secciones.map((seccion) => (
-          <div key={seccion} className="card mb-4">
-            <h3 className="font-bold text-lg mb-3 uppercase bg-gray-100 p-2 -mx-4 -mt-4 rounded-t-lg">
-              {SECCION_LABELS[seccion] || seccion}
-            </h3>
-            
-            <div className="space-y-2">
-              {acta.datos_formulario && Object.entries(acta.datos_formulario).map(([key, valor]) => {
-                if (typeof valor === 'boolean') {
+        {secciones.map((seccion) => {
+          const campos = CAMPOS_POR_SECCION[seccion] || [];
+          const camposConValor = campos.filter(campo => {
+            const valor = acta.datos_formulario?.[campo.key];
+            return valor !== undefined && valor !== null && valor !== '';
+          });
+          if (camposConValor.length === 0) return null;
+          return (
+            <div key={seccion} className="card mb-4">
+              <h3 className="font-bold text-lg mb-3 uppercase bg-gray-100 p-2 -mx-4 -mt-4 rounded-t-lg">
+                {SECCION_LABELS[seccion] || seccion}
+              </h3>
+              <div className="space-y-2">
+                {camposConValor.map((campo) => {
+                  const valor = acta.datos_formulario[campo.key];
                   return (
-                    <div key={key} className="flex justify-between p-2 bg-gray-50 rounded">
-                      <span>{key.replace(/_/g, ' ')}</span>
-                      <span className={getValorClass(valor)}>{getValorTexto(valor)}</span>
+                    <div key={campo.key} className="flex justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm">{campo.label}</span>
+                      {typeof valor === 'boolean' ? (
+                        <span className={getValorClass(valor)}>{getValorTexto(valor)}</span>
+                      ) : (
+                        <span className="font-medium text-sm">{valor}</span>
+                      )}
                     </div>
                   );
-                }
-                return null;
-              })}
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {acta.observaciones && (
           <div className="card mb-4">

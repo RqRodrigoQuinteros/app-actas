@@ -182,7 +182,7 @@ handlebars.registerHelper('valorSiNo', function(value) {
   return '';
 });
 
-async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
+async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const maxRetries = 3;
   let lastError;
 
@@ -294,23 +294,21 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
       
       const page = await browser.newPage();
       await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
-      
+
       const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
       const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
-      
+      const headerContent = membreteBase64
+        ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+        : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
-        margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' },
+        margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
         displayHeaderFooter: true,
         headerTemplate: `
-          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 10mm; font-size: 9pt; font-family: Arial, sans-serif;">
-            ${headerLogoMinisterio}
-            <div style="text-align: center;">
-              <div style="font-weight: bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div>
-              <div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div>
-            </div>
-            ${headerLogoCordoba}
+          <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+            ${headerContent}
           </div>
         `,
         footerTemplate: `
@@ -319,7 +317,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
           </div>
         `
       });
-      
+
       await browser.close();
       return pdfBuffer;
     } catch (err) {
@@ -333,7 +331,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
   throw lastError;
 }
 
-async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase64) {
+async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const baseTemplatePath = path.join(__dirname, '../templates/base_arquitecto.html');
   const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
 
@@ -360,23 +358,21 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
   
   const page = await browser.newPage();
   await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
-  
+
   const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
   const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
-  
+  const headerContent = membreteBase64
+    ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+    : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+
   const pdfBuffer = await page.pdf({
     format: 'A4',
     printBackground: true,
-    margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' },
+    margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
     displayHeaderFooter: true,
     headerTemplate: `
-      <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 10mm; font-size: 9pt; font-family: Arial, sans-serif;">
-        ${headerLogoMinisterio}
-        <div style="text-align: center;">
-          <div style="font-weight: bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div>
-          <div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div>
-        </div>
-        ${headerLogoCordoba}
+      <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+        ${headerContent}
       </div>
     `,
     footerTemplate: `
@@ -385,13 +381,13 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
       </div>
     `
   });
-  
+
   await browser.close();
   return pdfBuffer;
 }
 
 
-async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
+async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const maxRetries = 3;
   let lastError;
 
@@ -439,20 +435,18 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
 
       const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
       const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+      const headerContent = membreteBase64
+        ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+        : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
 
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
-        margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' },
+        margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
         displayHeaderFooter: true,
         headerTemplate: `
-          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 10mm; font-size: 9pt; font-family: Arial, sans-serif;">
-            ${headerLogoMinisterio}
-            <div style="text-align: center;">
-              <div style="font-weight: bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div>
-              <div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div>
-            </div>
-            ${headerLogoCordoba}
+          <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+            ${headerContent}
           </div>
         `,
         footerTemplate: `

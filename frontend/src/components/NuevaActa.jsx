@@ -473,8 +473,8 @@ export default function NuevaActa() {
                 </button>
                 <button onClick={() => {
                   if (datos.tipologia === 'notificacion') {
-                    // Notificación: sin secciones ni formulario, ir directo a fotos
-                    setPaso(6);
+                    // Notificación: sin secciones, ir a paso 5 para observaciones/emplazamiento
+                    setPaso(5);
                   } else if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) {
                     if (seccionesSeleccionadas.length === 0) {
                       setSeccionesSeleccionadas(SECCIONES_BASE[datos.tipologia] || []);
@@ -557,11 +557,13 @@ export default function NuevaActa() {
             </div>
           )}
 
-          {paso === 5 && datos.tipologia !== 'notificacion' && (
+          {paso === 5 && (
             <div>
-              <h2 className="text-xl font-bold mb-4">Formulario de Inspección</h2>
-              
-              {secciones.map((seccion) => (
+              <h2 className="text-xl font-bold mb-4">
+                {datos.tipologia === 'notificacion' ? 'Observaciones y Emplazamiento' : 'Formulario de Inspección'}
+              </h2>
+
+              {datos.tipologia !== 'notificacion' && secciones.map((seccion) => (
                 <SeccionDinamica
                   key={seccion}
                   tipo={seccion}
@@ -649,10 +651,7 @@ export default function NuevaActa() {
               <SubidaFotos onFotosChange={guardarFotos} />
 
               <div className="flex gap-4 mt-6">
-                <button onClick={() => {
-                  if (datos.tipologia === 'notificacion') setPaso(3);
-                  else setPaso(5);
-                }} className="btn-secondary">
+                <button onClick={() => setPaso(5)} className="btn-secondary">
                   ← Anterior
                 </button>
                 <button onClick={() => setPaso(7)} className="btn-primary">
