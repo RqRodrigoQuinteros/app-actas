@@ -182,85 +182,85 @@ const CAMPOS_POR_SECCION = {
   ],
 
   uco: [
-    { key: 'nro_camas_uco', label: 'N° de Camas', type: 'number' },
-    { key: 'planos_uco', label: 'Planos' },
-    { key: 'c_c_e_uco', label: 'Coincide con edificación' },
-    { key: 's_v_uco', label: 'Signos vitales' },
+    { key: 'nro_camas', label: 'N° de Camas', type: 'number' },
+    { key: 'planos', label: 'Planos' },
+    { key: 'c_c_e', label: 'Coincide con edificación' },
+    { key: 's_v', label: 'Signos vitales' },
     { key: 'b_d', label: 'Balance diario' },
-    { key: 'v_i_e_uco', label: 'Volúmenes de ingresos y egresos' },
-    { key: 'm_uco', label: 'Medicación' },
-    { key: 'u_z_c_s_uco', label: 'Unidad en zona de circulación semirrestringida' },
-    { key: 's_i_p_l_uco', label: 'Sala de internación c/pileta lavamanos' },
-    { key: 'o_d_e_uco', label: 'Office de enfermería' },
-    { key: 'mon_uco', label: 'Monitores' },
-    { key: 'l_r_m_u_uco', label: 'Local de ropa y material usado' },
-    { key: 'a_l_uco', label: 'Área lavachatas' },
-    { key: 'd_c_a_uco', label: 'Depósito de camillas y aparatología' },
-    { key: 's_m_uco', label: 'Sala de médicos' },
-    { key: 'g_e_uco', label: 'Grupo electrógeno' },
-    { key: 'a_c_d_uco', label: 'Acceso directo y exclusivo' },
-    { key: 'f_c_c_uco', label: 'Fácil comunicación c/cirugía' },
-    { key: 'pr_uco', label: 'Privacidad' },
-    { key: 'c_o_a_uco', label: 'Camas ortopédicas o articuladas' },
-    { key: 'd_c_uco', label: 'Doble comando' },
-    { key: 'ro_uco', label: 'Rodantes' },
-    { key: 'p_a_r_uco', label: 'Plano apoyo rígido' },
-    { key: 'a_p_uco', label: 'Acceso desde 4 posiciones' },
-    { key: 'v_p_d_c_uco', label: 'Visión panorámica directa a todas las camas' },
-    { key: 'l_i_m_uco', label: 'Local de Instrumental y material estéril' },
-    { key: 'l_c_c_uco', label: 'Local cerrado c/1 cama para aislamiento' },
-    { key: 'e_v_h_uco', label: 'Evoluciones diarias en Historia Clínica' },
-    { key: 'v_v_p_uco', label: 'Vestuario para visitas c/pileta lavamanos' },
-    { key: 'h_c_uco', label: 'Habitación c/baño propio para médico de Guardia' },
-    { key: 'c_l_uco', label: 'Comparte algún local UCI / UCO' },
-    { key: 'p_u_uco', label: 'Posee otras Unidades de UCI / UCO' },
-    { key: 'd_t_e_uco', label: 'Diez tomas de electricidad por cama' },
-    { key: 's_i_uco', label: 'Sistema de Iluminación de Emergencia' },
-    { key: 'herm_uco', label: 'Hermeticidad' },
-    { key: 's_t_s_uco', label: 'Superficie total sala internación' },
-    { key: 'i_n_uco', label: 'Iluminación natural' },
-    { key: 'i_a_uco', label: 'Iluminación artificial central' },
-    { key: 'i_i_uco', label: 'Iluminación Individual' },
-    { key: 'v_a_e_p_uco', label: 'Ventanas al exterior De paño fijo' },
-    { key: 'e_asp_uco', label: 'Equipo de aspiración' },
-    { key: 'res_mec_vol_uco', label: 'Respirador mecánico volumétrico' },
-    { key: 'e_des_sin_uco', label: 'Equipo de desfibrilación y sincronizador' },
-    { key: 'bo_inf_uco', label: 'Bomba de infusión' },
-    { key: 'car1_uco', label: 'Carro de urgencias' },
-    { key: 'lari_uco', label: 'Laringoscopios' },
-    { key: 'masc_uco', label: 'Máscara' },
-    { key: 'res_ambu_uco', label: 'Resucitador tipo AMBU' },
-    { key: 'tens_uco', label: 'Tensiómetro' },
-    { key: 'nebu_uco', label: 'Nebulizador' },
-    { key: 'el_in_endo_uco', label: 'Elementos para intubación endotraqueal' },
-    { key: 'sis_por_as_uco', label: 'Sistema portátil de aspiración p/drenaje' },
-    { key: 'cat_naso_uco', label: 'Equipos para cateterización nasogástrica' },
-    { key: 'e_pun_raq_uco', label: 'Equipos para punción raquídea' },
-    { key: 'e_pun_abd_uco', label: 'Equipo para punción abdominal' },
-    { key: 'car_par_uco', label: 'Carro de paro' },
-    { key: 'ox_pul_por_uco', label: 'Oxímetro de pulso portátil' },
-    { key: 'elec_uco', label: 'Electrocardiógrafo' },
-    { key: 'mar2cat_uco', label: 'Marcapaso transitorio con 2 catéteres' },
-    { key: 'eqrx_uco', label: 'Equipo portátil de Rx 100 Ma/100 Kv' },
-    { key: 'el_traq_uco', label: 'Elementos para traqueotomía' },
-    { key: 'bol_uco', label: 'Bolsa' },
-    { key: 'ada_uco', label: 'Adaptador' },
-    { key: 'car_cur_uco', label: 'Carro de curación' },
-    { key: 'ins_exa_uco', label: 'Instrumental de examen' },
-    { key: 'il_ind_uco', label: 'Iluminación individual' },
-    { key: 'sis_tor_uco', label: 'Sistema de aspiración torácica' },
-    { key: 'cat_ves_uco', label: 'Equipos para cateterización vesical' },
-    { key: 'cat_cat_ven_uco', label: 'Equipos para cateterización venosa' },
-    { key: 'e_pun_tor_uco', label: 'Equipo para punción torácica' },
-    { key: 'bot24_uco', label: 'Botiquín c/medicamentos para urgencias de 24 hs' },
+    { key: 'v_i_e', label: 'Volúmenes de ingresos y egresos' },
+    { key: 'm', label: 'Medicación' },
+    { key: 'u_z_c_s', label: 'Unidad en zona de circulación semirrestringida' },
+    { key: 's_i_p_l', label: 'Sala de internación c/pileta lavamanos' },
+    { key: 'o_d_e', label: 'Office de enfermería' },
+    { key: 'mon', label: 'Monitores' },
+    { key: 'l_r_m_u', label: 'Local de ropa y material usado' },
+    { key: 'a_l', label: 'Área lavachatas' },
+    { key: 'd_c_a', label: 'Depósito de camillas y aparatología' },
+    { key: 's_m', label: 'Sala de médicos' },
+    { key: 'g_e', label: 'Grupo electrógeno' },
+    { key: 'a_c_d', label: 'Acceso directo y exclusivo' },
+    { key: 'f_c_c', label: 'Fácil comunicación c/cirugía' },
+    { key: 'pr', label: 'Privacidad' },
+    { key: 'c_o_a', label: 'Camas ortopédicas o articuladas' },
+    { key: 'd_c', label: 'Doble comando' },
+    { key: 'ro', label: 'Rodantes' },
+    { key: 'p_a_r', label: 'Plano apoyo rígido' },
+    { key: 'a_p', label: 'Acceso desde 4 posiciones' },
+    { key: 'v_p_d_c', label: 'Visión panorámica directa a todas las camas' },
+    { key: 'l_i_m', label: 'Local de Instrumental y material estéril' },
+    { key: 'l_c_c', label: 'Local cerrado c/1 cama para aislamiento' },
+    { key: 'e_v_h', label: 'Evoluciones diarias en Historia Clínica' },
+    { key: 'v_v_p', label: 'Vestuario para visitas c/pileta lavamanos' },
+    { key: 'h_c', label: 'Habitación c/baño propio para médico de Guardia' },
+    { key: 'c_l', label: 'Comparte algún local UCI / UCO' },
+    { key: 'p_u', label: 'Posee otras Unidades de UCI / UCO' },
+    { key: 'd_t_e', label: 'Diez tomas de electricidad por cama' },
+    { key: 's_i', label: 'Sistema de Iluminación de Emergencia' },
+    { key: 'herm', label: 'Hermeticidad' },
+    { key: 's_t_s', label: 'Superficie total sala internación' },
+    { key: 'i_n', label: 'Iluminación natural' },
+    { key: 'i_a', label: 'Iluminación artificial central' },
+    { key: 'i_i', label: 'Iluminación Individual' },
+    { key: 'v_a_e_p', label: 'Ventanas al exterior De paño fijo' },
+    { key: 'e_asp', label: 'Equipo de aspiración' },
+    { key: 'res_mec_vol', label: 'Respirador mecánico volumétrico' },
+    { key: 'e_des_sin', label: 'Equipo de desfibrilación y sincronizador' },
+    { key: 'bo_inf', label: 'Bomba de infusión' },
+    { key: 'car1', label: 'Carro de urgencias' },
+    { key: 'lari', label: 'Laringoscopios' },
+    { key: 'masc', label: 'Máscara' },
+    { key: 'res_ambu', label: 'Resucitador tipo AMBU' },
+    { key: 'tens', label: 'Tensiómetro' },
+    { key: 'nebu', label: 'Nebulizador' },
+    { key: 'el_in_endo', label: 'Elementos para intubación endotraqueal' },
+    { key: 'sis_por_as', label: 'Sistema portátil de aspiración p/drenaje' },
+    { key: 'cat_naso', label: 'Equipos para cateterización nasogástrica' },
+    { key: 'e_pun_raq', label: 'Equipos para punción raquídea' },
+    { key: 'e_pun_abd', label: 'Equipo para punción abdominal' },
+    { key: 'car_par', label: 'Carro de paro' },
+    { key: 'ox_pul_por', label: 'Oxímetro de pulso portátil' },
+    { key: 'elec', label: 'Electrocardiógrafo' },
+    { key: 'mar2cat', label: 'Marcapaso transitorio con 2 catéteres' },
+    { key: 'eqrx', label: 'Equipo portátil de Rx 100 Ma/100 Kv' },
+    { key: 'el_traq', label: 'Elementos para traqueotomía' },
+    { key: 'bol', label: 'Bolsa' },
+    { key: 'ada', label: 'Adaptador' },
+    { key: 'car_cur', label: 'Carro de curación' },
+    { key: 'ins_exa', label: 'Instrumental de examen' },
+    { key: 'il_ind', label: 'Iluminación individual' },
+    { key: 'sis_tor', label: 'Sistema de aspiración torácica' },
+    { key: 'cat_ves', label: 'Equipos para cateterización vesical' },
+    { key: 'cat_cat_ven', label: 'Equipos para cateterización venosa' },
+    { key: 'e_pun_tor', label: 'Equipo para punción torácica' },
+    { key: 'bot24', label: 'Botiquín c/medicamentos para urgencias de 24 hs' },
   ],
 
   uti: [
-    { key: 'nro_camas_uti', label: 'N° de Camas', type: 'number' },
-    { key: 'planos_uti', label: 'Planos' },
-    { key: 'c_c_e_uti', label: 'Coincide con edificación' },
-    { key: 'martrans_nouco_uti', label: 'Marcapaso transitorio (si no tiene UCO)' },
-    { key: 'suptot_uti', label: 'Superficie total sala internación', type: 'number' },
+    { key: 'nro_camas', label: 'N° de Camas', type: 'number' },
+    { key: 'planos', label: 'Planos' },
+    { key: 'c_c_e', label: 'Coincide con edificación' },
+    { key: 'martrans_nouco', label: 'Marcapaso transitorio (si no tiene UCO)' },
+    { key: 'suptot', label: 'Superficie total sala internación', type: 'number' },
   ],
 
   utin: [
@@ -733,7 +733,150 @@ const CAMPOS_POR_SECCION = {
   ],
 };
 
+// Componente para renderizar una sola instancia de UTI o UCO
+function UnidadCuidados({ tipo, index, datos, onChange, onRemove, puedeEliminar }) {
+  const campos = CAMPOS_POR_SECCION[tipo] || [];
+  const labelTipo = tipo === 'uti' ? 'UTI' : 'UCO';
+
+  const handleCampo = (key, valor) => {
+    onChange(index, { ...datos, [key]: valor });
+  };
+
+  return (
+    <div className="mb-4 p-4 bg-white rounded-lg border-2 border-blue-200">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-semibold text-blue-800">{labelTipo} #{index + 1}</h4>
+        {puedeEliminar && (
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="text-red-500 hover:text-red-700 text-sm font-semibold px-3 py-1 rounded border border-red-300 hover:border-red-500"
+          >
+            Eliminar
+          </button>
+        )}
+      </div>
+
+      {/* Nombre personalizado */}
+      <div className="flex flex-col mb-3">
+        <label className="text-sm text-gray-600 mb-1">Nombre / identificación (ej: {labelTipo} Piso 3)</label>
+        <input
+          type="text"
+          value={datos.nombre || ''}
+          onChange={(e) => handleCampo('nombre', e.target.value)}
+          placeholder={`Nombre de la ${labelTipo} (opcional)`}
+          className="p-3 border border-gray-300 rounded-lg"
+        />
+      </div>
+
+      <div className="space-y-3">
+        {campos.map((campo) => {
+          if (campo.type === 'number') {
+            return (
+              <div key={campo.key} className="flex flex-col">
+                <label className="text-sm text-gray-600 mb-1">{campo.label}</label>
+                <input
+                  type="number"
+                  value={datos[campo.key] || ''}
+                  onChange={(e) => handleCampo(campo.key, parseInt(e.target.value) || '')}
+                  className="p-3 border border-gray-300 rounded-lg"
+                />
+              </div>
+            );
+          }
+          return (
+            <div key={campo.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+              <span className="text-base">{campo.label}</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleCampo(campo.key, true)}
+                  className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${
+                    datos[campo.key] === true ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}
+                >SI</button>
+                <button
+                  type="button"
+                  onClick={() => handleCampo(campo.key, false)}
+                  className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${
+                    datos[campo.key] === false ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}
+                >NO</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Componente wrapper para secciones con múltiples unidades (UTI / UCO)
+function SeccionMultipleUnidades({ tipo, unidades, onChange }) {
+  const labelTipo = tipo === 'uti' ? 'UTI' : 'UCO';
+  const titulo = SECCION_LABELS[tipo] || tipo;
+
+  const handleCambioUnidad = (index, datosActualizados) => {
+    const nuevas = unidades.map((u, i) => i === index ? datosActualizados : u);
+    onChange(nuevas);
+  };
+
+  const agregarUnidad = () => {
+    onChange([...unidades, { nombre: '' }]);
+  };
+
+  const eliminarUnidad = (index) => {
+    onChange(unidades.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-lg text-gray-800 uppercase">{titulo}</h3>
+        <button
+          type="button"
+          onClick={agregarUnidad}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700"
+        >
+          + Agregar {labelTipo}
+        </button>
+      </div>
+
+      {unidades.length === 0 && (
+        <p className="text-gray-500 text-sm text-center py-4">
+          No hay {labelTipo}s agregadas. Presioná "+ Agregar {labelTipo}" para comenzar.
+        </p>
+      )}
+
+      {unidades.map((unidad, index) => (
+        <UnidadCuidados
+          key={index}
+          tipo={tipo}
+          index={index}
+          datos={unidad}
+          onChange={handleCambioUnidad}
+          onRemove={eliminarUnidad}
+          puedeEliminar={unidades.length > 1}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function SeccionDinamica({ tipo, datos, onChange }) {
+  // UTI y UCO tienen manejo especial: array de unidades
+  if (tipo === 'uti' || tipo === 'uco') {
+    const arrayKey = tipo === 'uti' ? 'utis' : 'ucos';
+    const unidades = Array.isArray(datos[arrayKey]) ? datos[arrayKey] : [{ nombre: '' }];
+    return (
+      <SeccionMultipleUnidades
+        tipo={tipo}
+        unidades={unidades}
+        onChange={(nuevasUnidades) => onChange({ [arrayKey]: nuevasUnidades })}
+      />
+    );
+  }
+
   const campos = CAMPOS_POR_SECCION[tipo] || [];
   const titulo = SECCION_LABELS[tipo] || tipo;
 

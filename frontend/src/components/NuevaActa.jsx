@@ -7,13 +7,64 @@ import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';
 
+// Tipologías que tienen secciones opcionales seleccionables
+const TIPOLOGIAS_CON_SELECTOR = ['clinica', 'quirurgicos'];
+
+// Secciones base (siempre presentes) por tipología
+const SECCIONES_BASE = {
+  clinica: ['conclusion_inspeccion', 'registros', 'datos_generales'],
+  quirurgicos: ['conclusion_inspeccion', 'registros', 'datos_generales', 'quirurgicos_inscripcion', 'quirurgicos_direccion_funcionamiento'],
+};
+
+// Secciones opcionales con label para el selector
+const SECCIONES_OPCIONALES = {
+  clinica: [
+    { key: 'consultorios_externos', label: 'Consultorios Externos' },
+    { key: 'consultorios_salud_mental', label: 'Consultorios Salud Mental' },
+    { key: 'la_institucion_posee', label: 'La Institución Posee' },
+    { key: 'radiofisica', label: 'Radiofísica' },
+    { key: 'sector_internacion', label: 'Sector de Internación' },
+    { key: 'enfermeria', label: 'Enfermería' },
+    { key: 'area_quirurgica', label: 'Área Quirúrgica' },
+    { key: 'obstetricia', label: 'Obstetricia' },
+    { key: 'laboratorio', label: 'Laboratorio' },
+    { key: 'guardia', label: 'Guardia' },
+    { key: 'uco', label: 'UCO — Unidad Coronaria' },
+    { key: 'uti', label: 'UTI — Unidad de Terapia Intensiva' },
+    { key: 'utin', label: 'UTIN — UTI Neonatal' },
+    { key: 'hemodinamia', label: 'Hemodinamia' },
+    { key: 'hospital_dia', label: 'Hospital de Día' },
+  ],
+  quirurgicos: [
+    { key: 'consultorios_externos', label: 'Consultorios Externos' },
+    { key: 'consultorios_salud_mental', label: 'Consultorios Salud Mental' },
+    { key: 'la_institucion_posee', label: 'La Institución Posee' },
+    { key: 'sector_internacion', label: 'Sector de Internación' },
+    { key: 'enfermeria', label: 'Enfermería' },
+    { key: 'quirurgicos_enfermeria', label: 'Enfermería Quirúrgica' },
+    { key: 'area_quirurgica', label: 'Área Quirúrgica' },
+    { key: 'quirurgicos_area_internacion', label: 'Área Internación Quirúrgica' },
+    { key: 'quirurgicos_equipamiento', label: 'Equipamiento' },
+    { key: 'quirurgicos_esterilizacion', label: 'Esterilización' },
+    { key: 'obstetricia', label: 'Obstetricia' },
+    { key: 'laboratorio', label: 'Laboratorio' },
+    { key: 'guardia', label: 'Guardia' },
+    { key: 'uco', label: 'UCO — Unidad Coronaria' },
+    { key: 'uti', label: 'UTI — Unidad de Terapia Intensiva' },
+    { key: 'utin', label: 'UTIN — UTI Neonatal' },
+    { key: 'hemodinamia', label: 'Hemodinamia' },
+    { key: 'hospital_dia', label: 'Hospital de Día' },
+  ],
+};
+
 const PASOS = [
   { id: 1, label: 'Establecimiento' },
   { id: 2, label: 'Responsable' },
   { id: 3, label: 'Tipo Inspección' },
-  { id: 4, label: 'Formulario' },
-  { id: 5, label: 'Fotos' },
-  { id: 6, label: 'Firmas' },
+  { id: 4, label: 'Secciones' },
+  { id: 5, label: 'Formulario' },
+  { id: 6, label: 'Fotos' },
+  { id: 7, label: 'Firmas' },
 ];
 
 export default function NuevaActa() {
@@ -23,6 +74,7 @@ export default function NuevaActa() {
   const [loading, setLoading] = useState(false);
   const [actaId, setActaId] = useState(null);
   const [errorModal, setErrorModal] = useState(null);
+  const [seccionesSeleccionadas, setSeccionesSeleccionadas] = useState([]);
 
   const [datos, setDatos] = useState({
     expediente: '',
@@ -184,7 +236,14 @@ export default function NuevaActa() {
     }
   };
 
-  const secciones = SECCIONES_POR_TIPOLOGIA[datos.tipologia] || ['conclusion'];
+  // Si la tipología tiene selector de secciones y ya hay seleccionadas, usarlas.
+  // Si no hay seleccionadas aún (o no tiene selector), usar las de constants.
+  const secciones = (() => {
+    if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia) && seccionesSeleccionadas.length > 0) {
+      return seccionesSeleccionadas;
+    }
+    return SECCIONES_POR_TIPOLOGIA[datos.tipologia] || ['conclusion_inspeccion'];
+  })();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -422,7 +481,19 @@ export default function NuevaActa() {
                 <button onClick={() => setPaso(2)} className="btn-secondary">
                   ← Anterior
                 </button>
-                <button onClick={() => setPaso(4)} className="btn-primary">
+                <button onClick={() => {
+                  // Si la tipología tiene selector de secciones, ir al paso de selección
+                  // Si no, saltear directo al formulario (paso 5)
+                  if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) {
+                    // Inicializar con secciones base si no hay selección previa
+                    if (seccionesSeleccionadas.length === 0) {
+                      setSeccionesSeleccionadas(SECCIONES_BASE[datos.tipologia] || []);
+                    }
+                    setPaso(4);
+                  } else {
+                    setPaso(5);
+                  }
+                }} className="btn-primary">
                   Siguiente →
                 </button>
               </div>
@@ -430,6 +501,73 @@ export default function NuevaActa() {
           )}
 
           {paso === 4 && (
+            <div>
+              <h2 className="text-xl font-bold mb-2">Secciones a Inspeccionar</h2>
+              <p className="text-gray-500 text-sm mb-4">
+                Seleccioná las áreas que vas a inspeccionar en esta visita.
+                Las secciones base siempre están incluidas.
+              </p>
+
+              {/* Secciones base — siempre presentes */}
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm font-semibold text-blue-700 mb-2">Siempre incluidas:</p>
+                <div className="flex flex-wrap gap-2">
+                  {(SECCIONES_BASE[datos.tipologia] || []).map(s => (
+                    <span key={s} className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                      {SECCION_LABELS[s] || s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Secciones opcionales */}
+              <div className="space-y-2">
+                {(SECCIONES_OPCIONALES[datos.tipologia] || []).map(({ key, label }) => {
+                  const seleccionada = seccionesSeleccionadas.includes(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        if (seleccionada) {
+                          setSeccionesSeleccionadas(prev => prev.filter(s => s !== key));
+                        } else {
+                          // Insertar en el orden correcto (base primero, luego opcionales en orden)
+                          const base = SECCIONES_BASE[datos.tipologia] || [];
+                          const opcionales = (SECCIONES_OPCIONALES[datos.tipologia] || []).map(o => o.key);
+                          const nuevas = [...base, ...opcionales.filter(k =>
+                            k === key || (seccionesSeleccionadas.includes(k) && !base.includes(k))
+                          )];
+                          setSeccionesSeleccionadas(nuevas);
+                        }
+                      }}
+                      className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-colors text-left ${
+                        seleccionada
+                          ? 'bg-green-50 border-green-500 text-green-800'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      <span className="font-medium">{label}</span>
+                      <span className={`text-2xl font-bold ${seleccionada ? 'text-green-500' : 'text-gray-300'}`}>
+                        {seleccionada ? '✓' : '+'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-4 mt-6">
+                <button onClick={() => setPaso(3)} className="btn-secondary">
+                  ← Anterior
+                </button>
+                <button onClick={() => setPaso(5)} className="btn-primary">
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {paso === 5 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Formulario de Inspección</h2>
               
@@ -501,24 +639,10 @@ export default function NuevaActa() {
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setPaso(3)} className="btn-secondary">
-                  ← Anterior
-                </button>
-                <button onClick={() => setPaso(5)} className="btn-primary">
-                  Siguiente →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {paso === 5 && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Fotos de la Inspección</h2>
-              
-              <SubidaFotos onFotosChange={guardarFotos} />
-
-              <div className="flex gap-4 mt-6">
-                <button onClick={() => setPaso(4)} className="btn-secondary">
+                <button onClick={() => {
+                  if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) setPaso(4);
+                  else setPaso(3);
+                }} className="btn-secondary">
                   ← Anterior
                 </button>
                 <button onClick={() => setPaso(6)} className="btn-primary">
@@ -529,6 +653,23 @@ export default function NuevaActa() {
           )}
 
           {paso === 6 && (
+            <div>
+              <h2 className="text-xl font-bold mb-4">Fotos de la Inspección</h2>
+              
+              <SubidaFotos onFotosChange={guardarFotos} />
+
+              <div className="flex gap-4 mt-6">
+                <button onClick={() => setPaso(5)} className="btn-secondary">
+                  ← Anterior
+                </button>
+                <button onClick={() => setPaso(7)} className="btn-primary">
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {paso === 7 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Firmas</h2>
               
@@ -553,7 +694,7 @@ export default function NuevaActa() {
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setPaso(5)} className="btn-secondary">
+                <button onClick={() => setPaso(6)} className="btn-secondary">
                   ← Anterior
                 </button>
                 <button

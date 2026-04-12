@@ -193,13 +193,54 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64) {
 
       const secciones = SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion_inspeccion'];
       
+      // Preparar contexto enriquecido para secciones con arrays (UTI/UCO múltiples)
+      const df = acta.datos_formulario || {};
+      const contextoSecciones = {
+        ...df,
+        // utis: array de unidades UTI con nombre personalizado
+        // Si viene del nuevo formato array, usarlo; si viene del viejo formato flat, convertirlo
+        utis: Array.isArray(df.utis) && df.utis.length > 0
+          ? df.utis
+          : (df.nro_camas_uti || df.planos_uti || df.c_c_e_uti || df.martrans_nouco_uti || df.suptot_uti)
+            ? [{ nombre: '', nro_camas: df.nro_camas_uti, planos: df.planos_uti, c_c_e: df.c_c_e_uti, martrans_nouco: df.martrans_nouco_uti, suptot: df.suptot_uti }]
+            : [],
+        // ucos: array de unidades UCO con nombre personalizado
+        ucos: Array.isArray(df.ucos) && df.ucos.length > 0
+          ? df.ucos
+          : (df.nro_camas_uco || df.planos_uco || df.c_c_e_uco)
+            ? [{
+                nombre: '', nro_camas: df.nro_camas_uco, planos: df.planos_uco, c_c_e: df.c_c_e_uco,
+                s_v: df.s_v_uco, b_d: df.b_d, v_i_e: df.v_i_e_uco, m: df.m_uco,
+                u_z_c_s: df.u_z_c_s_uco, s_i_p_l: df.s_i_p_l_uco, o_d_e: df.o_d_e_uco,
+                mon: df.mon_uco, l_r_m_u: df.l_r_m_u_uco, a_l: df.a_l_uco, d_c_a: df.d_c_a_uco,
+                s_m: df.s_m_uco, g_e: df.g_e_uco, a_c_d: df.a_c_d_uco, f_c_c: df.f_c_c_uco,
+                pr: df.pr_uco, c_o_a: df.c_o_a_uco, d_c: df.d_c_uco, ro: df.ro_uco,
+                p_a_r: df.p_a_r_uco, a_p: df.a_p_uco, v_p_d_c: df.v_p_d_c_uco,
+                l_i_m: df.l_i_m_uco, l_c_c: df.l_c_c_uco, e_v_h: df.e_v_h_uco,
+                v_v_p: df.v_v_p_uco, h_c: df.h_c_uco, c_l: df.c_l_uco, p_u: df.p_u_uco,
+                d_t_e: df.d_t_e_uco, s_i: df.s_i_uco, herm: df.herm_uco, s_t_s: df.s_t_s_uco,
+                i_n: df.i_n_uco, i_a: df.i_a_uco, i_i: df.i_i_uco, v_a_e_p: df.v_a_e_p_uco,
+                e_asp: df.e_asp_uco, res_mec_vol: df.res_mec_vol_uco, e_des_sin: df.e_des_sin_uco,
+                bo_inf: df.bo_inf_uco, car1: df.car1_uco, lari: df.lari_uco, masc: df.masc_uco,
+                res_ambu: df.res_ambu_uco, tens: df.tens_uco, nebu: df.nebu_uco,
+                el_in_endo: df.el_in_endo_uco, sis_por_as: df.sis_por_as_uco,
+                cat_naso: df.cat_naso_uco, e_pun_raq: df.e_pun_raq_uco, e_pun_abd: df.e_pun_abd_uco,
+                car_par: df.car_par_uco, ox_pul_por: df.ox_pul_por_uco, elec: df.elec_uco,
+                mar2cat: df.mar2cat_uco, eqrx: df.eqrx_uco, el_traq: df.el_traq_uco,
+                bol: df.bol_uco, ada: df.ada_uco, car_cur: df.car_cur_uco,
+                ins_exa: df.ins_exa_uco, il_ind: df.il_ind_uco, sis_tor: df.sis_tor_uco,
+                cat_ves: df.cat_ves_uco, cat_cat_ven: df.cat_cat_ven_uco,
+                e_pun_tor: df.e_pun_tor_uco, bot24: df.bot24_uco
+              }]
+            : [],
+      };
+
       const seccionesHTML = secciones.map(s => {
         const filePath = path.join(__dirname, `../templates/secciones/${s}.html`);
         if (fs.existsSync(filePath)) {
           const sectionTemplateContent = fs.readFileSync(filePath, 'utf8');
           const sectionTemplate = handlebars.compile(sectionTemplateContent);
-          const datosParaSeccion = acta.datos_formulario || {};
-          return sectionTemplate(datosParaSeccion);
+          return sectionTemplate(contextoSecciones);
         } else {
           console.log(`Archivo no encontrado: ${filePath}`);
           return '';

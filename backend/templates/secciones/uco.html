@@ -1,569 +1,229 @@
+{{#each ucos}}
 <div class="seccion">
-  <h3>UNIDAD CORONARIA DE CUIDADOS INTENSIVOS (UCO)</h3>
+  <h3>UNIDAD CORONARIA DE CUIDADOS INTENSIVOS (UCO){{#if nombre}} — {{nombre}}{{/if}}</h3>
   <table>
-    {{#if nro_camas_uco}}
+    {{#if nro_camas}}
     <tr>
       <td style="width: 70%;">N° de Camas</td>
-      <td style="width: 30%; text-align: center;">{{nro_camas_uco}}</td>
+      <td style="width: 30%; text-align: center;">{{nro_camas}}</td>
     </tr>
     {{/if}}
-    {{#if planos_uco}}
+    {{#if planos}}
     <tr>
       <td>Planos</td>
-      <td style="text-align: center;">
-        <strong class="{{#if planos_uco}}valor-si{{else}}valor-no{{/if}}">{{#if planos_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
+      <td style="text-align: center;"><strong class="{{#if planos}}valor-si{{else}}valor-no{{/if}}">{{#if planos}}SI{{else}}NO{{/if}}</strong></td>
     </tr>
     {{/if}}
-    {{#if c_c_e_uco}}
+    {{#if c_c_e}}
     <tr>
       <td>Coincide con edificación</td>
-      <td style="text-align: center;">
-        <strong class="{{#if c_c_e_uco}}valor-si{{else}}valor-no{{/if}}">{{#if c_c_e_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
+      <td style="text-align: center;"><strong class="{{#if c_c_e}}valor-si{{else}}valor-no{{/if}}">{{#if c_c_e}}SI{{else}}NO{{/if}}</strong></td>
     </tr>
     {{/if}}
-    {{#if s_v_uco}}
-    <tr>
-      <td>Signos vitales</td>
-      <td style="text-align: center;">
-        <strong class="{{#if s_v_uco}}valor-si{{else}}valor-no{{/if}}">{{#if s_v_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
+    {{#if s_v}}
+    <tr><td>Signos vitales</td><td style="text-align: center;"><strong class="{{#if s_v}}valor-si{{else}}valor-no{{/if}}">{{#if s_v}}SI{{else}}NO{{/if}}</strong></td></tr>
     {{/if}}
     {{#if b_d}}
-    <tr>
-      <td>Balance diario</td>
-      <td style="text-align: center;">
-        <strong class="{{#if b_d}}valor-si{{else}}valor-no{{/if}}">{{#if b_d}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if v_i_e_uco}}
-    <tr>
-      <td>Volúmenes de ingresos y egresos</td>
-      <td style="text-align: center;">
-        <strong class="{{#if v_i_e_uco}}valor-si{{else}}valor-no{{/if}}">{{#if v_i_e_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if m_uco}}
-    <tr>
-      <td>Medicación</td>
-      <td style="text-align: center;">
-        <strong class="{{#if m_uco}}valor-si{{else}}valor-no{{/if}}">{{#if m_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if u_z_c_s_uco}}
-    <tr>
-      <td>Unidad en zona de circulación semirrestringida</td>
-      <td style="text-align: center;">
-        <strong class="{{#if u_z_c_s_uco}}valor-si{{else}}valor-no{{/if}}">{{#if u_z_c_s_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if s_i_p_l_uco}}
-    <tr>
-      <td>Sala de internación c/pileta lavamanos</td>
-      <td style="text-align: center;">
-        <strong class="{{#if s_i_p_l_uco}}valor-si{{else}}valor-no{{/if}}">{{#if s_i_p_l_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if o_d_e_uco}}
-    <tr>
-      <td>Office de enfermería</td>
-      <td style="text-align: center;">
-        <strong class="{{#if o_d_e_uco}}valor-si{{else}}valor-no{{/if}}">{{#if o_d_e_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if mon_uco}}
-    <tr>
-      <td>Monitores</td>
-      <td style="text-align: center;">
-        <strong class="{{#if mon_uco}}valor-si{{else}}valor-no{{/if}}">{{#if mon_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if l_r_m_u_uco}}
-    <tr>
-      <td>Local de ropa y material usado</td>
-      <td style="text-align: center;">
-        <strong class="{{#if l_r_m_u_uco}}valor-si{{else}}valor-no{{/if}}">{{#if l_r_m_u_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if a_l_uco}}
-    <tr>
-      <td>Área lavachatas</td>
-      <td style="text-align: center;">
-        <strong class="{{#if a_l_uco}}valor-si{{else}}valor-no{{/if}}">{{#if a_l_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if d_c_a_uco}}
-    <tr>
-      <td>Depósito de camillas y aparatología</td>
-      <td style="text-align: center;">
-        <strong class="{{#if d_c_a_uco}}valor-si{{else}}valor-no{{/if}}">{{#if d_c_a_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if s_m_uco}}
-    <tr>
-      <td>Sala de médicos</td>
-      <td style="text-align: center;">
-        <strong class="{{#if s_m_uco}}valor-si{{else}}valor-no{{/if}}">{{#if s_m_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if g_e_uco}}
-    <tr>
-      <td>Grupo electrógeno</td>
-      <td style="text-align: center;">
-        <strong class="{{#if g_e_uco}}valor-si{{else}}valor-no{{/if}}">{{#if g_e_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if a_c_d_uco}}
-    <tr>
-      <td>Acceso directo y exclusivo</td>
-      <td style="text-align: center;">
-        <strong class="{{#if a_c_d_uco}}valor-si{{else}}valor-no{{/if}}">{{#if a_c_d_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if f_c_c_uco}}
-    <tr>
-      <td>Fácil comunicación c/cirugía</td>
-      <td style="text-align: center;">
-        <strong class="{{#if f_c_c_uco}}valor-si{{else}}valor-no{{/if}}">{{#if f_c_c_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if pr_uco}}
-    <tr>
-      <td>Privacidad</td>
-      <td style="text-align: center;">
-        <strong class="{{#if pr_uco}}valor-si{{else}}valor-no{{/if}}">{{#if pr_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if c_o_a_uco}}
-    <tr>
-      <td>Camas ortopédicas o articuladas</td>
-      <td style="text-align: center;">
-        <strong class="{{#if c_o_a_uco}}valor-si{{else}}valor-no{{/if}}">{{#if c_o_a_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if d_c_uco}}
-    <tr>
-      <td>Doble comando</td>
-      <td style="text-align: center;">
-        <strong class="{{#if d_c_uco}}valor-si{{else}}valor-no{{/if}}">{{#if d_c_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if ro_uco}}
-    <tr>
-      <td>Rodantes</td>
-      <td style="text-align: center;">
-        <strong class="{{#if ro_uco}}valor-si{{else}}valor-no{{/if}}">{{#if ro_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if p_a_r_uco}}
-    <tr>
-      <td>Plano apoyo rígido</td>
-      <td style="text-align: center;">
-        <strong class="{{#if p_a_r_uco}}valor-si{{else}}valor-no{{/if}}">{{#if p_a_r_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if a_p_uco}}
-    <tr>
-      <td>Acceso desde 4 posiciones</td>
-      <td style="text-align: center;">
-        <strong class="{{#if a_p_uco}}valor-si{{else}}valor-no{{/if}}">{{#if a_p_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if v_p_d_c_uco}}
-    <tr>
-      <td>Visión panorámica directa a todas las camas</td>
-      <td style="text-align: center;">
-        <strong class="{{#if v_p_d_c_uco}}valor-si{{else}}valor-no{{/if}}">{{#if v_p_d_c_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if l_i_m_uco}}
-    <tr>
-      <td>Local de Instrumental y material estéril</td>
-      <td style="text-align: center;">
-        <strong class="{{#if l_i_m_uco}}valor-si{{else}}valor-no{{/if}}">{{#if l_i_m_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if l_c_c_uco}}
-    <tr>
-      <td>Local cerrado c/1 cama para aislamiento</td>
-      <td style="text-align: center;">
-        <strong class="{{#if l_c_c_uco}}valor-si{{else}}valor-no{{/if}}">{{#if l_c_c_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if e_v_h_uco}}
-    <tr>
-      <td>Evoluciones diarias en Historia Clínica</td>
-      <td style="text-align: center;">
-        <strong class="{{#if e_v_h_uco}}valor-si{{else}}valor-no{{/if}}">{{#if e_v_h_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if v_v_p_uco}}
-    <tr>
-      <td>Vestuario para visitas c/pileta lavamanos</td>
-      <td style="text-align: center;">
-        <strong class="{{#if v_v_p_uco}}valor-si{{else}}valor-no{{/if}}">{{#if v_v_p_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if h_c_uco}}
-    <tr>
-      <td>Habitación c/baño propio para médico de Guardia</td>
-      <td style="text-align: center;">
-        <strong class="{{#if h_c_uco}}valor-si{{else}}valor-no{{/if}}">{{#if h_c_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if c_l_uco}}
-    <tr>
-      <td>Comparte algún local UCI / UCO</td>
-      <td style="text-align: center;">
-        <strong class="{{#if c_l_uco}}valor-si{{else}}valor-no{{/if}}">{{#if c_l_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if p_u_uco}}
-    <tr>
-      <td>Posee otras Unidades de UCI / UCO</td>
-      <td style="text-align: center;">
-        <strong class="{{#if p_u_uco}}valor-si{{else}}valor-no{{/if}}">{{#if p_u_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if d_t_e_uco}}
-    <tr>
-      <td>Diez tomas de electricidad por cama</td>
-      <td style="text-align: center;">
-        <strong class="{{#if d_t_e_uco}}valor-si{{else}}valor-no{{/if}}">{{#if d_t_e_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if s_i_uco}}
-    <tr>
-      <td>Sistema de Iluminación de Emergencia</td>
-      <td style="text-align: center;">
-        <strong class="{{#if s_i_uco}}valor-si{{else}}valor-no{{/if}}">{{#if s_i_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if herm_uco}}
-    <tr>
-      <td>Hermeticidad</td>
-      <td style="text-align: center;">
-        <strong class="{{#if herm_uco}}valor-si{{else}}valor-no{{/if}}">{{#if herm_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if s_t_s_uco}}
-    <tr>
-      <td>Superficie total sala internación</td>
-      <td style="text-align: center;">{{s_t_s_uco}}</td>
-    </tr>
-    {{/if}}
-    {{#if i_n_uco}}
-    <tr>
-      <td>Iluminación natural</td>
-      <td style="text-align: center;">
-        <strong class="{{#if i_n_uco}}valor-si{{else}}valor-no{{/if}}">{{#if i_n_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if i_a_uco}}
-    <tr>
-      <td>Iluminación artificial central</td>
-      <td style="text-align: center;">
-        <strong class="{{#if i_a_uco}}valor-si{{else}}valor-no{{/if}}">{{#if i_a_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if i_i_uco}}
-    <tr>
-      <td>Iluminación Individual</td>
-      <td style="text-align: center;">
-        <strong class="{{#if i_i_uco}}valor-si{{else}}valor-no{{/if}}">{{#if i_i_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if v_a_e_p_uco}}
-    <tr>
-      <td>Ventanas al exterior De paño fijo</td>
-      <td style="text-align: center;">
-        <strong class="{{#if v_a_e_p_uco}}valor-si{{else}}valor-no{{/if}}">{{#if v_a_e_p_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if e_asp_uco}}
-    <tr>
-      <td>Equipo de aspiración</td>
-      <td style="text-align: center;">
-        <strong class="{{#if e_asp_uco}}valor-si{{else}}valor-no{{/if}}">{{#if e_asp_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if res_mec_vol_uco}}
-    <tr>
-      <td>Respirador mecánico volumétrico</td>
-      <td style="text-align: center;">
-        <strong class="{{#if res_mec_vol_uco}}valor-si{{else}}valor-no{{/if}}">{{#if res_mec_vol_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if e_des_sin_uco}}
-    <tr>
-      <td>Equipo de desfibrilación y sincronizador</td>
-      <td style="text-align: center;">
-        <strong class="{{#if e_des_sin_uco}}valor-si{{else}}valor-no{{/if}}">{{#if e_des_sin_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if bo_inf_uco}}
-    <tr>
-      <td>Bomba de infusión</td>
-      <td style="text-align: center;">
-        <strong class="{{#if bo_inf_uco}}valor-si{{else}}valor-no{{/if}}">{{#if bo_inf_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if car1_uco}}
-    <tr>
-      <td>Carro de urgencias</td>
-      <td style="text-align: center;">
-        <strong class="{{#if car1_uco}}valor-si{{else}}valor-no{{/if}}">{{#if car1_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if lari_uco}}
-    <tr>
-      <td>Laringoscopios</td>
-      <td style="text-align: center;">
-        <strong class="{{#if lari_uco}}valor-si{{else}}valor-no{{/if}}">{{#if lari_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if masc_uco}}
-    <tr>
-      <td>Máscara</td>
-      <td style="text-align: center;">
-        <strong class="{{#if masc_uco}}valor-si{{else}}valor-no{{/if}}">{{#if masc_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if res_ambu_uco}}
-    <tr>
-      <td>Resucitador tipo AMBU</td>
-      <td style="text-align: center;">
-        <strong class="{{#if res_ambu_uco}}valor-si{{else}}valor-no{{/if}}">{{#if res_ambu_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if tens_uco}}
-    <tr>
-      <td>Tensiómetro</td>
-      <td style="text-align: center;">
-        <strong class="{{#if tens_uco}}valor-si{{else}}valor-no{{/if}}">{{#if tens_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if nebu_uco}}
-    <tr>
-      <td>Nebulizador</td>
-      <td style="text-align: center;">
-        <strong class="{{#if nebu_uco}}valor-si{{else}}valor-no{{/if}}">{{#if nebu_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if el_in_endo_uco}}
-    <tr>
-      <td>Elementos para intubación endotraqueal</td>
-      <td style="text-align: center;">
-        <strong class="{{#if el_in_endo_uco}}valor-si{{else}}valor-no{{/if}}">{{#if el_in_endo_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if sis_por_as_uco}}
-    <tr>
-      <td>Sistema portátil de aspiración p/drenaje</td>
-      <td style="text-align: center;">
-        <strong class="{{#if sis_por_as_uco}}valor-si{{else}}valor-no{{/if}}">{{#if sis_por_as_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if cat_naso_uco}}
-    <tr>
-      <td>Equipos para cateterización nasogástrica</td>
-      <td style="text-align: center;">
-        <strong class="{{#if cat_naso_uco}}valor-si{{else}}valor-no{{/if}}">{{#if cat_naso_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if e_pun_raq_uco}}
-    <tr>
-      <td>Equipos para punción raquídea</td>
-      <td style="text-align: center;">
-        <strong class="{{#if e_pun_raq_uco}}valor-si{{else}}valor-no{{/if}}">{{#if e_pun_raq_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if e_pun_abd_uco}}
-    <tr>
-      <td>Equipo para punción abdominal</td>
-      <td style="text-align: center;">
-        <strong class="{{#if e_pun_abd_uco}}valor-si{{else}}valor-no{{/if}}">{{#if e_pun_abd_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if car_par_uco}}
-    <tr>
-      <td>Carro de paro</td>
-      <td style="text-align: center;">
-        <strong class="{{#if car_par_uco}}valor-si{{else}}valor-no{{/if}}">{{#if car_par_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if ox_pul_por_uco}}
-    <tr>
-      <td>Oxímetro de pulso portátil</td>
-      <td style="text-align: center;">
-        <strong class="{{#if ox_pul_por_uco}}valor-si{{else}}valor-no{{/if}}">{{#if ox_pul_por_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if elec_uco}}
-    <tr>
-      <td>Electrocardiógrafo</td>
-      <td style="text-align: center;">
-        <strong class="{{#if elec_uco}}valor-si{{else}}valor-no{{/if}}">{{#if elec_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if mar2cat_uco}}
-    <tr>
-      <td>Marcapaso transitorio con 2 catéteres</td>
-      <td style="text-align: center;">
-        <strong class="{{#if mar2cat_uco}}valor-si{{else}}valor-no{{/if}}">{{#if mar2cat_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if eqrx_uco}}
-    <tr>
-      <td>Equipo portátil de Rx 100 Ma/100 Kv</td>
-      <td style="text-align: center;">
-        <strong class="{{#if eqrx_uco}}valor-si{{else}}valor-no{{/if}}">{{#if eqrx_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if el_traq_uco}}
-    <tr>
-      <td>Elementos para traqueotomía</td>
-      <td style="text-align: center;">
-        <strong class="{{#if el_traq_uco}}valor-si{{else}}valor-no{{/if}}">{{#if el_traq_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if bol_uco}}
-    <tr>
-      <td>Bolsa</td>
-      <td style="text-align: center;">
-        <strong class="{{#if bol_uco}}valor-si{{else}}valor-no{{/if}}">{{#if bol_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if ada_uco}}
-    <tr>
-      <td>Adaptador</td>
-      <td style="text-align: center;">
-        <strong class="{{#if ada_uco}}valor-si{{else}}valor-no{{/if}}">{{#if ada_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if car_cur_uco}}
-    <tr>
-      <td>Carro de curación</td>
-      <td style="text-align: center;">
-        <strong class="{{#if car_cur_uco}}valor-si{{else}}valor-no{{/if}}">{{#if car_cur_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if ins_exa_uco}}
-    <tr>
-      <td>Instrumental de examen</td>
-      <td style="text-align: center;">
-        <strong class="{{#if ins_exa_uco}}valor-si{{else}}valor-no{{/if}}">{{#if ins_exa_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if il_ind_uco}}
-    <tr>
-      <td>Iluminación individual</td>
-      <td style="text-align: center;">
-        <strong class="{{#if il_ind_uco}}valor-si{{else}}valor-no{{/if}}">{{#if il_ind_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if sis_tor_uco}}
-    <tr>
-      <td>Sistema de aspiración torácica</td>
-      <td style="text-align: center;">
-        <strong class="{{#if sis_tor_uco}}valor-si{{else}}valor-no{{/if}}">{{#if sis_tor_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if cat_ves_uco}}
-    <tr>
-      <td>Equipos para cateterización vesical</td>
-      <td style="text-align: center;">
-        <strong class="{{#if cat_ves_uco}}valor-si{{else}}valor-no{{/if}}">{{#if cat_ves_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if cat_cat_ven_uco}}
-    <tr>
-      <td>Equipos para cateterización venosa</td>
-      <td style="text-align: center;">
-        <strong class="{{#if cat_cat_ven_uco}}valor-si{{else}}valor-no{{/if}}">{{#if cat_cat_ven_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if e_pun_tor_uco}}
-    <tr>
-      <td>Equipo para punción torácica</td>
-      <td style="text-align: center;">
-        <strong class="{{#if e_pun_tor_uco}}valor-si{{else}}valor-no{{/if}}">{{#if e_pun_tor_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
-    {{/if}}
-    {{#if bot24_uco}}
-    <tr>
-      <td>Botiquín c/medicamentos para urgencias de 24 hs</td>
-      <td style="text-align: center;">
-        <strong class="{{#if bot24_uco}}valor-si{{else}}valor-no{{/if}}">{{#if bot24_uco}}SI{{else}}NO{{/if}}</strong>
-      </td>
-    </tr>
+    <tr><td>Balance diario</td><td style="text-align: center;"><strong class="{{#if b_d}}valor-si{{else}}valor-no{{/if}}">{{#if b_d}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if v_i_e}}
+    <tr><td>Volúmenes de ingresos y egresos</td><td style="text-align: center;"><strong class="{{#if v_i_e}}valor-si{{else}}valor-no{{/if}}">{{#if v_i_e}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if m}}
+    <tr><td>Medicación</td><td style="text-align: center;"><strong class="{{#if m}}valor-si{{else}}valor-no{{/if}}">{{#if m}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if u_z_c_s}}
+    <tr><td>Unidad en zona de circulación semirrestringida</td><td style="text-align: center;"><strong class="{{#if u_z_c_s}}valor-si{{else}}valor-no{{/if}}">{{#if u_z_c_s}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if s_i_p_l}}
+    <tr><td>Sala de internación c/pileta lavamanos</td><td style="text-align: center;"><strong class="{{#if s_i_p_l}}valor-si{{else}}valor-no{{/if}}">{{#if s_i_p_l}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if o_d_e}}
+    <tr><td>Office de enfermería</td><td style="text-align: center;"><strong class="{{#if o_d_e}}valor-si{{else}}valor-no{{/if}}">{{#if o_d_e}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if mon}}
+    <tr><td>Monitores</td><td style="text-align: center;"><strong class="{{#if mon}}valor-si{{else}}valor-no{{/if}}">{{#if mon}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if l_r_m_u}}
+    <tr><td>Local de ropa y material usado</td><td style="text-align: center;"><strong class="{{#if l_r_m_u}}valor-si{{else}}valor-no{{/if}}">{{#if l_r_m_u}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if a_l}}
+    <tr><td>Área lavachatas</td><td style="text-align: center;"><strong class="{{#if a_l}}valor-si{{else}}valor-no{{/if}}">{{#if a_l}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if d_c_a}}
+    <tr><td>Depósito de camillas y aparatología</td><td style="text-align: center;"><strong class="{{#if d_c_a}}valor-si{{else}}valor-no{{/if}}">{{#if d_c_a}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if s_m}}
+    <tr><td>Sala de médicos</td><td style="text-align: center;"><strong class="{{#if s_m}}valor-si{{else}}valor-no{{/if}}">{{#if s_m}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if g_e}}
+    <tr><td>Grupo electrógeno</td><td style="text-align: center;"><strong class="{{#if g_e}}valor-si{{else}}valor-no{{/if}}">{{#if g_e}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if a_c_d}}
+    <tr><td>Acceso directo y exclusivo</td><td style="text-align: center;"><strong class="{{#if a_c_d}}valor-si{{else}}valor-no{{/if}}">{{#if a_c_d}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if f_c_c}}
+    <tr><td>Fácil comunicación c/cirugía</td><td style="text-align: center;"><strong class="{{#if f_c_c}}valor-si{{else}}valor-no{{/if}}">{{#if f_c_c}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if pr}}
+    <tr><td>Privacidad</td><td style="text-align: center;"><strong class="{{#if pr}}valor-si{{else}}valor-no{{/if}}">{{#if pr}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if c_o_a}}
+    <tr><td>Camas ortopédicas o articuladas</td><td style="text-align: center;"><strong class="{{#if c_o_a}}valor-si{{else}}valor-no{{/if}}">{{#if c_o_a}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if d_c}}
+    <tr><td>Doble comando</td><td style="text-align: center;"><strong class="{{#if d_c}}valor-si{{else}}valor-no{{/if}}">{{#if d_c}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if ro}}
+    <tr><td>Rodantes</td><td style="text-align: center;"><strong class="{{#if ro}}valor-si{{else}}valor-no{{/if}}">{{#if ro}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if p_a_r}}
+    <tr><td>Plano apoyo rígido</td><td style="text-align: center;"><strong class="{{#if p_a_r}}valor-si{{else}}valor-no{{/if}}">{{#if p_a_r}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if a_p}}
+    <tr><td>Acceso desde 4 posiciones</td><td style="text-align: center;"><strong class="{{#if a_p}}valor-si{{else}}valor-no{{/if}}">{{#if a_p}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if v_p_d_c}}
+    <tr><td>Visión panorámica directa a todas las camas</td><td style="text-align: center;"><strong class="{{#if v_p_d_c}}valor-si{{else}}valor-no{{/if}}">{{#if v_p_d_c}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if l_i_m}}
+    <tr><td>Local de Instrumental y material estéril</td><td style="text-align: center;"><strong class="{{#if l_i_m}}valor-si{{else}}valor-no{{/if}}">{{#if l_i_m}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if l_c_c}}
+    <tr><td>Local cerrado c/1 cama para aislamiento</td><td style="text-align: center;"><strong class="{{#if l_c_c}}valor-si{{else}}valor-no{{/if}}">{{#if l_c_c}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if e_v_h}}
+    <tr><td>Evoluciones diarias en Historia Clínica</td><td style="text-align: center;"><strong class="{{#if e_v_h}}valor-si{{else}}valor-no{{/if}}">{{#if e_v_h}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if v_v_p}}
+    <tr><td>Vestuario para visitas c/pileta lavamanos</td><td style="text-align: center;"><strong class="{{#if v_v_p}}valor-si{{else}}valor-no{{/if}}">{{#if v_v_p}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if h_c}}
+    <tr><td>Habitación c/baño propio para médico de Guardia</td><td style="text-align: center;"><strong class="{{#if h_c}}valor-si{{else}}valor-no{{/if}}">{{#if h_c}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if c_l}}
+    <tr><td>Comparte algún local UCI / UCO</td><td style="text-align: center;"><strong class="{{#if c_l}}valor-si{{else}}valor-no{{/if}}">{{#if c_l}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if p_u}}
+    <tr><td>Posee otras Unidades de UCI / UCO</td><td style="text-align: center;"><strong class="{{#if p_u}}valor-si{{else}}valor-no{{/if}}">{{#if p_u}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if d_t_e}}
+    <tr><td>Diez tomas de electricidad por cama</td><td style="text-align: center;"><strong class="{{#if d_t_e}}valor-si{{else}}valor-no{{/if}}">{{#if d_t_e}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if s_i}}
+    <tr><td>Sistema de Iluminación de Emergencia</td><td style="text-align: center;"><strong class="{{#if s_i}}valor-si{{else}}valor-no{{/if}}">{{#if s_i}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if herm}}
+    <tr><td>Hermeticidad</td><td style="text-align: center;"><strong class="{{#if herm}}valor-si{{else}}valor-no{{/if}}">{{#if herm}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if s_t_s}}
+    <tr><td>Superficie total sala internación</td><td style="text-align: center;">{{s_t_s}}</td></tr>
+    {{/if}}
+    {{#if i_n}}
+    <tr><td>Iluminación natural</td><td style="text-align: center;"><strong class="{{#if i_n}}valor-si{{else}}valor-no{{/if}}">{{#if i_n}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if i_a}}
+    <tr><td>Iluminación artificial central</td><td style="text-align: center;"><strong class="{{#if i_a}}valor-si{{else}}valor-no{{/if}}">{{#if i_a}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if i_i}}
+    <tr><td>Iluminación Individual</td><td style="text-align: center;"><strong class="{{#if i_i}}valor-si{{else}}valor-no{{/if}}">{{#if i_i}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if v_a_e_p}}
+    <tr><td>Ventanas al exterior De paño fijo</td><td style="text-align: center;"><strong class="{{#if v_a_e_p}}valor-si{{else}}valor-no{{/if}}">{{#if v_a_e_p}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if e_asp}}
+    <tr><td>Equipo de aspiración</td><td style="text-align: center;"><strong class="{{#if e_asp}}valor-si{{else}}valor-no{{/if}}">{{#if e_asp}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if res_mec_vol}}
+    <tr><td>Respirador mecánico volumétrico</td><td style="text-align: center;"><strong class="{{#if res_mec_vol}}valor-si{{else}}valor-no{{/if}}">{{#if res_mec_vol}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if e_des_sin}}
+    <tr><td>Equipo de desfibrilación y sincronizador</td><td style="text-align: center;"><strong class="{{#if e_des_sin}}valor-si{{else}}valor-no{{/if}}">{{#if e_des_sin}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if bo_inf}}
+    <tr><td>Bomba de infusión</td><td style="text-align: center;"><strong class="{{#if bo_inf}}valor-si{{else}}valor-no{{/if}}">{{#if bo_inf}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if car1}}
+    <tr><td>Carro de urgencias</td><td style="text-align: center;"><strong class="{{#if car1}}valor-si{{else}}valor-no{{/if}}">{{#if car1}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if lari}}
+    <tr><td>Laringoscopios</td><td style="text-align: center;"><strong class="{{#if lari}}valor-si{{else}}valor-no{{/if}}">{{#if lari}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if masc}}
+    <tr><td>Máscara</td><td style="text-align: center;"><strong class="{{#if masc}}valor-si{{else}}valor-no{{/if}}">{{#if masc}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if res_ambu}}
+    <tr><td>Resucitador tipo AMBU</td><td style="text-align: center;"><strong class="{{#if res_ambu}}valor-si{{else}}valor-no{{/if}}">{{#if res_ambu}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if tens}}
+    <tr><td>Tensiómetro</td><td style="text-align: center;"><strong class="{{#if tens}}valor-si{{else}}valor-no{{/if}}">{{#if tens}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if nebu}}
+    <tr><td>Nebulizador</td><td style="text-align: center;"><strong class="{{#if nebu}}valor-si{{else}}valor-no{{/if}}">{{#if nebu}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if el_in_endo}}
+    <tr><td>Elementos para intubación endotraqueal</td><td style="text-align: center;"><strong class="{{#if el_in_endo}}valor-si{{else}}valor-no{{/if}}">{{#if el_in_endo}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if sis_por_as}}
+    <tr><td>Sistema portátil de aspiración p/drenaje</td><td style="text-align: center;"><strong class="{{#if sis_por_as}}valor-si{{else}}valor-no{{/if}}">{{#if sis_por_as}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if cat_naso}}
+    <tr><td>Equipos para cateterización nasogástrica</td><td style="text-align: center;"><strong class="{{#if cat_naso}}valor-si{{else}}valor-no{{/if}}">{{#if cat_naso}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if e_pun_raq}}
+    <tr><td>Equipos para punción raquídea</td><td style="text-align: center;"><strong class="{{#if e_pun_raq}}valor-si{{else}}valor-no{{/if}}">{{#if e_pun_raq}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if e_pun_abd}}
+    <tr><td>Equipo para punción abdominal</td><td style="text-align: center;"><strong class="{{#if e_pun_abd}}valor-si{{else}}valor-no{{/if}}">{{#if e_pun_abd}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if car_par}}
+    <tr><td>Carro de paro</td><td style="text-align: center;"><strong class="{{#if car_par}}valor-si{{else}}valor-no{{/if}}">{{#if car_par}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if ox_pul_por}}
+    <tr><td>Oxímetro de pulso portátil</td><td style="text-align: center;"><strong class="{{#if ox_pul_por}}valor-si{{else}}valor-no{{/if}}">{{#if ox_pul_por}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if elec}}
+    <tr><td>Electrocardiógrafo</td><td style="text-align: center;"><strong class="{{#if elec}}valor-si{{else}}valor-no{{/if}}">{{#if elec}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if mar2cat}}
+    <tr><td>Marcapaso transitorio con 2 catéteres</td><td style="text-align: center;"><strong class="{{#if mar2cat}}valor-si{{else}}valor-no{{/if}}">{{#if mar2cat}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if eqrx}}
+    <tr><td>Equipo portátil de Rx 100 Ma/100 Kv</td><td style="text-align: center;"><strong class="{{#if eqrx}}valor-si{{else}}valor-no{{/if}}">{{#if eqrx}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if el_traq}}
+    <tr><td>Elementos para traqueotomía</td><td style="text-align: center;"><strong class="{{#if el_traq}}valor-si{{else}}valor-no{{/if}}">{{#if el_traq}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if bol}}
+    <tr><td>Bolsa</td><td style="text-align: center;"><strong class="{{#if bol}}valor-si{{else}}valor-no{{/if}}">{{#if bol}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if ada}}
+    <tr><td>Adaptador</td><td style="text-align: center;"><strong class="{{#if ada}}valor-si{{else}}valor-no{{/if}}">{{#if ada}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if car_cur}}
+    <tr><td>Carro de curación</td><td style="text-align: center;"><strong class="{{#if car_cur}}valor-si{{else}}valor-no{{/if}}">{{#if car_cur}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if ins_exa}}
+    <tr><td>Instrumental de examen</td><td style="text-align: center;"><strong class="{{#if ins_exa}}valor-si{{else}}valor-no{{/if}}">{{#if ins_exa}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if il_ind}}
+    <tr><td>Iluminación individual</td><td style="text-align: center;"><strong class="{{#if il_ind}}valor-si{{else}}valor-no{{/if}}">{{#if il_ind}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if sis_tor}}
+    <tr><td>Sistema de aspiración torácica</td><td style="text-align: center;"><strong class="{{#if sis_tor}}valor-si{{else}}valor-no{{/if}}">{{#if sis_tor}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if cat_ves}}
+    <tr><td>Equipos para cateterización vesical</td><td style="text-align: center;"><strong class="{{#if cat_ves}}valor-si{{else}}valor-no{{/if}}">{{#if cat_ves}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if cat_cat_ven}}
+    <tr><td>Equipos para cateterización venosa</td><td style="text-align: center;"><strong class="{{#if cat_cat_ven}}valor-si{{else}}valor-no{{/if}}">{{#if cat_cat_ven}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if e_pun_tor}}
+    <tr><td>Equipo para punción torácica</td><td style="text-align: center;"><strong class="{{#if e_pun_tor}}valor-si{{else}}valor-no{{/if}}">{{#if e_pun_tor}}SI{{else}}NO{{/if}}</strong></td></tr>
+    {{/if}}
+    {{#if bot24}}
+    <tr><td>Botiquín c/medicamentos para urgencias de 24 hs</td><td style="text-align: center;"><strong class="{{#if bot24}}valor-si{{else}}valor-no{{/if}}">{{#if bot24}}SI{{else}}NO{{/if}}</strong></td></tr>
     {{/if}}
   </table>
 </div>
+{{/each}}
