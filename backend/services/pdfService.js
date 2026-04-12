@@ -188,29 +188,27 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      console.log(`[PDF] Generando acta ${acta.id || 'sin ID'}, intento ${attempt}`);
+      
       const baseTemplatePath = path.join(__dirname, '../templates/base_inspector.html');
       const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
+      console.log(`[PDF] Template base cargado`);
 
-      // Si el acta tiene secciones seleccionadas manualmente (clínica/quirúrgicos con selector),
-      // usarlas; si no, usar las secciones por defecto de la tipología.
-      // Mapear 'conclusion' -> 'conclusion_inspeccion' por compatibilidad frontend/backend.
       const mapSeccion = s => s === 'conclusion' ? 'conclusion_inspeccion' : s;
       const secciones = acta.secciones_inspeccionadas && acta.secciones_inspeccionadas.length > 0
         ? acta.secciones_inspeccionadas.map(mapSeccion)
         : SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion_inspeccion'];
       
-      // Preparar contexto enriquecido para secciones con arrays (UTI/UCO múltiples)
+      console.log(`[PDF] Secciones a renderizar: ${secciones.join(', ')}`);
+      
       const df = acta.datos_formulario || {};
       const contextoSecciones = {
         ...df,
-        // utis: array de unidades UTI con nombre personalizado
-        // Si viene del nuevo formato array, usarlo; si viene del viejo formato flat, convertirlo
         utis: Array.isArray(df.utis) && df.utis.length > 0
           ? df.utis
           : (df.nro_camas_uti || df.planos_uti || df.c_c_e_uti || df.martrans_nouco_uti || df.suptot_uti)
             ? [{ nombre: '', nro_camas: df.nro_camas_uti, planos: df.planos_uti, c_c_e: df.c_c_e_uti, martrans_nouco: df.martrans_nouco_uti, suptot: df.suptot_uti }]
             : [],
-        // ucos: array de unidades UCO con nombre personalizado
         ucos: Array.isArray(df.ucos) && df.ucos.length > 0
           ? df.ucos
           : (df.nro_camas_uco || df.planos_uco || df.c_c_e_uco)
@@ -248,10 +246,11 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
           const sectionTemplate = handlebars.compile(sectionTemplateContent);
           return sectionTemplate(contextoSecciones);
         } else {
-          console.log(`Archivo no encontrado: ${filePath}`);
+          console.log(`[PDF] WARN: Archivo no encontrado: ${filePath}`);
           return '';
         }
       }).join('\n');
+      console.log(`[PDF] Secciones renderizadas`);
 
       const template = handlebars.compile(baseTemplate);
       const htmlFinal = template({
@@ -287,13 +286,17 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         logo_cordoba_base64: logoCordobaBase64 || ''
       });
 
+      console.log(`[PDF] HTML generado, tamaño: ${htmlFinal.length} chars`);
+
       const browser = await puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
       });
-      
+      console.log(`[PDF] Puppeteer launch OK`);
+
       const page = await browser.newPage();
       await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
+      console.log(`[PDF] Contenido seteado en página`);
 
       const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
       const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
@@ -317,12 +320,14 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
           </div>
         `
       });
+      console.log(`[PDF] PDF generado, tamaño: ${pdfBuffer.length} bytes`);
 
       await browser.close();
+      console.log(`[PDF] Browser cerrado, retorna PDF`);
       return pdfBuffer;
     } catch (err) {
       lastError = err;
-      console.log(`Intento ${attempt}/${maxRetries} falló:`, err.message);
+      console.log(`[PDF] ERROR intento ${attempt}/${maxRetries}:`, err.message, err.stack);
       if (attempt < maxRetries) {
         await new Promise(r => setTimeout(r, 1500));
       }

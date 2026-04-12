@@ -14,6 +14,8 @@ export default function VerActa() {
   const [generandoPDF, setGenerandoPDF] = useState(false);
   const [actualizandoCidi, setActualizandoCidi] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+  const [pdfBase64, setPdfBase64] = useState(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
 
   useEffect(() => {
     loadActa();
@@ -39,23 +41,54 @@ export default function VerActa() {
   const generarPDF = async () => {
     try {
       setGenerandoPDF(true);
+      setPdfBase64(null);
+      setPdfBlobUrl(null);
+      
       const esNotificacion = acta.establecimiento_tipologia === 'notificacion';
+      console.log('[VerActa] Generando PDF, tipologia:', acta.establecimiento_tipologia);
+      
+      // Intentar método base64 primero (más confiable en Android)
+      try {
+        console.log('[VerActa] Intentando método base64...');
+        const response = await pdfAPI.generarActaBase64(id);
+        if (response.data?.pdfBuffer) {
+          console.log('[VerActa] Base64 recibido, decodificando...');
+          const base64 = response.data.pdfBuffer;
+          const binaryString = atob(base64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes], { type: 'application/pdf' });
+          if (pdfBlobUrl) window.URL.revokeObjectURL(pdfBlobUrl);
+          const url = window.URL.createObjectURL(blob);
+          setPdfBlobUrl(url);
+          setPdfBase64(base64);
+          console.log('[VerActa] PDF creado exitosamente');
+          window.open(url, '_blank');
+          loadActa();
+          setGenerandoPDF(false);
+          return;
+        }
+      } catch (base64Err) {
+        console.warn('[VerActa] Método base64 falló, tentando blob:', base64Err.message);
+      }
+
+      // Fallback al método blob original
+      console.log('[VerActa] Usando método blob como fallback...');
       const response = esNotificacion
         ? await pdfAPI.generarNotificacion(id)
         : await pdfAPI.generarActa(id);
 
       const blob = new Blob([response.data], { type: 'application/pdf' });
-      // Liberar URL anterior si existe
       if (pdfBlobUrl) window.URL.revokeObjectURL(pdfBlobUrl);
       const url = window.URL.createObjectURL(blob);
       setPdfBlobUrl(url);
 
-      // Abrir en nueva pestaña funciona mejor en Android que a.click()
       window.open(url, '_blank');
       loadActa();
     } catch (err) {
       console.error('Error generando PDF:', err);
-      // Leer el error real del servidor (responseType blob guarda el JSON como blob)
       if (err.response?.data instanceof Blob) {
         const text = await err.response.data.text();
         try {
@@ -306,10 +339,22 @@ export default function VerActa() {
               rel="noopener noreferrer"
               className="block text-center py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
             >
-              Ver PDF generado →
+              Ver PDF en nueva pestaña →
             </a>
           )}
         </div>
+
+        {/* Visor de PDF inline */}
+        {pdfBlobUrl && (
+          <div className="card mt-4">
+            <h3 className="font-bold text-lg mb-3">Vista previa del PDF</h3>
+            <iframe
+              src={pdfBlobUrl}
+              className="w-full h-[600px] border rounded"
+              title="Vista previa PDF"
+            />
+          </div>
+        )}
       </main>
     </div>
   );

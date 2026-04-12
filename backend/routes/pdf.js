@@ -60,6 +60,44 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
   }
 });
 
+router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rol, id: userId } = req.user;
+
+    const { data: acta, error } = await supabase
+      .from('actas')
+      .select('*, inspector:usuarios!actas_inspector_id_fkey(nombre, dni)')
+      .eq('id', id)
+      .single();
+
+    if (error || !acta) {
+      return res.status(404).json({ error: 'Acta no encontrada' });
+    }
+
+    if (rol === 'inspector' && acta.inspector_id !== userId) {
+      return res.status(403).json({ error: 'No tienes acceso a esta acta' });
+    }
+
+    const actaCompleta = {
+      ...acta,
+      inspector_nombre: acta.inspector?.nombre || '',
+      inspector_dni: acta.inspector?.dni || '',
+    };
+
+    const logoMembrete = cargarLogoBase64('img6.jpg');
+    const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
+    const logoCordoba = cargarLogoBase64('logo_cordoba.png');
+
+    const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
+    const base64 = pdfBuffer.toString('base64');
+    res.json({ pdfBuffer: base64 });
+  } catch (err) {
+    console.error('Error generando PDF base64 del acta:', err);
+    res.status(500).json({ error: 'Error al generar el PDF' });
+  }
+});
+
 router.post('/informe/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;

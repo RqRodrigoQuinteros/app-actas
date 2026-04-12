@@ -50,6 +50,7 @@ export const pdfAPI = {
   generarActa: (id) => api.post(`/pdf/generar/${id}`, {}, { responseType: 'blob' }),
   generarInforme: (id) => api.post(`/pdf/informe/${id}`, {}, { responseType: 'blob' }),
   generarNotificacion: (id) => api.post(`/pdf/generar-notificacion/${id}`, {}, { responseType: 'blob' }),
+  generarActaBase64: (id) => api.post(`/pdf/generar-base64/${id}`),
 };
 
 export const fotosAPI = {

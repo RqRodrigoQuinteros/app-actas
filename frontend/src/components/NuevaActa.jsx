@@ -198,11 +198,31 @@ export default function NuevaActa() {
         fotos_urls: datos.fotos_urls,
       });
 
-      const pdfResponse = datos.tipologia === 'notificacion'
-        ? await pdfAPI.generarNotificacion(idParaUsar)
-        : await pdfAPI.generarActa(idParaUsar);
+      const esNotificacion = datos.tipologia === 'notificacion';
+      let blob;
 
-      const blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
+      try {
+        const responseBase64 = esNotificacion 
+          ? await pdfAPI.generarNotificacion(idParaUsar) // Notificacion no tiene base64 aún
+          : await pdfAPI.generarActaBase64(idParaUsar);
+        if (responseBase64.data?.pdfBuffer) {
+          const base64 = responseBase64.data.pdfBuffer;
+          const binaryString = atob(base64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          blob = new Blob([bytes], { type: 'application/pdf' });
+        } else {
+          throw new Error('No se recibió pdfBuffer');
+        }
+      } catch (base64Err) {
+        console.warn('Base64 falló, usando blob:', base64Err.message);
+        const pdfResponse = esNotificacion
+          ? await pdfAPI.generarNotificacion(idParaUsar)
+          : await pdfAPI.generarActa(idParaUsar);
+        blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
+      }
       const url = window.URL.createObjectURL(blob);
 
       // Abrir en nueva pestaña (más confiable en Android que a.click())
