@@ -17,8 +17,8 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = async (dni, rol) => {
-    const response = await authAPI.login(dni, rol);
+  const login = async (dni, rol, password) => {
+    const response = await authAPI.login(dni, rol, password);
     const { token, usuario } = response.data;
     
     localStorage.setItem('token', token);
