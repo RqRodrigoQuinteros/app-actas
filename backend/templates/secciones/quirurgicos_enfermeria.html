@@ -1,99 +1,99 @@
 <div class="seccion">
   <h3>ENFERMERÍA</h3>
   <table>
-    {{#if locprop_quir}}
+    {{#if (hasValue locprop_quir)}}
     <tr>
       <td style="width: 70%;">Local propio</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if locprop_quir}}valor-si{{else}}valor-no{{/if}}">{{#if locprop_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass locprop_quir}}">{{valorSiNo locprop_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if tubox_quir}}
+    {{#if (hasValue tubox_quir)}}
     <tr>
       <td>Tubo oxígeno</td>
       <td style="text-align: center;">
-        <strong class="{{#if tubox_quir}}valor-si{{else}}valor-no{{/if}}">{{#if tubox_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass tubox_quir}}">{{valorSiNo tubox_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if este_quir}}
+    {{#if (hasValue este_quir)}}
     <tr>
       <td>Estetoscopio</td>
       <td style="text-align: center;">
-        <strong class="{{#if este_quir}}valor-si{{else}}valor-no{{/if}}">{{#if este_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass este_quir}}">{{valorSiNo este_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cacur_quir}}
+    {{#if (hasValue cacur_quir)}}
     <tr>
       <td>Caja de Curaciones</td>
       <td style="text-align: center;">
-        <strong class="{{#if cacur_quir}}valor-si{{else}}valor-no{{/if}}">{{#if cacur_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cacur_quir}}">{{valorSiNo cacur_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if arproc_quir}}
+    {{#if (hasValue arproc_quir)}}
     <tr>
       <td>Área procesamiento Limpios y Usados</td>
       <td style="text-align: center;">
-        <strong class="{{#if arproc_quir}}valor-si{{else}}valor-no{{/if}}">{{#if arproc_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass arproc_quir}}">{{valorSiNo arproc_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if arm_quir}}
+    {{#if (hasValue arm_quir)}}
     <tr>
       <td>Armario o Vitrinas</td>
       <td style="text-align: center;">
-        <strong class="{{#if arm_quir}}valor-si{{else}}valor-no{{/if}}">{{#if arm_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass arm_quir}}">{{valorSiNo arm_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if boturg_quir}}
+    {{#if (hasValue boturg_quir)}}
     <tr>
       <td>Botiquín urgencia</td>
       <td style="text-align: center;">
-        <strong class="{{#if boturg_quir}}valor-si{{else}}valor-no{{/if}}">{{#if boturg_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass boturg_quir}}">{{valorSiNo boturg_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if mepil_quir}}
+    {{#if (hasValue mepil_quir)}}
     <tr>
       <td>Mesada con pileta</td>
       <td style="text-align: center;">
-        <strong class="{{#if mepil_quir}}valor-si{{else}}valor-no{{/if}}">{{#if mepil_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass mepil_quir}}">{{valorSiNo mepil_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if est_quir}}
+    {{#if (hasValue est_quir)}}
     <tr>
       <td>Estantes</td>
       <td style="text-align: center;">
-        <strong class="{{#if est_quir}}valor-si{{else}}valor-no{{/if}}">{{#if est_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass est_quir}}">{{valorSiNo est_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sirue_quir}}
+    {{#if (hasValue sirue_quir)}}
     <tr>
       <td>Silla de ruedas</td>
       <td style="text-align: center;">
-        <strong class="{{#if sirue_quir}}valor-si{{else}}valor-no{{/if}}">{{#if sirue_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sirue_quir}}">{{valorSiNo sirue_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if hel_quir}}
+    {{#if (hasValue hel_quir)}}
     <tr>
       <td>Heladera</td>
       <td style="text-align: center;">
-        <strong class="{{#if hel_quir}}valor-si{{else}}valor-no{{/if}}">{{#if hel_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hel_quir}}">{{valorSiNo hel_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if tensi_quir}}
+    {{#if (hasValue tensi_quir)}}
     <tr>
       <td>Tensiómetro</td>
       <td style="text-align: center;">
-        <strong class="{{#if tensi_quir}}valor-si{{else}}valor-no{{/if}}">{{#if tensi_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass tensi_quir}}">{{valorSiNo tensi_quir}}</strong>
       </td>
     </tr>
     {{/if}}

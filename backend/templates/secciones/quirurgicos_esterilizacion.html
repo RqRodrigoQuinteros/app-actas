@@ -1,35 +1,35 @@
 <div class="seccion">
   <h3>ESTERILIZACIÓN</h3>
   <table>
-    {{#if est_quir}}
+    {{#if (hasValue est_quir)}}
     <tr>
       <td style="width: 70%;">Estufa</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if est_quir}}valor-si{{else}}valor-no{{/if}}">{{#if est_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass est_quir}}">{{valorSiNo est_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if conempauto_quir}}
+    {{#if (hasValue conempauto_quir)}}
     <tr>
       <td>Contrato con empresa autorizada</td>
       <td style="text-align: center;">
-        <strong class="{{#if conempauto_quir}}valor-si{{else}}valor-no{{/if}}">{{#if conempauto_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass conempauto_quir}}">{{valorSiNo conempauto_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if autocl_quir}}
+    {{#if (hasValue autocl_quir)}}
     <tr>
       <td>Autoclave</td>
       <td style="text-align: center;">
-        <strong class="{{#if autocl_quir}}valor-si{{else}}valor-no{{/if}}">{{#if autocl_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass autocl_quir}}">{{valorSiNo autocl_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if matdes_quir}}
+    {{#if (hasValue matdes_quir)}}
     <tr>
       <td>Material descartable</td>
       <td style="text-align: center;">
-        <strong class="{{#if matdes_quir}}valor-si{{else}}valor-no{{/if}}">{{#if matdes_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass matdes_quir}}">{{valorSiNo matdes_quir}}</strong>
       </td>
     </tr>
     {{/if}}

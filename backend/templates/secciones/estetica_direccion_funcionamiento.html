@@ -1,105 +1,105 @@
 <div class="seccion">
   <h3>DIRECCIÓN Y FUNCIONAMIENTO - ESTÉTICA/ONCOLÓGICO</h3>
   <table>
-    {{#if reg_enf_trans}}
+    {{#if (hasValue reg_enf_trans)}}
     <tr>
       <td style="width: 70%;">Registro de Enfermedades Transmisibles</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if reg_enf_trans}}valor-si{{else}}valor-no{{/if}}">{{#if reg_enf_trans}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass reg_enf_trans}}">{{valorSiNo reg_enf_trans}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if reg_int}}
+    {{#if (hasValue reg_int)}}
     <tr>
       <td>Reglamento Interno</td>
       <td style="text-align: center;">
-        <strong class="{{#if reg_int}}valor-si{{else}}valor-no{{/if}}">{{#if reg_int}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass reg_int}}">{{valorSiNo reg_int}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if reg_psico}}
+    {{#if (hasValue reg_psico)}}
     <tr>
       <td>Registro de Psicofármacos</td>
       <td style="text-align: center;">
-        <strong class="{{#if reg_psico}}valor-si{{else}}valor-no{{/if}}">{{#if reg_psico}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass reg_psico}}">{{valorSiNo reg_psico}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if reg_his_cli_comp}}
+    {{#if (hasValue reg_his_cli_comp)}}
     <tr>
       <td>Registro de Historias Clínicas Completo</td>
       <td style="text-align: center;">
-        <strong class="{{#if reg_his_cli_comp}}valor-si{{else}}valor-no{{/if}}">{{#if reg_his_cli_comp}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass reg_his_cli_comp}}">{{valorSiNo reg_his_cli_comp}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if nro_plantas}}
+    {{#if (hasValue nro_plantas)}}
     <tr>
       <td>Número de Plantas</td>
       <td style="text-align: center;">{{nro_plantas}}</td>
     </tr>
     {{/if}}
-    {{#if asc_mon}}
+    {{#if (hasValue asc_mon)}}
     <tr>
       <td>Ascensor / Montacamillas</td>
       <td style="text-align: center;">
-        <strong class="{{#if asc_mon}}valor-si{{else}}valor-no{{/if}}">{{#if asc_mon}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass asc_mon}}">{{valorSiNo asc_mon}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if pla_inc}}
+    {{#if (hasValue pla_inc)}}
     <tr>
       <td>Plano inclinado</td>
       <td style="text-align: center;">
-        <strong class="{{#if pla_inc}}valor-si{{else}}valor-no{{/if}}">{{#if pla_inc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pla_inc}}">{{valorSiNo pla_inc}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sal_emerg}}
+    {{#if (hasValue sal_emerg)}}
     <tr>
       <td>Salida de Emergencia</td>
       <td style="text-align: center;">
-        <strong class="{{#if sal_emerg}}valor-si{{else}}valor-no{{/if}}">{{#if sal_emerg}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sal_emerg}}">{{valorSiNo sal_emerg}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if pl_eva_inc}}
+    {{#if (hasValue pl_eva_inc)}}
     <tr>
       <td>Plan de evacuación de Incendios</td>
       <td style="text-align: center;">
-        <strong class="{{#if pl_eva_inc}}valor-si{{else}}valor-no{{/if}}">{{#if pl_eva_inc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pl_eva_inc}}">{{valorSiNo pl_eva_inc}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if minu}}
+    {{#if (hasValue minu)}}
     <tr>
       <td>Municipalidad</td>
       <td style="text-align: center;">
-        <strong class="{{#if minu}}valor-si{{else}}valor-no{{/if}}">{{#if minu}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass minu}}">{{valorSiNo minu}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if gas}}
+    {{#if (hasValue gas)}}
     <tr>
       <td>Gas</td>
       <td style="text-align: center;">
-        <strong class="{{#if gas}}valor-si{{else}}valor-no{{/if}}">{{#if gas}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass gas}}">{{valorSiNo gas}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if agua}}
+    {{#if (hasValue agua)}}
     <tr>
       <td>Agua</td>
       <td style="text-align: center;">
-        <strong class="{{#if agua}}valor-si{{else}}valor-no{{/if}}">{{#if agua}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass agua}}">{{valorSiNo agua}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if luz}}
+    {{#if (hasValue luz)}}
     <tr>
       <td>Luz</td>
       <td style="text-align: center;">
-        <strong class="{{#if luz}}valor-si{{else}}valor-no{{/if}}">{{#if luz}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass luz}}">{{valorSiNo luz}}</strong>
       </td>
     </tr>
     {{/if}}

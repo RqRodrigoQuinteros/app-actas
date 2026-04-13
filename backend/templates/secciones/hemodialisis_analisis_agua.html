@@ -1,29 +1,29 @@
 <div class="seccion">
   <h3>ANÁLISIS DE AGUA</h3>
   <table>
-    {{#if fisquim_hemodi}}
+    {{#if (hasValue fisquim_hemodi)}}
     <tr>
       <td style="width: 70%;">Análisis Fisicoquímico</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if fisquim_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if fisquim_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass fisquim_hemodi}}">{{valorSiNo fisquim_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ulfisqui_hemodi}}
+    {{#if (hasValue ulfisqui_hemodi)}}
     <tr>
       <td>Fecha último análisis fisicoquímico</td>
       <td style="text-align: center;">{{ulfisqui_hemodi}}</td>
     </tr>
     {{/if}}
-    {{#if bacterio_hemodi}}
+    {{#if (hasValue bacterio_hemodi)}}
     <tr>
       <td>Análisis Bacteriológico</td>
       <td style="text-align: center;">
-        <strong class="{{#if bacterio_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if bacterio_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass bacterio_hemodi}}">{{valorSiNo bacterio_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ulbacte_hemodi}}
+    {{#if (hasValue ulbacte_hemodi)}}
     <tr>
       <td>Fecha último análisis bacteriológico</td>
       <td style="text-align: center;">{{ulbacte_hemodi}}</td>

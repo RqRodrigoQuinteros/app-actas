@@ -1,209 +1,209 @@
 <div class="seccion">
   <h3>OBSTETRICIA</h3>
   <table>
-    {{#if sal_par}}
+    {{#if (hasValue sal_par)}}
     <tr>
       <td style="width: 70%;">Posee sala de parto</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if sal_par}}valor-si{{else}}valor-no{{/if}}">{{#if sal_par}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sal_par}}">{{valorSiNo sal_par}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sal_rec}}
+    {{#if (hasValue sal_rec)}}
     <tr>
       <td>Posee sala de recuperación</td>
       <td style="text-align: center;">
-        <strong class="{{#if sal_rec}}valor-si{{else}}valor-no{{/if}}">{{#if sal_rec}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sal_rec}}">{{valorSiNo sal_rec}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if rec_recnac}}
+    {{#if (hasValue rec_recnac)}}
     <tr>
       <td>Posee recepción de recién nacido</td>
       <td style="text-align: center;">
-        <strong class="{{#if rec_recnac}}valor-si{{else}}valor-no{{/if}}">{{#if rec_recnac}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass rec_recnac}}">{{valorSiNo rec_recnac}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cant_sal_par}}
+    {{#if (hasValue cant_sal_par)}}
     <tr>
       <td>Cantidad de salas de partos</td>
       <td style="text-align: center;">{{cant_sal_par}}</td>
     </tr>
     {{/if}}
-    {{#if c_normas_par}}
+    {{#if (hasValue c_normas_par)}}
     <tr>
       <td>Cumple normas paredes</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_normas_par}}valor-si{{else}}valor-no{{/if}}">{{#if c_normas_par}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass c_normas_par}}">{{valorSiNo c_normas_par}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if c_normas_pis}}
+    {{#if (hasValue c_normas_pis)}}
     <tr>
       <td>Cumple normas pisos</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_normas_pis}}valor-si{{else}}valor-no{{/if}}">{{#if c_normas_pis}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass c_normas_pis}}">{{valorSiNo c_normas_pis}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if c_normas_tec}}
+    {{#if (hasValue c_normas_tec)}}
     <tr>
       <td>Cumple normas techos</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_normas_tec}}valor-si{{else}}valor-no{{/if}}">{{#if c_normas_tec}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass c_normas_tec}}">{{valorSiNo c_normas_tec}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if circ_excl}}
+    {{#if (hasValue circ_excl)}}
     <tr>
       <td>Circulación exclusiva</td>
       <td style="text-align: center;">
-        <strong class="{{#if circ_excl}}valor-si{{else}}valor-no{{/if}}">{{#if circ_excl}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass circ_excl}}">{{valorSiNo circ_excl}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ie_pac}}
+    {{#if (hasValue ie_pac)}}
     <tr>
       <td>Ingreso y transferencia de pacientes</td>
       <td style="text-align: center;">
-        <strong class="{{#if ie_pac}}valor-si{{else}}valor-no{{/if}}">{{#if ie_pac}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ie_pac}}">{{valorSiNo ie_pac}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cl_frio_calor}}
+    {{#if (hasValue cl_frio_calor)}}
     <tr>
       <td>Climatización frío-calor</td>
       <td style="text-align: center;">
-        <strong class="{{#if cl_frio_calor}}valor-si{{else}}valor-no{{/if}}">{{#if cl_frio_calor}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cl_frio_calor}}">{{valorSiNo cl_frio_calor}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sal_recep}}
+    {{#if (hasValue sal_recep)}}
     <tr>
       <td>Sala de Recepción</td>
       <td style="text-align: center;">
-        <strong class="{{#if sal_recep}}valor-si{{else}}valor-no{{/if}}">{{#if sal_recep}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sal_recep}}">{{valorSiNo sal_recep}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if 1c3_par}}
+    {{#if (hasValue 1c3_par)}}
     <tr>
       <td>1 c/3 sala de partos</td>
       <td style="text-align: center;">
-        <strong class="{{#if 1c3_par}}valor-si{{else}}valor-no{{/if}}">{{#if 1c3_par}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass 1c3_par}}">{{valorSiNo 1c3_par}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if 6e}}
+    {{#if (hasValue 6e)}}
     <tr>
       <td>6 enchufes</td>
       <td style="text-align: center;">
-        <strong class="{{#if 6e}}valor-si{{else}}valor-no{{/if}}">{{#if 6e}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass 6e}}">{{valorSiNo 6e}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ve_pro}}
+    {{#if (hasValue ve_pro)}}
     <tr>
       <td>Vestuario propio</td>
       <td style="text-align: center;">
-        <strong class="{{#if ve_pro}}valor-si{{else}}valor-no{{/if}}">{{#if ve_pro}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ve_pro}}">{{valorSiNo ve_pro}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if lav_pre}}
+    {{#if (hasValue lav_pre)}}
     <tr>
       <td>Lavabos previo filtro de vestuarios</td>
       <td style="text-align: center;">
-        <strong class="{{#if lav_pre}}valor-si{{else}}valor-no{{/if}}">{{#if lav_pre}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass lav_pre}}">{{valorSiNo lav_pre}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if s_sucio}}
+    {{#if (hasValue s_sucio)}}
     <tr>
       <td>Sector sucio</td>
       <td style="text-align: center;">
-        <strong class="{{#if s_sucio}}valor-si{{else}}valor-no{{/if}}">{{#if s_sucio}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass s_sucio}}">{{valorSiNo s_sucio}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ccd_sp}}
+    {{#if (hasValue ccd_sp)}}
     <tr>
       <td>Comunicación directa a SP</td>
       <td style="text-align: center;">
-        <strong class="{{#if ccd_sp}}valor-si{{else}}valor-no{{/if}}">{{#if ccd_sp}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ccd_sp}}">{{valorSiNo ccd_sp}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if s_limp}}
+    {{#if (hasValue s_limp)}}
     <tr>
       <td>Sector Limpio</td>
       <td style="text-align: center;">
-        <strong class="{{#if s_limp}}valor-si{{else}}valor-no{{/if}}">{{#if s_limp}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass s_limp}}">{{valorSiNo s_limp}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cc_dir_sp}}
+    {{#if (hasValue cc_dir_sp)}}
     <tr>
       <td>Comunicación directa de SP</td>
       <td style="text-align: center;">
-        <strong class="{{#if cc_dir_sp}}valor-si{{else}}valor-no{{/if}}">{{#if cc_dir_sp}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cc_dir_sp}}">{{valorSiNo cc_dir_sp}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if hpre_are}}
+    {{#if (hasValue hpre_are)}}
     <tr>
       <td>Habitación preparto en el área</td>
       <td style="text-align: center;">
-        <strong class="{{#if hpre_are}}valor-si{{else}}valor-no{{/if}}">{{#if hpre_are}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hpre_are}}">{{valorSiNo hpre_are}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if hpre_inte}}
+    {{#if (hasValue hpre_inte)}}
     <tr>
       <td>Habitación preparto en el internado</td>
       <td style="text-align: center;">
-        <strong class="{{#if hpre_inte}}valor-si{{else}}valor-no{{/if}}">{{#if hpre_inte}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hpre_inte}}">{{valorSiNo hpre_inte}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if il_adecuada}}
+    {{#if (hasValue il_adecuada)}}
     <tr>
       <td>Iluminación adecuada</td>
       <td style="text-align: center;">
-        <strong class="{{#if il_adecuada}}valor-si{{else}}valor-no{{/if}}">{{#if il_adecuada}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass il_adecuada}}">{{valorSiNo il_adecuada}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if pro_des_tie}}
+    {{#if (hasValue pro_des_tie)}}
     <tr>
       <td>Protección con descarga a tierra</td>
       <td style="text-align: center;">
-        <strong class="{{#if pro_des_tie}}valor-si{{else}}valor-no{{/if}}">{{#if pro_des_tie}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pro_des_tie}}">{{valorSiNo pro_des_tie}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if 1cp_2rn}}
+    {{#if (hasValue 1cp_2rn)}}
     <tr>
       <td>1 caja de paro c/equipamiento para 2 RN simultáneos</td>
       <td style="text-align: center;">
-        <strong class="{{#if 1cp_2rn}}valor-si{{else}}valor-no{{/if}}">{{#if 1cp_2rn}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass 1cp_2rn}}">{{valorSiNo 1cp_2rn}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if 1p_c2ox}}
+    {{#if (hasValue 1p_c2ox)}}
     <tr>
       <td>1 panel c/2 oxígenos 1 aspiración 1 aire comprimido</td>
       <td style="text-align: center;">
-        <strong class="{{#if 1p_c2ox}}valor-si{{else}}valor-no{{/if}}">{{#if 1p_c2ox}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass 1p_c2ox}}">{{valorSiNo 1p_c2ox}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if m_rec_rn}}
+    {{#if (hasValue m_rec_rn)}}
     <tr>
       <td>Mesa de recepción acolchada c/calorificación p/2 RN</td>
       <td style="text-align: center;">
-        <strong class="{{#if m_rec_rn}}valor-si{{else}}valor-no{{/if}}">{{#if m_rec_rn}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass m_rec_rn}}">{{valorSiNo m_rec_rn}}</strong>
       </td>
     </tr>
     {{/if}}

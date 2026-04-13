@@ -1,75 +1,75 @@
 <div class="seccion">
   <h3>RADIOFÍSICA</h3>
   <table>
-    {{#if dia_ima_hab}}
+    {{#if (hasValue dia_ima_hab)}}
     <tr>
       <td style="width: 70%;">Diagnóstico por imagen habilitados</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if dia_ima_hab}}valor-si{{else}}valor-no{{/if}}">{{#if dia_ima_hab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass dia_ima_hab}}">{{valorSiNo dia_ima_hab}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if den_os}}
+    {{#if (hasValue den_os)}}
     <tr>
       <td>Densitometría ósea habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if den_os}}valor-si{{else}}valor-no{{/if}}">{{#if den_os}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass den_os}}">{{valorSiNo den_os}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if tac}}
+    {{#if (hasValue tac)}}
     <tr>
       <td>TAC habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if tac}}valor-si{{else}}valor-no{{/if}}">{{#if tac}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass tac}}">{{valorSiNo tac}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if rad_sim_hab}}
+    {{#if (hasValue rad_sim_hab)}}
     <tr>
       <td>Radiología simple habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if rad_sim_hab}}valor-si{{else}}valor-no{{/if}}">{{#if rad_sim_hab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass rad_sim_hab}}">{{valorSiNo rad_sim_hab}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if eco_hab}}
+    {{#if (hasValue eco_hab)}}
     <tr>
       <td>Ecografía habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if eco_hab}}valor-si{{else}}valor-no{{/if}}">{{#if eco_hab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass eco_hab}}">{{valorSiNo eco_hab}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if mam_hab}}
+    {{#if (hasValue mam_hab)}}
     <tr>
       <td>Mamografía habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if mam_hab}}valor-si{{else}}valor-no{{/if}}">{{#if mam_hab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass mam_hab}}">{{valorSiNo mam_hab}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if pet}}
+    {{#if (hasValue pet)}}
     <tr>
       <td>PET habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if pet}}valor-si{{else}}valor-no{{/if}}">{{#if pet}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pet}}">{{valorSiNo pet}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if rmn}}
+    {{#if (hasValue rmn)}}
     <tr>
       <td>RMN habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if rmn}}valor-si{{else}}valor-no{{/if}}">{{#if rmn}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass rmn}}">{{valorSiNo rmn}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if rad_con_hab}}
+    {{#if (hasValue rad_con_hab)}}
     <tr>
       <td>Radiología contrastada habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if rad_con_hab}}valor-si{{else}}valor-no{{/if}}">{{#if rad_con_hab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass rad_con_hab}}">{{valorSiNo rad_con_hab}}</strong>
       </td>
     </tr>
     {{/if}}

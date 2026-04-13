@@ -1,123 +1,123 @@
 <div class="seccion">
   <h3>DEL EQUIPAMIENTO</h3>
   <table>
-    {{#if botbas_quir}}
+    {{#if (hasValue botbas_quir)}}
     <tr>
       <td style="width: 70%;">Botiquín básico c/anestésicos y p/reanimación CV</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if botbas_quir}}valor-si{{else}}valor-no{{/if}}">{{#if botbas_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass botbas_quir}}">{{valorSiNo botbas_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if laritub_quir}}
+    {{#if (hasValue laritub_quir)}}
     <tr>
       <td>Laringoscopio y Tubos Endotraqueales</td>
       <td style="text-align: center;">
-        <strong class="{{#if laritub_quir}}valor-si{{else}}valor-no{{/if}}">{{#if laritub_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass laritub_quir}}">{{valorSiNo laritub_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cajtraq_quir}}
+    {{#if (hasValue cajtraq_quir)}}
     <tr>
       <td>Caja traqueostomía</td>
       <td style="text-align: center;">
-        <strong class="{{#if cajtraq_quir}}valor-si{{else}}valor-no{{/if}}">{{#if cajtraq_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cajtraq_quir}}">{{valorSiNo cajtraq_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if mon_quir}}
+    {{#if (hasValue mon_quir)}}
     <tr>
       <td>Monitor</td>
       <td style="text-align: center;">
-        <strong class="{{#if mon_quir}}valor-si{{else}}valor-no{{/if}}">{{#if mon_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass mon_quir}}">{{valorSiNo mon_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if electro_quir}}
+    {{#if (hasValue electro_quir)}}
     <tr>
       <td>Electrobisturí</td>
       <td style="text-align: center;">
-        <strong class="{{#if electro_quir}}valor-si{{else}}valor-no{{/if}}">{{#if electro_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass electro_quir}}">{{valorSiNo electro_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if asauto_quir}}
+    {{#if (hasValue asauto_quir)}}
     <tr>
       <td>Aspirador automático</td>
       <td style="text-align: center;">
-        <strong class="{{#if asauto_quir}}valor-si{{else}}valor-no{{/if}}">{{#if asauto_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass asauto_quir}}">{{valorSiNo asauto_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if oxipul_quir}}
+    {{#if (hasValue oxipul_quir)}}
     <tr>
       <td>Oxímetro de pulso</td>
       <td style="text-align: center;">
-        <strong class="{{#if oxipul_quir}}valor-si{{else}}valor-no{{/if}}">{{#if oxipul_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass oxipul_quir}}">{{valorSiNo oxipul_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if lamcial_quir}}
+    {{#if (hasValue lamcial_quir)}}
     <tr>
       <td>Lámpara cialítica</td>
       <td style="text-align: center;">
-        <strong class="{{#if lamcial_quir}}valor-si{{else}}valor-no{{/if}}">{{#if lamcial_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass lamcial_quir}}">{{valorSiNo lamcial_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if memasi_quir}}
+    {{#if (hasValue memasi_quir)}}
     <tr>
       <td>Mesa cirugía Mayor o similar</td>
       <td style="text-align: center;">
-        <strong class="{{#if memasi_quir}}valor-si{{else}}valor-no{{/if}}">{{#if memasi_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass memasi_quir}}">{{valorSiNo memasi_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if instru_quir}}
+    {{#if (hasValue instru_quir)}}
     <tr>
       <td>Instrumental</td>
       <td style="text-align: center;">
-        <strong class="{{#if instru_quir}}valor-si{{else}}valor-no{{/if}}">{{#if instru_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass instru_quir}}">{{valorSiNo instru_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if fuenepro_quir}}
+    {{#if (hasValue fuenepro_quir)}}
     <tr>
       <td>Fuente energía propia</td>
       <td style="text-align: center;">
-        <strong class="{{#if fuenepro_quir}}valor-si{{else}}valor-no{{/if}}">{{#if fuenepro_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass fuenepro_quir}}">{{valorSiNo fuenepro_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if gruele_quir}}
+    {{#if (hasValue gruele_quir)}}
     <tr>
       <td>Grupo electrógeno</td>
       <td style="text-align: center;">
-        <strong class="{{#if gruele_quir}}valor-si{{else}}valor-no{{/if}}">{{#if gruele_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass gruele_quir}}">{{valorSiNo gruele_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if resauto_quir}}
+    {{#if (hasValue resauto_quir)}}
     <tr>
       <td>Respirador automático</td>
       <td style="text-align: center;">
-        <strong class="{{#if resauto_quir}}valor-si{{else}}valor-no{{/if}}">{{#if resauto_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass resauto_quir}}">{{valorSiNo resauto_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if tuboxi_quir}}
+    {{#if (hasValue tuboxi_quir)}}
     <tr>
       <td>Tubo de Oxígeno</td>
       <td style="text-align: center;">
-        <strong class="{{#if tuboxi_quir}}valor-si{{else}}valor-no{{/if}}">{{#if tuboxi_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass tuboxi_quir}}">{{valorSiNo tuboxi_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cardi_quir}}
+    {{#if (hasValue cardi_quir)}}
     <tr>
       <td>Cardiodesfibrilador</td>
       <td style="text-align: center;">
-        <strong class="{{#if cardi_quir}}valor-si{{else}}valor-no{{/if}}">{{#if cardi_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cardi_quir}}">{{valorSiNo cardi_quir}}</strong>
       </td>
     </tr>
     {{/if}}

@@ -2,31 +2,31 @@
 <div class="seccion">
   <h3>UNIDAD DE CUIDADOS INTENSIVOS (UTI){{#if nombre}} — {{nombre}}{{/if}}</h3>
   <table>
-    {{#if nro_camas}}
+    {{#if (hasValue nro_camas)}}
     <tr>
       <td style="width: 70%;">N° de Camas</td>
       <td style="width: 30%; text-align: center;">{{nro_camas}}</td>
     </tr>
     {{/if}}
-    {{#if planos}}
+    {{#if (hasValue planos)}}
     <tr>
       <td>Planos</td>
-      <td style="text-align: center;"><strong class="{{#if planos}}valor-si{{else}}valor-no{{/if}}">{{#if planos}}SI{{else}}NO{{/if}}</strong></td>
+      <td style="text-align: center;"><strong class="{{valorClass planos}}">{{valorSiNo planos}}</strong></td>
     </tr>
     {{/if}}
-    {{#if c_c_e}}
+    {{#if (hasValue c_c_e)}}
     <tr>
       <td>Coincide con edificación</td>
-      <td style="text-align: center;"><strong class="{{#if c_c_e}}valor-si{{else}}valor-no{{/if}}">{{#if c_c_e}}SI{{else}}NO{{/if}}</strong></td>
+      <td style="text-align: center;"><strong class="{{valorClass c_c_e}}">{{valorSiNo c_c_e}}</strong></td>
     </tr>
     {{/if}}
-    {{#if martrans_nouco}}
+    {{#if (hasValue martrans_nouco)}}
     <tr>
       <td>Marcapaso transitorio (si no tiene UCO)</td>
-      <td style="text-align: center;"><strong class="{{#if martrans_nouco}}valor-si{{else}}valor-no{{/if}}">{{#if martrans_nouco}}SI{{else}}NO{{/if}}</strong></td>
+      <td style="text-align: center;"><strong class="{{valorClass martrans_nouco}}">{{valorSiNo martrans_nouco}}</strong></td>
     </tr>
     {{/if}}
-    {{#if suptot}}
+    {{#if (hasValue suptot)}}
     <tr>
       <td>Superficie total sala internación</td>
       <td style="text-align: center;">{{suptot}}</td>

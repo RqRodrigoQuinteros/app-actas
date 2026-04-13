@@ -1,87 +1,87 @@
 <div class="seccion">
   <h3>INSCRIPCIÓN Y HABILITACIÓN - ESTÉTICA/ONCOLÓGICO</h3>
   <table>
-    {{#if nro_cam_rec}}
+    {{#if (hasValue nro_cam_rec)}}
     <tr>
       <td style="width: 70%;">N° Total de Camas de recuperación</td>
       <td style="width: 30%; text-align: center;">{{nro_cam_rec}}</td>
     </tr>
     {{/if}}
-    {{#if ti_soc}}
+    {{#if (hasValue ti_soc)}}
     <tr>
       <td>Tipo de Sociedad</td>
       <td style="text-align: center;">{{ti_soc}}</td>
     </tr>
     {{/if}}
-    {{#if ad_priv}}
+    {{#if (hasValue ad_priv)}}
     <tr>
       <td>Aditamento Privado</td>
       <td style="text-align: center;">
-        <strong class="{{#if ad_priv}}valor-si{{else}}valor-no{{/if}}">{{#if ad_priv}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ad_priv}}">{{valorSiNo ad_priv}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if pla}}
+    {{#if (hasValue pla)}}
     <tr>
       <td>Planos</td>
       <td style="text-align: center;">
-        <strong class="{{#if pla}}valor-si{{else}}valor-no{{/if}}">{{#if pla}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pla}}">{{valorSiNo pla}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cer_au_lab}}
+    {{#if (hasValue cer_au_lab)}}
     <tr>
       <td>Certificado autorización Laboratorio</td>
       <td style="text-align: center;">
-        <strong class="{{#if cer_au_lab}}valor-si{{else}}valor-no{{/if}}">{{#if cer_au_lab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cer_au_lab}}">{{valorSiNo cer_au_lab}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cer_au_ind}}
+    {{#if (hasValue cer_au_ind)}}
     <tr>
       <td>Certificado autorización Individual</td>
       <td style="text-align: center;">
-        <strong class="{{#if cer_au_ind}}valor-si{{else}}valor-no{{/if}}">{{#if cer_au_ind}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cer_au_ind}}">{{valorSiNo cer_au_ind}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cer_hab_hemo}}
+    {{#if (hasValue cer_hab_hemo)}}
     <tr>
       <td>Certificado Habilitación Hemoterapia</td>
       <td style="text-align: center;">
-        <strong class="{{#if cer_hab_hemo}}valor-si{{else}}valor-no{{/if}}">{{#if cer_hab_hemo}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cer_hab_hemo}}">{{valorSiNo cer_hab_hemo}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cer_au_dia_ima}}
+    {{#if (hasValue cer_au_dia_ima)}}
     <tr>
       <td>Certificado autorización Diagnóstico x Imágenes</td>
       <td style="text-align: center;">
-        <strong class="{{#if cer_au_dia_ima}}valor-si{{else}}valor-no{{/if}}">{{#if cer_au_dia_ima}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cer_au_dia_ima}}">{{valorSiNo cer_au_dia_ima}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if dir_lis_pro}}
+    {{#if (hasValue dir_lis_pro)}}
     <tr>
       <td>Director y Listado de Profesionales</td>
       <td style="text-align: center;">
-        <strong class="{{#if dir_lis_pro}}valor-si{{else}}valor-no{{/if}}">{{#if dir_lis_pro}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass dir_lis_pro}}">{{valorSiNo dir_lis_pro}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if org_func}}
+    {{#if (hasValue org_func)}}
     <tr>
       <td>Organigrama funcional</td>
       <td style="text-align: center;">
-        <strong class="{{#if org_func}}valor-si{{else}}valor-no{{/if}}">{{#if org_func}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass org_func}}">{{valorSiNo org_func}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if conv_serv}}
+    {{#if (hasValue conv_serv)}}
     <tr>
       <td>Convenio Servicio de Emergencias / Unidades Móviles</td>
       <td style="text-align: center;">
-        <strong class="{{#if conv_serv}}valor-si{{else}}valor-no{{/if}}">{{#if conv_serv}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass conv_serv}}">{{valorSiNo conv_serv}}</strong>
       </td>
     </tr>
     {{/if}}

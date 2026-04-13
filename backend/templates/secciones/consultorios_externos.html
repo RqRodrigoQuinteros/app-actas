@@ -1,31 +1,31 @@
 <div class="seccion">
   <h3>CONSULTORIOS EXTERNOS</h3>
   <table>
-    {{#if cons_ext}}
+    {{#if (hasValue cons_ext)}}
     <tr>
       <td style="width: 70%;">Posee Consultorios Externos</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if cons_ext}}valor-si{{else}}valor-no{{/if}}">{{#if cons_ext}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cons_ext}}">{{valorSiNo cons_ext}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cant_tot}}
+    {{#if (hasValue cant_tot)}}
     <tr>
       <td>Cantidad total de consultorios</td>
       <td style="text-align: center;">{{cant_tot}}</td>
     </tr>
     {{/if}}
-    {{#if can_cons}}
+    {{#if (hasValue can_cons)}}
     <tr>
       <td>Consultorios con baño privado y vestuario</td>
       <td style="text-align: center;">{{can_cons}}</td>
     </tr>
     {{/if}}
-    {{#if cons_lav}}
+    {{#if (hasValue cons_lav)}}
     <tr>
       <td>Consultorio con lavabo</td>
       <td style="text-align: center;">
-        <strong class="{{#if cons_lav}}valor-si{{else}}valor-no{{/if}}">{{#if cons_lav}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cons_lav}}">{{valorSiNo cons_lav}}</strong>
       </td>
     </tr>
     {{/if}}

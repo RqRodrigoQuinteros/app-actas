@@ -1,43 +1,43 @@
 <div class="seccion">
   <h3>CONSULTORIOS - GENERAL</h3>
   <table>
-    {{#if consultorios_equipados}}
+    {{#if (hasValue consultorios_equipados)}}
     <tr>
       <td style="width: 70%;">Consultorios equipados</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if consultorios_equipados}}valor-si{{else}}valor-no{{/if}}">{{#if consultorios_equipados}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass consultorios_equipados}}">{{valorSiNo consultorios_equipados}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sala_espera}}
+    {{#if (hasValue sala_espera)}}
     <tr>
       <td>Sala de espera</td>
       <td style="text-align: center;">
-        <strong class="{{#if sala_espera}}valor-si{{else}}valor-no{{/if}}">{{#if sala_espera}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sala_espera}}">{{valorSiNo sala_espera}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sanitarios}}
+    {{#if (hasValue sanitarios)}}
     <tr>
       <td>Sanitarios diferenciados</td>
       <td style="text-align: center;">
-        <strong class="{{#if sanitarios}}valor-si{{else}}valor-no{{/if}}">{{#if sanitarios}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sanitarios}}">{{valorSiNo sanitarios}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if mesa_reconocimiento}}
+    {{#if (hasValue mesa_reconocimiento)}}
     <tr>
       <td>Mesa de reconocimiento</td>
       <td style="text-align: center;">
-        <strong class="{{#if mesa_reconocimiento}}valor-si{{else}}valor-no{{/if}}">{{#if mesa_reconocimiento}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass mesa_reconocimiento}}">{{valorSiNo mesa_reconocimiento}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if iluminacion}}
+    {{#if (hasValue iluminacion)}}
     <tr>
       <td>Iluminación adecuada</td>
       <td style="text-align: center;">
-        <strong class="{{#if iluminacion}}valor-si{{else}}valor-no{{/if}}">{{#if iluminacion}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass iluminacion}}">{{valorSiNo iluminacion}}</strong>
       </td>
     </tr>
     {{/if}}

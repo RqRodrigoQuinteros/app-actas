@@ -2,19 +2,19 @@
   <h3>SECTOR DE INTERNACIÓN — CUMPLE Y ÁREA DE RESIDUOS</h3>
   {{#if (orFunc cond_edil are_res)}}
   <table>
-    {{#if cond_edil}}
+    {{#if (hasValue cond_edil)}}
     <tr>
       <td style="width: 70%;">Condiciones Edilicias</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if cond_edil}}valor-si{{else}}valor-no{{/if}}">{{#if cond_edil}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cond_edil}}">{{valorSiNo cond_edil}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if are_res}}
+    {{#if (hasValue are_res)}}
     <tr>
       <td>Área de Residuos</td>
       <td style="text-align: center;">
-        <strong class="{{#if are_res}}valor-si{{else}}valor-no{{/if}}">{{#if are_res}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass are_res}}">{{valorSiNo are_res}}</strong>
       </td>
     </tr>
     {{/if}}
@@ -24,65 +24,65 @@
   {{#if (orFunc h1_inc h1_con h2_inc h2_con h3_inc h3_con otr tot_habit cam_ort_nro llam_banio)}}
   <h4 style="margin-top: 15px;">N° de Camas y Baños por Habitación</h4>
   <table>
-    {{#if h1_inc}}
+    {{#if (hasValue h1_inc)}}
     <tr>
       <td style="width: 70%;">Habitación 1 cama — Baño incluido</td>
       <td style="width: 30%; text-align: center;">{{h1_inc}}</td>
     </tr>
     {{/if}}
-    {{#if h1_con}}
+    {{#if (hasValue h1_con)}}
     <tr>
       <td>Habitación 1 cama — Baño contiguo</td>
       <td style="text-align: center;">{{h1_con}}</td>
     </tr>
     {{/if}}
-    {{#if h2_inc}}
+    {{#if (hasValue h2_inc)}}
     <tr>
       <td>Habitación 2 camas — Baño incluido</td>
       <td style="text-align: center;">{{h2_inc}}</td>
     </tr>
     {{/if}}
-    {{#if h2_con}}
+    {{#if (hasValue h2_con)}}
     <tr>
       <td>Habitación 2 camas — Baño contiguo</td>
       <td style="text-align: center;">{{h2_con}}</td>
     </tr>
     {{/if}}
-    {{#if h3_inc}}
+    {{#if (hasValue h3_inc)}}
     <tr>
       <td>Habitación 3 camas — Baño incluido</td>
       <td style="text-align: center;">{{h3_inc}}</td>
     </tr>
     {{/if}}
-    {{#if h3_con}}
+    {{#if (hasValue h3_con)}}
     <tr>
       <td>Habitación 3 camas — Baño contiguo</td>
       <td style="text-align: center;">{{h3_con}}</td>
     </tr>
     {{/if}}
-    {{#if otr}}
+    {{#if (hasValue otr)}}
     <tr>
       <td>Otras habitaciones</td>
       <td style="text-align: center;">{{otr}}</td>
     </tr>
     {{/if}}
-    {{#if tot_habit}}
+    {{#if (hasValue tot_habit)}}
     <tr>
       <td>Total de Habitaciones</td>
       <td style="text-align: center; font-weight: bold;">{{tot_habit}}</td>
     </tr>
     {{/if}}
-    {{#if cam_ort_nro}}
+    {{#if (hasValue cam_ort_nro)}}
     <tr>
       <td>Camas ortopédicas N°</td>
       <td style="text-align: center;">{{cam_ort_nro}}</td>
     </tr>
     {{/if}}
-    {{#if llam_banio}}
+    {{#if (hasValue llam_banio)}}
     <tr>
       <td>Llamador en los baños</td>
       <td style="text-align: center;">
-        <strong class="{{#if llam_banio}}valor-si{{else}}valor-no{{/if}}">{{#if llam_banio}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass llam_banio}}">{{valorSiNo llam_banio}}</strong>
       </td>
     </tr>
     {{/if}}
@@ -92,27 +92,27 @@
   {{#if (orFunc loc_dep per_vent ubi_are_ser)}}
   <h4 style="margin-top: 15px;">Depósito de Cadáveres</h4>
   <table>
-    {{#if loc_dep}}
+    {{#if (hasValue loc_dep)}}
     <tr>
       <td style="width: 70%;">Local dimensiones apropiadas depósito</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if loc_dep}}valor-si{{else}}valor-no{{/if}}">{{#if loc_dep}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass loc_dep}}">{{valorSiNo loc_dep}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if per_vent}}
+    {{#if (hasValue per_vent)}}
     <tr>
       <td>Perfectamente ventilado</td>
       <td style="text-align: center;">
-        <strong class="{{#if per_vent}}valor-si{{else}}valor-no{{/if}}">{{#if per_vent}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass per_vent}}">{{valorSiNo per_vent}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ubi_are_ser}}
+    {{#if (hasValue ubi_are_ser)}}
     <tr>
       <td>Ubicado en área de servicio</td>
       <td style="text-align: center;">
-        <strong class="{{#if ubi_are_ser}}valor-si{{else}}valor-no{{/if}}">{{#if ubi_are_ser}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ubi_are_ser}}">{{valorSiNo ubi_are_ser}}</strong>
       </td>
     </tr>
     {{/if}}
@@ -122,59 +122,59 @@
   {{#if (orFunc ilu_nat vent_natu cli_fri_cal ilu_art_cen ilu_art_ind llam_ind priv)}}
   <h4 style="margin-top: 15px;">Ambientes de Internación y Atención</h4>
   <table>
-    {{#if ilu_nat}}
+    {{#if (hasValue ilu_nat)}}
     <tr>
       <td style="width: 70%;">Iluminación natural</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if ilu_nat}}valor-si{{else}}valor-no{{/if}}">{{#if ilu_nat}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ilu_nat}}">{{valorSiNo ilu_nat}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if vent_natu}}
+    {{#if (hasValue vent_natu)}}
     <tr>
       <td>Ventilación natural</td>
       <td style="text-align: center;">
-        <strong class="{{#if vent_natu}}valor-si{{else}}valor-no{{/if}}">{{#if vent_natu}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass vent_natu}}">{{valorSiNo vent_natu}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cli_fri_cal}}
+    {{#if (hasValue cli_fri_cal)}}
     <tr>
       <td>Climatización frío-calor</td>
       <td style="text-align: center;">
-        <strong class="{{#if cli_fri_cal}}valor-si{{else}}valor-no{{/if}}">{{#if cli_fri_cal}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cli_fri_cal}}">{{valorSiNo cli_fri_cal}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ilu_art_cen}}
+    {{#if (hasValue ilu_art_cen)}}
     <tr>
       <td>Iluminación artificial central</td>
       <td style="text-align: center;">
-        <strong class="{{#if ilu_art_cen}}valor-si{{else}}valor-no{{/if}}">{{#if ilu_art_cen}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ilu_art_cen}}">{{valorSiNo ilu_art_cen}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ilu_art_ind}}
+    {{#if (hasValue ilu_art_ind)}}
     <tr>
       <td>Iluminación artificial individual</td>
       <td style="text-align: center;">
-        <strong class="{{#if ilu_art_ind}}valor-si{{else}}valor-no{{/if}}">{{#if ilu_art_ind}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ilu_art_ind}}">{{valorSiNo ilu_art_ind}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if llam_ind}}
+    {{#if (hasValue llam_ind)}}
     <tr>
       <td>Llamador individual</td>
       <td style="text-align: center;">
-        <strong class="{{#if llam_ind}}valor-si{{else}}valor-no{{/if}}">{{#if llam_ind}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass llam_ind}}">{{valorSiNo llam_ind}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if priv}}
+    {{#if (hasValue priv)}}
     <tr>
       <td>Privacidad</td>
       <td style="text-align: center;">
-        <strong class="{{#if priv}}valor-si{{else}}valor-no{{/if}}">{{#if priv}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass priv}}">{{valorSiNo priv}}</strong>
       </td>
     </tr>
     {{/if}}

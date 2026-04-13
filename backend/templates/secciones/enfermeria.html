@@ -1,59 +1,59 @@
 <div class="seccion">
   <h3>ENFERMERÍA</h3>
   <table>
-    {{#if loc_prop}}
+    {{#if (hasValue loc_prop)}}
     <tr>
       <td style="width: 70%;">Posee local propio</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if loc_prop}}valor-si{{else}}valor-no{{/if}}">{{#if loc_prop}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass loc_prop}}">{{valorSiNo loc_prop}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if bot_urg}}
+    {{#if (hasValue bot_urg)}}
     <tr>
       <td>Botiquín de urgencia</td>
       <td style="text-align: center;">
-        <strong class="{{#if bot_urg}}valor-si{{else}}valor-no{{/if}}">{{#if bot_urg}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass bot_urg}}">{{valorSiNo bot_urg}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if tub_oxi}}
+    {{#if (hasValue tub_oxi)}}
     <tr>
       <td>Tubo de oxígeno</td>
       <td style="text-align: center;">
-        <strong class="{{#if tub_oxi}}valor-si{{else}}valor-no{{/if}}">{{#if tub_oxi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass tub_oxi}}">{{valorSiNo tub_oxi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if mes_pil}}
+    {{#if (hasValue mes_pil)}}
     <tr>
       <td>Mesada con Pileta</td>
       <td style="text-align: center;">
-        <strong class="{{#if mes_pil}}valor-si{{else}}valor-no{{/if}}">{{#if mes_pil}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass mes_pil}}">{{valorSiNo mes_pil}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if arm_vit}}
+    {{#if (hasValue arm_vit)}}
     <tr>
       <td>Armario o vitrina</td>
       <td style="text-align: center;">
-        <strong class="{{#if arm_vit}}valor-si{{else}}valor-no{{/if}}">{{#if arm_vit}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass arm_vit}}">{{valorSiNo arm_vit}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ar_suc}}
+    {{#if (hasValue ar_suc)}}
     <tr>
       <td>Área sucia</td>
       <td style="text-align: center;">
-        <strong class="{{#if ar_suc}}valor-si{{else}}valor-no{{/if}}">{{#if ar_suc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ar_suc}}">{{valorSiNo ar_suc}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ar_lim}}
+    {{#if (hasValue ar_lim)}}
     <tr>
       <td>Área limpia</td>
       <td style="text-align: center;">
-        <strong class="{{#if ar_lim}}valor-si{{else}}valor-no{{/if}}">{{#if ar_lim}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ar_lim}}">{{valorSiNo ar_lim}}</strong>
       </td>
     </tr>
     {{/if}}

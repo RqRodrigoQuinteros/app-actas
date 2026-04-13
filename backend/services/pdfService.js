@@ -110,9 +110,10 @@ function normalizarBooleanos(obj) {
       
       // Si es string que parece booleano, convertir
       if (tipo === 'string') {
-        if (valor.toLowerCase() === 'true' || valor === '1') {
+        const valorLower = valor.toLowerCase();
+        if (valorLower === 'true' || valorLower === 'si' || valor === '1') {
           resultado[key] = true;
-        } else if (valor.toLowerCase() === 'false' || valor === '0' || valor === '') {
+        } else if (valorLower === 'false' || valorLower === 'no' || valor === '0' || valor === '') {
           resultado[key] = false;
         }
       }
@@ -278,7 +279,9 @@ handlebars.registerHelper('siNo', function(value) {
 });
 
 handlebars.registerHelper('valorClass', function(value) {
-  return value ? '' : 'valor-no';
+  const normalized = typeof value === 'string' ? value.toLowerCase().trim() : value;
+  const isNo = normalized === false || normalized === 'false' || normalized === '0' || normalized === 'no';
+  return isNo ? 'valor-no' : '';
 });
 
 handlebars.registerHelper('hasValue', function(value) {

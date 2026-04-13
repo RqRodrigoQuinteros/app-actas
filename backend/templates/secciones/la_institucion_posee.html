@@ -1,51 +1,51 @@
 <div class="seccion">
   <h3>LA INSTITUCIÓN POSEÉ</h3>
   <table>
-    {{#if vac_hab}}
+    {{#if (hasValue vac_hab)}}
     <tr>
       <td style="width: 70%;">Vacunatorio habilitado</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if vac_hab}}valor-si{{else}}valor-no{{/if}}">{{#if vac_hab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass vac_hab}}">{{valorSiNo vac_hab}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if bot_dro_urg}}
+    {{#if (hasValue bot_dro_urg)}}
     <tr>
       <td>Botiquín con drogas para urgencias</td>
       <td style="text-align: center;">
-        <strong class="{{#if bot_dro_urg}}valor-si{{else}}valor-no{{/if}}">{{#if bot_dro_urg}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass bot_dro_urg}}">{{valorSiNo bot_dro_urg}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if far_prov}}
+    {{#if (hasValue far_prov)}}
     <tr>
       <td>Farmacia o provisión de medicamentos habilitados</td>
       <td style="text-align: center;">
-        <strong class="{{#if far_prov}}valor-si{{else}}valor-no{{/if}}">{{#if far_prov}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass far_prov}}">{{valorSiNo far_prov}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if bco_san}}
+    {{#if (hasValue bco_san)}}
     <tr>
       <td>Banco de Sangre y/o Servicio de Med. Transfusional</td>
       <td style="text-align: center;">
-        <strong class="{{#if bco_san}}valor-si{{else}}valor-no{{/if}}">{{#if bco_san}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass bco_san}}">{{valorSiNo bco_san}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ate_per}}
+    {{#if (hasValue ate_per)}}
     <tr>
       <td>Con atención permanente (24 hs)</td>
       <td style="text-align: center;">
-        <strong class="{{#if ate_per}}valor-si{{else}}valor-no{{/if}}">{{#if ate_per}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ate_per}}">{{valorSiNo ate_per}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if bot_are_pis}}
+    {{#if (hasValue bot_are_pis)}}
     <tr>
       <td>Botiquín con drogas por área y piso (2)</td>
       <td style="text-align: center;">
-        <strong class="{{#if bot_are_pis}}valor-si{{else}}valor-no{{/if}}">{{#if bot_are_pis}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass bot_are_pis}}">{{valorSiNo bot_are_pis}}</strong>
       </td>
     </tr>
     {{/if}}

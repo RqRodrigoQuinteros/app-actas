@@ -1,35 +1,35 @@
 <div class="seccion">
   <h3>SALUD MENTAL - GENERAL</h3>
   <table>
-    {{#if sm_habitaciones}}
+    {{#if (hasValue sm_habitaciones)}}
     <tr>
       <td style="width: 70%;">Habitaciones seguras</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if sm_habitaciones}}valor-si{{else}}valor-no{{/if}}">{{#if sm_habitaciones}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sm_habitaciones}}">{{valorSiNo sm_habitaciones}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sm_terapia}}
+    {{#if (hasValue sm_terapia)}}
     <tr>
       <td>Sala de terapia grupal</td>
       <td style="text-align: center;">
-        <strong class="{{#if sm_terapia}}valor-si{{else}}valor-no{{/if}}">{{#if sm_terapia}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sm_terapia}}">{{valorSiNo sm_terapia}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sm_psiquiatra}}
+    {{#if (hasValue sm_psiquiatra)}}
     <tr>
       <td>Psiquiatra de guardia</td>
       <td style="text-align: center;">
-        <strong class="{{#if sm_psiquiatra}}valor-si{{else}}valor-no{{/if}}">{{#if sm_psiquiatra}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sm_psiquiatra}}">{{valorSiNo sm_psiquiatra}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sm_contencion}}
+    {{#if (hasValue sm_contencion)}}
     <tr>
       <td>Registro de contención</td>
       <td style="text-align: center;">
-        <strong class="{{#if sm_contencion}}valor-si{{else}}valor-no{{/if}}">{{#if sm_contencion}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sm_contencion}}">{{valorSiNo sm_contencion}}</strong>
       </td>
     </tr>
     {{/if}}

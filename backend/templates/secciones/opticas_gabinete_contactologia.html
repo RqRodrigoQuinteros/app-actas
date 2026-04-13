@@ -1,115 +1,115 @@
 <div class="seccion">
   <h3>GABINETE DE CONTACTOLOGÍA</h3>
   <table>
-    {{#if sal_de_esp}}
+    {{#if (hasValue sal_de_esp)}}
     <tr>
       <td style="width: 70%;">Sala de Espera</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if sal_de_esp}}valor-si{{else}}valor-no{{/if}}">{{#if sal_de_esp}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sal_de_esp}}">{{valorSiNo sal_de_esp}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if frontofo}}
+    {{#if (hasValue frontofo)}}
     <tr>
       <td>Frontofocómetro</td>
       <td style="text-align: center;">
-        <strong class="{{#if frontofo}}valor-si{{else}}valor-no{{/if}}">{{#if frontofo}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass frontofo}}">{{valorSiNo frontofo}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if la_luz_ne}}
+    {{#if (hasValue la_luz_ne)}}
     <tr>
       <td>Lámpara de luz negra o de cobalto</td>
       <td style="text-align: center;">
-        <strong class="{{#if la_luz_ne}}valor-si{{else}}valor-no{{/if}}">{{#if la_luz_ne}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass la_luz_ne}}">{{valorSiNo la_luz_ne}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if lupa4}}
+    {{#if (hasValue lupa4)}}
     <tr>
       <td>Lupa de 4 o más aumentos con red milimetrada</td>
       <td style="text-align: center;">
-        <strong class="{{#if lupa4}}valor-si{{else}}valor-no{{/if}}">{{#if lupa4}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass lupa4}}">{{valorSiNo lupa4}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ta_conve}}
+    {{#if (hasValue ta_conve)}}
     <tr>
       <td>Tabla de conversión de dioptrías a milímetros</td>
       <td style="text-align: center;">
-        <strong class="{{#if ta_conve}}valor-si{{else}}valor-no{{/if}}">{{#if ta_conve}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ta_conve}}">{{valorSiNo ta_conve}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if optoti}}
+    {{#if (hasValue optoti)}}
     <tr>
       <td>Optotipo de refracción o proyección</td>
       <td style="text-align: center;">
-        <strong class="{{#if optoti}}valor-si{{else}}valor-no{{/if}}">{{#if optoti}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass optoti}}">{{valorSiNo optoti}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if len_cont}}
+    {{#if (hasValue len_cont)}}
     <tr>
       <td>Caja de pruebas de lentes de contacto</td>
       <td style="text-align: center;">
-        <strong class="{{#if len_cont}}valor-si{{else}}valor-no{{/if}}">{{#if len_cont}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass len_cont}}">{{valorSiNo len_cont}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if si_apo_cli}}
+    {{#if (hasValue si_apo_cli)}}
     <tr>
       <td>Sillón c/apoya cabeza para pacientes</td>
       <td style="text-align: center;">
-        <strong class="{{#if si_apo_cli}}valor-si{{else}}valor-no{{/if}}">{{#if si_apo_cli}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass si_apo_cli}}">{{valorSiNo si_apo_cli}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if oftalmo}}
+    {{#if (hasValue oftalmo)}}
     <tr>
       <td>Oftalmómetro / Queratómetro</td>
       <td style="text-align: center;">
-        <strong class="{{#if oftalmo}}valor-si{{else}}valor-no{{/if}}">{{#if oftalmo}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass oftalmo}}">{{valorSiNo oftalmo}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cri12}}
+    {{#if (hasValue cri12)}}
     <tr>
       <td>Caja de pruebas de cristales 12+ dioptrías</td>
       <td style="text-align: center;">
-        <strong class="{{#if cri12}}valor-si{{else}}valor-no{{/if}}">{{#if cri12}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cri12}}">{{valorSiNo cri12}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if jue_tabl}}
+    {{#if (hasValue jue_tabl)}}
     <tr>
       <td>Juego de tablas de distancia de vértice</td>
       <td style="text-align: center;">
-        <strong class="{{#if jue_tabl}}valor-si{{else}}valor-no{{/if}}">{{#if jue_tabl}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass jue_tabl}}">{{valorSiNo jue_tabl}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if med_dia}}
+    {{#if (hasValue med_dia)}}
     <tr>
       <td>Medidor de diámetro</td>
       <td style="text-align: center;">
-        <strong class="{{#if med_dia}}valor-si{{else}}valor-no{{/if}}">{{#if med_dia}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass med_dia}}">{{valorSiNo med_dia}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if lavabo}}
+    {{#if (hasValue lavabo)}}
     <tr>
       <td>Lavabo</td>
       <td style="text-align: center;">
-        <strong class="{{#if lavabo}}valor-si{{else}}valor-no{{/if}}">{{#if lavabo}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass lavabo}}">{{valorSiNo lavabo}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if la_ilu_fro}}
+    {{#if (hasValue la_ilu_fro)}}
     <tr>
       <td>Lámpara para iluminación frontal</td>
       <td style="text-align: center;">
-        <strong class="{{#if la_ilu_fro}}valor-si{{else}}valor-no{{/if}}">{{#if la_ilu_fro}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass la_ilu_fro}}">{{valorSiNo la_ilu_fro}}</strong>
       </td>
     </tr>
     {{/if}}

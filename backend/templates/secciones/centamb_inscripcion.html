@@ -1,105 +1,105 @@
 <div class="seccion">
   <h3>INSCRIPCIÓN - CENTROS AMBULATORIOS</h3>
   <table>
-    {{#if form}}
+    {{#if (hasValue form)}}
     <tr>
       <td style="width: 70%;">Formulario</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if form}}valor-si{{else}}valor-no{{/if}}">{{#if form}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass form}}">{{valorSiNo form}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ad_privad}}
+    {{#if (hasValue ad_privad)}}
     <tr>
       <td>Aditamiento Privado</td>
       <td style="text-align: center;">
-        <strong class="{{#if ad_privad}}valor-si{{else}}valor-no{{/if}}">{{#if ad_privad}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ad_privad}}">{{valorSiNo ad_privad}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cer_auto_lab}}
+    {{#if (hasValue cer_auto_lab)}}
     <tr>
       <td>Certificado autorización Laboratorio</td>
       <td style="text-align: center;">
-        <strong class="{{#if cer_auto_lab}}valor-si{{else}}valor-no{{/if}}">{{#if cer_auto_lab}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cer_auto_lab}}">{{valorSiNo cer_auto_lab}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if conv_est}}
+    {{#if (hasValue conv_est)}}
     <tr>
       <td>Convenio con establecimientos polivalentes</td>
       <td style="text-align: center;">
-        <strong class="{{#if conv_est}}valor-si{{else}}valor-no{{/if}}">{{#if conv_est}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass conv_est}}">{{valorSiNo conv_est}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if org_func}}
+    {{#if (hasValue org_func)}}
     <tr>
       <td>Organigrama funcional</td>
       <td style="text-align: center;">
-        <strong class="{{#if org_func}}valor-si{{else}}valor-no{{/if}}">{{#if org_func}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass org_func}}">{{valorSiNo org_func}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if planos}}
+    {{#if (hasValue planos)}}
     <tr>
       <td>Planos</td>
       <td style="text-align: center;">
-        <strong class="{{#if planos}}valor-si{{else}}valor-no{{/if}}">{{#if planos}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass planos}}">{{valorSiNo planos}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if no_pra_amb}}
+    {{#if (hasValue no_pra_amb)}}
     <tr>
       <td>Nómina de prácticas ambulatorias</td>
       <td style="text-align: center;">
-        <strong class="{{#if no_pra_amb}}valor-si{{else}}valor-no{{/if}}">{{#if no_pra_amb}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass no_pra_amb}}">{{valorSiNo no_pra_amb}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if tip_socie}}
+    {{#if (hasValue tip_socie)}}
     <tr>
       <td>Tipo de Sociedad</td>
       <td style="text-align: center;">{{tip_socie}}</td>
     </tr>
     {{/if}}
-    {{#if dir_lis_prof}}
+    {{#if (hasValue dir_lis_prof)}}
     <tr>
       <td>Director y Listado de Profesionales</td>
       <td style="text-align: center;">
-        <strong class="{{#if dir_lis_prof}}valor-si{{else}}valor-no{{/if}}">{{#if dir_lis_prof}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass dir_lis_prof}}">{{valorSiNo dir_lis_prof}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cer_rayx}}
+    {{#if (hasValue cer_rayx)}}
     <tr>
       <td>Certificado habilitación equipo de Rayos X</td>
       <td style="text-align: center;">
-        <strong class="{{#if cer_rayx}}valor-si{{else}}valor-no{{/if}}">{{#if cer_rayx}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cer_rayx}}">{{valorSiNo cer_rayx}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if con_serv_eme}}
+    {{#if (hasValue con_serv_eme)}}
     <tr>
       <td>Convenio Servicio de Emergencias</td>
       <td style="text-align: center;">
-        <strong class="{{#if con_serv_eme}}valor-si{{else}}valor-no{{/if}}">{{#if con_serv_eme}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass con_serv_eme}}">{{valorSiNo con_serv_eme}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if aparato}}
+    {{#if (hasValue aparato)}}
     <tr>
       <td>Aparatología</td>
       <td style="text-align: center;">
-        <strong class="{{#if aparato}}valor-si{{else}}valor-no{{/if}}">{{#if aparato}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass aparato}}">{{valorSiNo aparato}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cer_hab_hem}}
+    {{#if (hasValue cer_hab_hem)}}
     <tr>
       <td>Certificado Habilitación Hemoterapia</td>
       <td style="text-align: center;">
-        <strong class="{{#if cer_hab_hem}}valor-si{{else}}valor-no{{/if}}">{{#if cer_hab_hem}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cer_hab_hem}}">{{valorSiNo cer_hab_hem}}</strong>
       </td>
     </tr>
     {{/if}}

@@ -1,201 +1,201 @@
 <div class="seccion">
   <h3>ÁREA QUIRÚRGICA</h3>
   <table>
-    {{#if cant_quir}}
+    {{#if (hasValue cant_quir)}}
     <tr>
       <td style="width: 70%;">Cantidad de quirófanos</td>
       <td style="width: 30%; text-align: center;">{{cant_quir}}</td>
     </tr>
     {{/if}}
-    {{#if c_n_par}}
+    {{#if (hasValue c_n_par)}}
     <tr>
       <td>Cumple Normas Paredes</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_n_par}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_par}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass c_n_par}}">{{valorSiNo c_n_par}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if c_n_pis}}
+    {{#if (hasValue c_n_pis)}}
     <tr>
       <td>Cumple Normas Pisos</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_n_pis}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_pis}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass c_n_pis}}">{{valorSiNo c_n_pis}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if c_n_tec}}
+    {{#if (hasValue c_n_tec)}}
     <tr>
       <td>Cumple Normas Techos</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_n_tec}}valor-si{{else}}valor-no{{/if}}">{{#if c_n_tec}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass c_n_tec}}">{{valorSiNo c_n_tec}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cir_exc}}
+    {{#if (hasValue cir_exc)}}
     <tr>
       <td>Circulación exclusiva</td>
       <td style="text-align: center;">
-        <strong class="{{#if cir_exc}}valor-si{{else}}valor-no{{/if}}">{{#if cir_exc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cir_exc}}">{{valorSiNo cir_exc}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if in_tr_pac}}
+    {{#if (hasValue in_tr_pac)}}
     <tr>
       <td>Ingreso y transferencia de pacientes</td>
       <td style="text-align: center;">
-        <strong class="{{#if in_tr_pac}}valor-si{{else}}valor-no{{/if}}">{{#if in_tr_pac}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass in_tr_pac}}">{{valorSiNo in_tr_pac}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ves_prop}}
+    {{#if (hasValue ves_prop)}}
     <tr>
       <td>Vestuario propio</td>
       <td style="text-align: center;">
-        <strong class="{{#if ves_prop}}valor-si{{else}}valor-no{{/if}}">{{#if ves_prop}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ves_prop}}">{{valorSiNo ves_prop}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if po_ve_pa_fi}}
+    {{#if (hasValue po_ve_pa_fi)}}
     <tr>
       <td>Posee ventana con paño fijo</td>
       <td style="text-align: center;">
-        <strong class="{{#if po_ve_pa_fi}}valor-si{{else}}valor-no{{/if}}">{{#if po_ve_pa_fi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass po_ve_pa_fi}}">{{valorSiNo po_ve_pa_fi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if s_suc}}
+    {{#if (hasValue s_suc)}}
     <tr>
       <td>Sector sucio</td>
       <td style="text-align: center;">
-        <strong class="{{#if s_suc}}valor-si{{else}}valor-no{{/if}}">{{#if s_suc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass s_suc}}">{{valorSiNo s_suc}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if c_dir_quir}}
+    {{#if (hasValue c_dir_quir)}}
     <tr>
       <td>Comunicación directa a quirófano</td>
       <td style="text-align: center;">
-        <strong class="{{#if c_dir_quir}}valor-si{{else}}valor-no{{/if}}">{{#if c_dir_quir}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass c_dir_quir}}">{{valorSiNo c_dir_quir}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if dep_mat_es}}
+    {{#if (hasValue dep_mat_es)}}
     <tr>
       <td>Depósito material estéril</td>
       <td style="text-align: center;">
-        <strong class="{{#if dep_mat_es}}valor-si{{else}}valor-no{{/if}}">{{#if dep_mat_es}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass dep_mat_es}}">{{valorSiNo dep_mat_es}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if il_adec}}
+    {{#if (hasValue il_adec)}}
     <tr>
       <td>Iluminación adecuada</td>
       <td style="text-align: center;">
-        <strong class="{{#if il_adec}}valor-si{{else}}valor-no{{/if}}">{{#if il_adec}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass il_adec}}">{{valorSiNo il_adec}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cli_fio_calor}}
+    {{#if (hasValue cli_fio_calor)}}
     <tr>
       <td>Climatización frío-calor</td>
       <td style="text-align: center;">
-        <strong class="{{#if cli_fio_calor}}valor-si{{else}}valor-no{{/if}}">{{#if cli_fio_calor}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass cli_fio_calor}}">{{valorSiNo cli_fio_calor}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ac_comp_pre}}
+    {{#if (hasValue ac_comp_pre)}}
     <tr>
       <td>Acorde a la complejidad prestacional</td>
       <td style="text-align: center;">
-        <strong class="{{#if ac_comp_pre}}valor-si{{else}}valor-no{{/if}}">{{#if ac_comp_pre}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ac_comp_pre}}">{{valorSiNo ac_comp_pre}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if card}}
+    {{#if (hasValue card)}}
     <tr>
       <td>Cardiodesfibrilador</td>
       <td style="text-align: center;">
-        <strong class="{{#if card}}valor-si{{else}}valor-no{{/if}}">{{#if card}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass card}}">{{valorSiNo card}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if bot_anes}}
+    {{#if (hasValue bot_anes)}}
     <tr>
       <td>Botiquín básico anestesia</td>
       <td style="text-align: center;">
-        <strong class="{{#if bot_anes}}valor-si{{else}}valor-no{{/if}}">{{#if bot_anes}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass bot_anes}}">{{valorSiNo bot_anes}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if bot_rea}}
+    {{#if (hasValue bot_rea)}}
     <tr>
       <td>Botiquín básico reanimación CV</td>
       <td style="text-align: center;">
-        <strong class="{{#if bot_rea}}valor-si{{else}}valor-no{{/if}}">{{#if bot_rea}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass bot_rea}}">{{valorSiNo bot_rea}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if larin}}
+    {{#if (hasValue larin)}}
     <tr>
       <td>Laringoscopía</td>
       <td style="text-align: center;">
-        <strong class="{{#if larin}}valor-si{{else}}valor-no{{/if}}">{{#if larin}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass larin}}">{{valorSiNo larin}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if tub_endo}}
+    {{#if (hasValue tub_endo)}}
     <tr>
       <td>Tubos endotraqueales</td>
       <td style="text-align: center;">
-        <strong class="{{#if tub_endo}}valor-si{{else}}valor-no{{/if}}">{{#if tub_endo}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass tub_endo}}">{{valorSiNo tub_endo}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ca_traq}}
+    {{#if (hasValue ca_traq)}}
     <tr>
       <td>Caja de traqueotomía</td>
       <td style="text-align: center;">
-        <strong class="{{#if ca_traq}}valor-si{{else}}valor-no{{/if}}">{{#if ca_traq}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ca_traq}}">{{valorSiNo ca_traq}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if mon_multi}}
+    {{#if (hasValue mon_multi)}}
     <tr>
       <td>Monitor multiparamétrico</td>
       <td style="text-align: center;">
-        <strong class="{{#if mon_multi}}valor-si{{else}}valor-no{{/if}}">{{#if mon_multi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass mon_multi}}">{{valorSiNo mon_multi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if res_auto}}
+    {{#if (hasValue res_auto)}}
     <tr>
       <td>Respirador automático</td>
       <td style="text-align: center;">
-        <strong class="{{#if res_auto}}valor-si{{else}}valor-no{{/if}}">{{#if res_auto}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass res_auto}}">{{valorSiNo res_auto}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if me_mayo}}
+    {{#if (hasValue me_mayo)}}
     <tr>
       <td>Mesa de cirugía Tipo Mayo o similar</td>
       <td style="text-align: center;">
-        <strong class="{{#if me_mayo}}valor-si{{else}}valor-no{{/if}}">{{#if me_mayo}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass me_mayo}}">{{valorSiNo me_mayo}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if elec}}
+    {{#if (hasValue elec)}}
     <tr>
       <td>Electrobisturí</td>
       <td style="text-align: center;">
-        <strong class="{{#if elec}}valor-si{{else}}valor-no{{/if}}">{{#if elec}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass elec}}">{{valorSiNo elec}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ins_esp}}
+    {{#if (hasValue ins_esp)}}
     <tr>
       <td>Instrumental s/especialidades</td>
       <td style="text-align: center;">
-        <strong class="{{#if ins_esp}}valor-si{{else}}valor-no{{/if}}">{{#if ins_esp}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ins_esp}}">{{valorSiNo ins_esp}}</strong>
       </td>
     </tr>
     {{/if}}

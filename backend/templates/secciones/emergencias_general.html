@@ -1,35 +1,35 @@
 <div class="seccion">
   <h3>EMERGENCIAS - GENERAL</h3>
   <table>
-    {{#if eme_shockroom}}
+    {{#if (hasValue eme_shockroom)}}
     <tr>
       <td style="width: 70%;">Shock room</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if eme_shockroom}}valor-si{{else}}valor-no{{/if}}">{{#if eme_shockroom}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass eme_shockroom}}">{{valorSiNo eme_shockroom}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if eme_ambulancia}}
+    {{#if (hasValue eme_ambulancia)}}
     <tr>
       <td>Ambulancia propia</td>
       <td style="text-align: center;">
-        <strong class="{{#if eme_ambulancia}}valor-si{{else}}valor-no{{/if}}">{{#if eme_ambulancia}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass eme_ambulancia}}">{{valorSiNo eme_ambulancia}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if eme_cardioversor}}
+    {{#if (hasValue eme_cardioversor)}}
     <tr>
       <td>Cardioversor</td>
       <td style="text-align: center;">
-        <strong class="{{#if eme_cardioversor}}valor-si{{else}}valor-no{{/if}}">{{#if eme_cardioversor}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass eme_cardioversor}}">{{valorSiNo eme_cardioversor}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if eme_oxigeno}}
+    {{#if (hasValue eme_oxigeno)}}
     <tr>
       <td>Oxígeno medicinal</td>
       <td style="text-align: center;">
-        <strong class="{{#if eme_oxigeno}}valor-si{{else}}valor-no{{/if}}">{{#if eme_oxigeno}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass eme_oxigeno}}">{{valorSiNo eme_oxigeno}}</strong>
       </td>
     </tr>
     {{/if}}

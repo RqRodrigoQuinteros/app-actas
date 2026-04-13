@@ -1,35 +1,35 @@
 <div class="seccion">
   <h3>RADIODIAGNÓSTICO - GENERAL</h3>
   <table>
-    {{#if radio_equipos}}
+    {{#if (hasValue radio_equipos)}}
     <tr>
       <td style="width: 70%;">Equipos de Rayos X</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if radio_equipos}}valor-si{{else}}valor-no{{/if}}">{{#if radio_equipos}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass radio_equipos}}">{{valorSiNo radio_equipos}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if radio_proteccion}}
+    {{#if (hasValue radio_proteccion)}}
     <tr>
       <td>Protección radiológica</td>
       <td style="text-align: center;">
-        <strong class="{{#if radio_proteccion}}valor-si{{else}}valor-no{{/if}}">{{#if radio_proteccion}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass radio_proteccion}}">{{valorSiNo radio_proteccion}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if radio_dosimetro}}
+    {{#if (hasValue radio_dosimetro)}}
     <tr>
       <td>Dosímetro personal</td>
       <td style="text-align: center;">
-        <strong class="{{#if radio_dosimetro}}valor-si{{else}}valor-no{{/if}}">{{#if radio_dosimetro}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass radio_dosimetro}}">{{valorSiNo radio_dosimetro}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if radio_licencia}}
+    {{#if (hasValue radio_licencia)}}
     <tr>
       <td>Licencia de Radiofísica</td>
       <td style="text-align: center;">
-        <strong class="{{#if radio_licencia}}valor-si{{else}}valor-no{{/if}}">{{#if radio_licencia}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass radio_licencia}}">{{valorSiNo radio_licencia}}</strong>
       </td>
     </tr>
     {{/if}}

@@ -1,111 +1,111 @@
 <div class="seccion">
   <h3>DATOS GENERALES</h3>
   <table>
-    {{#if cant_pl}}
+    {{#if (hasValue cant_pl)}}
     <tr>
       <td style="width: 70%;">Cantidad de Plantas</td>
       <td style="width: 30%; text-align: center;">{{cant_pl}}</td>
     </tr>
     {{/if}}
-    {{#if fec_ult_ins}}
+    {{#if (hasValue fec_ult_ins)}}
     <tr>
       <td>Fecha última inspección del conservador</td>
       <td style="text-align: center;">{{fec_ult_ins}}</td>
     </tr>
     {{/if}}
-    {{#if pos_mon_asc}}
+    {{#if (hasValue pos_mon_asc)}}
     <tr>
       <td>Posee Montacamillas / Ascensores</td>
       <td style="text-align: center;">
-        <strong class="{{#if pos_mon_asc}}valor-si{{else}}valor-no{{/if}}">{{#if pos_mon_asc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pos_mon_asc}}">{{valorSiNo pos_mon_asc}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if banio_dis}}
+    {{#if (hasValue banio_dis)}}
     <tr>
       <td>Baño para público discapacitado mixtos</td>
       <td style="text-align: center;">
-        <strong class="{{#if banio_dis}}valor-si{{else}}valor-no{{/if}}">{{#if banio_dis}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass banio_dis}}">{{valorSiNo banio_dis}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if lib_ing}}
+    {{#if (hasValue lib_ing)}}
     <tr>
       <td>Libre ingreso, circulación y giro de camillas</td>
       <td style="text-align: center;">
-        <strong class="{{#if lib_ing}}valor-si{{else}}valor-no{{/if}}">{{#if lib_ing}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass lib_ing}}">{{valorSiNo lib_ing}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if luc_aut}}
+    {{#if (hasValue luc_aut)}}
     <tr>
       <td>Luces autónomas de emergencia</td>
       <td style="text-align: center;">
-        <strong class="{{#if luc_aut}}valor-si{{else}}valor-no{{/if}}">{{#if luc_aut}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass luc_aut}}">{{valorSiNo luc_aut}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if equi_ele}}
+    {{#if (hasValue equi_ele)}}
     <tr>
       <td>Equipo Electrógeno</td>
       <td style="text-align: center;">
-        <strong class="{{#if equi_ele}}valor-si{{else}}valor-no{{/if}}">{{#if equi_ele}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass equi_ele}}">{{valorSiNo equi_ele}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if pl_ev_vi}}
+    {{#if (hasValue pl_ev_vi)}}
     <tr>
       <td>Plan Evacuación vigente</td>
       <td style="text-align: center;">
-        <strong class="{{#if pl_ev_vi}}valor-si{{else}}valor-no{{/if}}">{{#if pl_ev_vi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pl_ev_vi}}">{{valorSiNo pl_ev_vi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if ex_inc}}
+    {{#if (hasValue ex_inc)}}
     <tr>
       <td>Extinguidores de Incendios (vigente o no)</td>
       <td style="text-align: center;">
-        <strong class="{{#if ex_inc}}valor-si{{else}}valor-no{{/if}}">{{#if ex_inc}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass ex_inc}}">{{valorSiNo ex_inc}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sal_eme}}
+    {{#if (hasValue sal_eme)}}
     <tr>
       <td>Salida de Emergencia</td>
       <td style="text-align: center;">
-        <strong class="{{#if sal_eme}}valor-si{{else}}valor-no{{/if}}">{{#if sal_eme}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sal_eme}}">{{valorSiNo sal_eme}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if hab_bomb}}
+    {{#if (hasValue hab_bomb)}}
     <tr>
       <td>Habilitación Bomberos</td>
       <td style="text-align: center;">
-        <strong class="{{#if hab_bomb}}valor-si{{else}}valor-no{{/if}}">{{#if hab_bomb}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hab_bomb}}">{{valorSiNo hab_bomb}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if sil_rue}}
+    {{#if (hasValue sil_rue)}}
     <tr>
       <td>Silla de Ruedas</td>
       <td style="text-align: center;">
-        <strong class="{{#if sil_rue}}valor-si{{else}}valor-no{{/if}}">{{#if sil_rue}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass sil_rue}}">{{valorSiNo sil_rue}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if to_cam_ort}}
+    {{#if (hasValue to_cam_ort)}}
     <tr>
       <td>Todas las camas tipo Ortopedia</td>
       <td style="text-align: center;">
-        <strong class="{{#if to_cam_ort}}valor-si{{else}}valor-no{{/if}}">{{#if to_cam_ort}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass to_cam_ort}}">{{valorSiNo to_cam_ort}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if pos_pla}}
+    {{#if (hasValue pos_pla)}}
     <tr>
       <td>Posee planos inclinados</td>
       <td style="text-align: center;">
-        <strong class="{{#if pos_pla}}valor-si{{else}}valor-no{{/if}}">{{#if pos_pla}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass pos_pla}}">{{valorSiNo pos_pla}}</strong>
       </td>
     </tr>
     {{/if}}

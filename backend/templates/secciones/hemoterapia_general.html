@@ -1,35 +1,35 @@
 <div class="seccion">
   <h3>HEMOTERAPIA - GENERAL</h3>
   <table>
-    {{#if hemo_banco}}
+    {{#if (hasValue hemo_banco)}}
     <tr>
       <td style="width: 70%;">Banco de sangre</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if hemo_banco}}valor-si{{else}}valor-no{{/if}}">{{#if hemo_banco}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hemo_banco}}">{{valorSiNo hemo_banco}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if hemo_heladera}}
+    {{#if (hasValue hemo_heladera)}}
     <tr>
       <td>Heladera refrigerada</td>
       <td style="text-align: center;">
-        <strong class="{{#if hemo_heladera}}valor-si{{else}}valor-no{{/if}}">{{#if hemo_heladera}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hemo_heladera}}">{{valorSiNo hemo_heladera}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if hemo_freezer}}
+    {{#if (hasValue hemo_freezer)}}
     <tr>
       <td>Freezer de plasma</td>
       <td style="text-align: center;">
-        <strong class="{{#if hemo_freezer}}valor-si{{else}}valor-no{{/if}}">{{#if hemo_freezer}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hemo_freezer}}">{{valorSiNo hemo_freezer}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if hemo_control_temp}}
+    {{#if (hasValue hemo_control_temp)}}
     <tr>
       <td>Control de temperatura</td>
       <td style="text-align: center;">
-        <strong class="{{#if hemo_control_temp}}valor-si{{else}}valor-no{{/if}}">{{#if hemo_control_temp}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass hemo_control_temp}}">{{valorSiNo hemo_control_temp}}</strong>
       </td>
     </tr>
     {{/if}}

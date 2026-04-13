@@ -4,19 +4,19 @@
     <tr>
       <td style="width: 70%;">Hepatitis B (HBs Ag)</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if serologia_pacientes_hepatitis_b}}valor-si{{else}}valor-no{{/if}}">{{#if serologia_pacientes_hepatitis_b}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass serologia_pacientes_hepatitis_b}}">{{valorSiNo serologia_pacientes_hepatitis_b}}</strong>
       </td>
     </tr>
     <tr>
       <td>Hepatitis C (Anti VHC)</td>
       <td style="text-align: center;">
-        <strong class="{{#if serologia_pacientes_hepatitis_c}}valor-si{{else}}valor-no{{/if}}">{{#if serologia_pacientes_hepatitis_c}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass serologia_pacientes_hepatitis_c}}">{{valorSiNo serologia_pacientes_hepatitis_c}}</strong>
       </td>
     </tr>
     <tr>
       <td>VIH</td>
       <td style="text-align: center;">
-        <strong class="{{#if serologia_pacientes_vih}}valor-si{{else}}valor-no{{/if}}">{{#if serologia_pacientes_vih}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass serologia_pacientes_vih}}">{{valorSiNo serologia_pacientes_vih}}</strong>
       </td>
     </tr>
     <tr>

@@ -1,109 +1,109 @@
 <div class="seccion">
   <h3>DIRECCIÓN Y FUNCIONAMIENTO - HEMODIÁLISIS</h3>
   <table>
-    {{#if indiaind_hemodi}}
+    {{#if (hasValue indiaind_hemodi)}}
     <tr>
       <td style="width: 70%;">Unidad de Diálisis Independiente</td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{#if indiaind_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if indiaind_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass indiaind_hemodi}}">{{valorSiNo indiaind_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if repsico_hemodi}}
+    {{#if (hasValue repsico_hemodi)}}
     <tr>
       <td>Registro de Psicofármacos Actualizado</td>
       <td style="text-align: center;">
-        <strong class="{{#if repsico_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if repsico_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass repsico_hemodi}}">{{valorSiNo repsico_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if reenftra_hemodi}}
+    {{#if (hasValue reenftra_hemodi)}}
     <tr>
       <td>Registro de Enfermedades Transmisibles</td>
       <td style="text-align: center;">
-        <strong class="{{#if reenftra_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if reenftra_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass reenftra_hemodi}}">{{valorSiNo reenftra_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if regint_hemodi}}
+    {{#if (hasValue regint_hemodi)}}
     <tr>
       <td>Reglamento Interno</td>
       <td style="text-align: center;">
-        <strong class="{{#if regint_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if regint_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass regint_hemodi}}">{{valorSiNo regint_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if plevac_hemodi}}
+    {{#if (hasValue plevac_hemodi)}}
     <tr>
       <td>Plan de Evacuación</td>
       <td style="text-align: center;">
-        <strong class="{{#if plevac_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if plevac_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass plevac_hemodi}}">{{valorSiNo plevac_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if habbomb_hemodi}}
+    {{#if (hasValue habbomb_hemodi)}}
     <tr>
       <td>Habilitación de Bomberos</td>
       <td style="text-align: center;">
-        <strong class="{{#if habbomb_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if habbomb_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass habbomb_hemodi}}">{{valorSiNo habbomb_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if nobio_hemodi}}
+    {{#if (hasValue nobio_hemodi)}}
     <tr>
       <td>Normas bioseguridad expuestas</td>
       <td style="text-align: center;">
-        <strong class="{{#if nobio_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if nobio_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass nobio_hemodi}}">{{valorSiNo nobio_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if nopromed_hemodi}}
+    {{#if (hasValue nopromed_hemodi)}}
     <tr>
       <td>Normas de Procedimientos para Médicos</td>
       <td style="text-align: center;">
-        <strong class="{{#if nopromed_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if nopromed_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass nopromed_hemodi}}">{{valorSiNo nopromed_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if noproenf_hemodi}}
+    {{#if (hasValue noproenf_hemodi)}}
     <tr>
       <td>Normas de Procedimientos para Enfermeras</td>
       <td style="text-align: center;">
-        <strong class="{{#if noproenf_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if noproenf_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass noproenf_hemodi}}">{{valorSiNo noproenf_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if nroins_hemodi}}
+    {{#if (hasValue nroins_hemodi)}}
     <tr>
       <td>Nro de Inscripción INCUCAI y/o ECODAI</td>
       <td style="text-align: center;">{{nroins_hemodi}}</td>
     </tr>
     {{/if}}
-    {{#if insc_hemodi}}
+    {{#if (hasValue insc_hemodi)}}
     <tr>
       <td>Carpetas de Inscripción INCUCAI y/o ECODAI</td>
       <td style="text-align: center;">
-        <strong class="{{#if insc_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if insc_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass insc_hemodi}}">{{valorSiNo insc_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if conv_int_hemodi}}
+    {{#if (hasValue conv_int_hemodi)}}
     <tr>
       <td>Convenio de Internación</td>
       <td style="text-align: center;">
-        <strong class="{{#if conv_int_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if conv_int_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass conv_int_hemodi}}">{{valorSiNo conv_int_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if regclincomp_hemodi}}
+    {{#if (hasValue regclincomp_hemodi)}}
     <tr>
       <td>Registro Historia Clínica completa</td>
       <td style="text-align: center;">
-        <strong class="{{#if regclincomp_hemodi}}valor-si{{else}}valor-no{{/if}}">{{#if regclincomp_hemodi}}SI{{else}}NO{{/if}}</strong>
+        <strong class="{{valorClass regclincomp_hemodi}}">{{valorSiNo regclincomp_hemodi}}</strong>
       </td>
     </tr>
     {{/if}}
-    {{#if cant_pues_hemo}}
+    {{#if (hasValue cant_pues_hemo)}}
     <tr>
       <td>Cantidad de puestos</td>
       <td style="text-align: center;">{{cant_pues_hemo}}</td>
