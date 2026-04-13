@@ -125,10 +125,6 @@ router.put('/:id', async (req, res) => {
       return res.status(403).json({ error: 'No tienes acceso a este informe' });
     }
 
-    if (existingInforme.estado === 'cerrado') {
-      return res.status(400).json({ error: 'No se puede modificar un informe cerrado' });
-    }
-
     const updates = req.body;
 
     const { data, error } = await supabase
