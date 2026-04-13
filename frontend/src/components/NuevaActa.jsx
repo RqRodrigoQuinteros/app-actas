@@ -207,10 +207,19 @@ export default function NuevaActa() {
           : await pdfAPI.generarActaBase64(idParaUsar);
         if (responseBase64.data?.pdfBuffer) {
           const base64 = responseBase64.data.pdfBuffer;
-          const binaryString = atob(base64);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+          let bytes;
+          try {
+            const binaryString = atob(base64);
+            bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+          } catch (atobErr) {
+            const binary = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+            bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
           }
           blob = new Blob([bytes], { type: 'application/pdf' });
         } else {

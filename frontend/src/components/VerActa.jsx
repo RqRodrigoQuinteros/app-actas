@@ -54,11 +54,26 @@ export default function VerActa() {
         if (response.data?.pdfBuffer) {
           console.log('[VerActa] Base64 recibido, decodificando...');
           const base64 = response.data.pdfBuffer;
-          const binaryString = atob(base64);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+          
+          // Método más robusto usando Uint8Array desde un ArrayBuffer
+          let bytes;
+          try {
+            // Método 1: atob estándar
+            const binaryString = atob(base64);
+            bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+          } catch (atobErr) {
+            // Método 2: si falla atob, usar Blob + ArrayBuffer (más兼容)
+            console.log('[VerActa] atob falló, usando método alternativo');
+            const binary = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+            bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
           }
+          
           const blob = new Blob([bytes], { type: 'application/pdf' });
           if (pdfBlobUrl) window.URL.revokeObjectURL(pdfBlobUrl);
           const url = window.URL.createObjectURL(blob);
