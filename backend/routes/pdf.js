@@ -55,8 +55,8 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
     res.set('Content-Disposition', `attachment; filename="acta.pdf"`);
     res.send(pdfBuffer);
   } catch (err) {
-    console.error('Error generando PDF del acta:', err.message, err.stack);
-    res.status(500).json({ error: `Error al generar el PDF: ${err.message}` });
+    console.error('Error generando PDF del acta:', err);
+    res.status(500).json({ error: 'Error al generar el PDF' });
   }
 });
 
@@ -93,8 +93,8 @@ router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
     const base64 = pdfBuffer.toString('base64');
     res.json({ pdfBuffer: base64 });
   } catch (err) {
-    console.error('Error generando PDF base64 del acta:', err.message, err.stack);
-    res.status(500).json({ error: `Error al generar el PDF: ${err.message}` });
+    console.error('Error generando PDF base64 del acta:', err);
+    res.status(500).json({ error: 'Error al generar el PDF' });
   }
 });
 
