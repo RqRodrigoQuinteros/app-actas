@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const supabase = require('../services/supabaseClient');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -12,10 +13,15 @@ const INSPECTORES = [
 
 router.post('/login', async (req, res) => {
   try {
-    const { dni, rol } = req.body;
+    const { dni, rol, password } = req.body;
 
     if (!dni || !rol) {
       return res.status(400).json({ error: 'DNI y rol son requeridos' });
+    }
+
+    // El supervisor requiere contraseña
+    if (rol === 'supervisor' && !password) {
+      return res.status(400).json({ error: 'DNI y contraseña son requeridos' });
     }
 
     const { data: usuario, error } = await supabase
@@ -30,8 +36,15 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    if (rol === 'supervisor' && !usuario.es_supervisor) {
-      return res.status(403).json({ error: 'Acceso no autorizado' });
+    // Validar contraseña para el supervisor
+    if (rol === 'supervisor') {
+      if (!usuario.password) {
+        return res.status(401).json({ error: 'Usuario sin contraseña configurada' });
+      }
+      const passwordValida = await bcrypt.compare(password, usuario.password);
+      if (!passwordValida) {
+        return res.status(401).json({ error: 'Credenciales inválidas' });
+      }
     }
 
     const token = jwt.sign(
