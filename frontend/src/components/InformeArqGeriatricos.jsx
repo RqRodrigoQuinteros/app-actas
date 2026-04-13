@@ -58,7 +58,7 @@ const SECCIONES = [
       { id: "departamento",label: "Departamento",               placeholder: "RÍO CUARTO" },
       { id: "metros2",     label: "Metros cuadrados",           placeholder: "m²" },
       { id: "cantCamas",   label: "Cantidad de camas",          placeholder: "22" },
-      { id: "fecha",       label: "Fecha",                      placeholder: "dd/mm/aaaa" },
+      { id: "fecha", label: "Fecha", tipo: "date", placeholder: "dd/mm/aaaa" },
       { id: "pileta",      label: "Pileta",                     tipo: "sino" },
       { id: "habMunicipal",label: "Habilitación Municipal",     tipo: "sino" },
     ]
@@ -159,6 +159,17 @@ function Campo({ c, valor, onChange }) {
       e.target.style.boxShadow = "none";
     },
   };
+  
+  if (c.tipo === "date") {
+  return (
+    <div style={S.fieldWrap}>
+      <label style={S.label}>{c.label}</label>
+      <input type="date" value={valor} onChange={e => onChange(e.target.value)}
+        style={S.inputBase} />
+    </div>
+  );
+}
+  
 
   if (c.tipo === "sino") {
     return (
