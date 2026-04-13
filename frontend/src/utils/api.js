@@ -21,16 +21,21 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
-      window.location.href = '/login';
+      // Solo redirigir si NO estamos en una página de login
+      const path = window.location.pathname;
+      const esLoginPage = path === '/login' || path === '/supervisor-login';
+      if (!esLoginPage) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
 );
 
 export const authAPI = {
-  login: (dni, rol) => api.post('/auth/login', { dni, rol }),
+  login: (dni, rol, password) => api.post('/auth/login', { dni, rol, password }),
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
   getInspectores: () => api.get('/auth/inspectores'),
