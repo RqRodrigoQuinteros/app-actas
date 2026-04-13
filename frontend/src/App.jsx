@@ -7,6 +7,8 @@ import VerActa from './components/VerActa';
 import SupervisorDash from './components/SupervisorDash';
 import SupervisorLogin from './components/SupervisorLogin';
 import InformeArquitecto from './components/InformeArquitecto';
+import InformeArqGeriatricos from './components/InformeArqGeriatricos';
+
 
 function ProtectedRoute({ children, roles }) {
   const { usuario, loading } = useAuth();
@@ -67,6 +69,11 @@ function AppRoutes() {
           <InformeArquitecto />
         </ProtectedRoute>
       } />
+      <Route path="/informe/geriatricos" element={
+  <ProtectedRoute roles={['arquitecto']}>
+    <InformeArqGeriatricos />
+  </ProtectedRoute>
+} />
     </Routes>
   );
 }
