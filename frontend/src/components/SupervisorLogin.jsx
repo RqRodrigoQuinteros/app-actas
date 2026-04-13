@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { authAPI } from '../utils/api';
 
 export default function SupervisorLogin() {
   const { login } = useAuth();
@@ -15,7 +14,7 @@ export default function SupervisorLogin() {
     setLoading(true);
 
     try {
-      await login(dni, 'supervisor');
+      await login(dni, 'supervisor', password);
       window.location.href = '/supervisor';
     } catch (err) {
       setError(err.response?.data?.error || 'Credenciales inválidas');
@@ -36,7 +35,7 @@ export default function SupervisorLogin() {
 
         <div className="card">
           <h2 className="text-xl font-bold text-center mb-6">Iniciar Sesión</h2>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="label-field">DNI</label>
