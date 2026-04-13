@@ -9,16 +9,66 @@ const handlebars = require('handlebars')
 function getChromiumPath() {
   // 1. Variable de entorno explícita (configurar en Railway)
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    console.log(`[PDF] Usando PUPPETEER_EXECUTABLE_PATH: ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
     return process.env.PUPPETEER_EXECUTABLE_PATH;
   }
-  // 2. Intentar encontrar chromium en el PATH del sistema (nix/nixpacks)
+  
+  // 2. Debug: listar qué hay en /nix/var/nix/profiles/default/bin/
+  try {
+    const nixPaths = execSync('ls -la /nix/var/nix/profiles/default/bin/ 2>/dev/null | head -20 || echo ""', {
+      encoding: 'utf8', timeout: 5000
+    });
+    console.log(`[PDF] Nix bin contents: ${nixPaths.substring(0, 500)}`);
+  } catch (e) {
+    console.log(`[PDF] No hay /nix/var/nix/profiles/default/bin/`);
+  }
+  
+  // 3. Intentar chrome con ruta completa
+  const chromePaths = [
+    '/nix/var/nix/profiles/default/bin/chromium',
+    '/nix/var/nix/profiles/default/bin/chromium-browser', 
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/google-chrome',
+  ];
+  
+  for (const cp of chromePaths) {
+    try {
+      if (fs.existsSync(cp)) {
+        console.log(`[PDF] Chrome existe en: ${cp}`);
+        return cp;
+      }
+    } catch {}
+  }
+  
+  // 4. Intentar encontrar en PATH
   try {
     const found = execSync('which chromium 2>/dev/null || which chromium-browser 2>/dev/null || which google-chrome 2>/dev/null || echo ""', {
       encoding: 'utf8', timeout: 3000
     }).trim();
-    if (found) return found;
+    console.log(`[PDF] which chromium retorna: "${found}"`);
+    if (found && found.startsWith('/')) {
+      console.log(`[PDF] Chrome encontrado en PATH: ${found}`);
+      return found;
+    }
   } catch {}
-  // 3. Fallback al Chrome bundleado de Puppeteer
+  
+  // 5. Fallback al Chrome bundled de Puppeteer (siempre funciona)
+  console.log(`[PDF] Usando Chrome bundled de puppeteer`);
+  return puppeteer.executablePath();
+}
+  // 2. Intentar encontrar chrome en el PATH del sistema con ruta completa
+  try {
+    const found = execSync('which chromium 2>/dev/null || which chromium-browser 2>/dev/null || which google-chrome 2>/dev/null || which chrome 2>/dev/null || echo ""', {
+      encoding: 'utf8', timeout: 3000
+    }).trim();
+    if (found && found.startsWith('/')) {
+      console.log(`[PDF] Chrome encontrado en PATH: ${found}`);
+      return found;
+    }
+  } catch {}
+  // 3. Fallback al Chrome bundleado de Puppeteer (siempre funciona)
+  console.log(`[PDF] Usando Chrome bundled de puppeteer`);
   return puppeteer.executablePath();
 }
 
