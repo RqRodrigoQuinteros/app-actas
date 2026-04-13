@@ -51,9 +51,26 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
     const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
+    
+    // Convertir Uint8Array o Buffer serializado a Buffer real
+    let buffer = pdfBuffer;
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      if (pdfBuffer instanceof Uint8Array) {
+        console.log(`[PDF] Convirtiendo Uint8Array a Buffer`);
+        buffer = Buffer.from(pdfBuffer);
+      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
+        console.log(`[PDF] Convirtiendo Buffer serializado`);
+        buffer = Buffer.from(pdfBuffer.data);
+      } else {
+        console.log(`[PDF] ERROR: pdfBuffer tipo ${typeof pdfBuffer}, constructor: ${pdfBuffer?.constructor?.name}`);
+        throw new Error('PDF generation returned invalid buffer');
+      }
+    }
+    
+    console.log(`[PDF] Tamaño final: ${buffer.length} bytes`);
     res.set('Content-Type', 'application/pdf');
-    res.set('Content-Disposition', `attachment; filename="acta.pdf"`);
-    res.send(pdfBuffer);
+    res.set('Content-Disposition', `attachment; filename="acta_${id}.pdf"`);
+    res.send(buffer);
   } catch (err) {
     console.error('Error generando PDF del acta:', err);
     res.status(500).json({ error: 'Error al generar el PDF' });
@@ -90,7 +107,18 @@ router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
     const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
-    const base64 = pdfBuffer.toString('base64');
+    
+    // Convertir Uint8Array a Buffer si es necesario
+    let buffer = pdfBuffer;
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      if (pdfBuffer instanceof Uint8Array) {
+        buffer = Buffer.from(pdfBuffer);
+      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
+        buffer = Buffer.from(pdfBuffer.data);
+      }
+    }
+    
+    const base64 = buffer.toString('base64');
     res.json({ pdfBuffer: base64 });
   } catch (err) {
     console.error('Error generando PDF base64 del acta:', err);
@@ -123,9 +151,22 @@ router.post('/informe/:id', authenticateToken, async (req, res) => {
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
     const pdfBuffer = await generarInformePDF(informeCompleto, logoMinisterio, logoCordoba, logoMembrete);
+    
+    // Convertir Uint8Array o Buffer serializado a Buffer real
+    let buffer = pdfBuffer;
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      if (pdfBuffer instanceof Uint8Array) {
+        buffer = Buffer.from(pdfBuffer);
+      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
+        buffer = Buffer.from(pdfBuffer.data);
+      } else {
+        throw new Error('PDF generation returned invalid buffer');
+      }
+    }
+    
     res.set('Content-Type', 'application/pdf');
-    res.set('Content-Disposition', `attachment; filename="informe.pdf"`);
-    res.send(pdfBuffer);
+    res.set('Content-Disposition', `attachment; filename="informe_${id}.pdf"`);
+    res.send(buffer);
   } catch (err) {
     console.error('Error generando PDF del informe:', err);
     res.status(500).json({ error: 'Error al generar el PDF del informe' });
@@ -162,9 +203,22 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
     const pdfBuffer = await generarNotificacionPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
+    
+    // Convertir Uint8Array o Buffer serializado a Buffer real
+    let buffer = pdfBuffer;
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      if (pdfBuffer instanceof Uint8Array) {
+        buffer = Buffer.from(pdfBuffer);
+      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
+        buffer = Buffer.from(pdfBuffer.data);
+      } else {
+        throw new Error('PDF generation returned invalid buffer');
+      }
+    }
+    
     res.set('Content-Type', 'application/pdf');
-    res.set('Content-Disposition', `attachment; filename="notificacion.pdf"`);
-    res.send(pdfBuffer);
+    res.set('Content-Disposition', `attachment; filename="notificacion_${id}.pdf"`);
+    res.send(buffer);
   } catch (err) {
     console.error('Error generando PDF de notificación:', err);
     res.status(500).json({ error: 'Error al generar el PDF de notificación' });
