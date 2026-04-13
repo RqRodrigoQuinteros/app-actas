@@ -4,15 +4,15 @@ import { authAPI } from '../utils/api';
 
 export default function Login() {
   const { login } = useAuth();
-  const [inspectores, setInspectores] = useState([]);
-  const [selectedInspector, setSelectedInspector] = useState('');
+  const [usuarios, setUsuarios] = useState([]);
+  const [selectedDni, setSelectedDni] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    authAPI.getInspectores()
-      .then(res => setInspectores(res.data))
-      .catch(err => console.error('Error cargando inspectores:', err));
+    authAPI.getUsuariosLogin()
+      .then(res => setUsuarios(res.data))
+      .catch(err => console.error('Error cargando usuarios:', err));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -21,21 +21,31 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const inspector = inspectores.find(i => i.nombre === selectedInspector);
-      if (!inspector) {
-        setError('Seleccione un inspector');
+      const usuario = usuarios.find(u => u.dni === selectedDni);
+      if (!usuario) {
+        setError('Seleccioná un usuario');
         setLoading(false);
         return;
       }
 
-      await login(inspector.dni, 'inspector');
-      window.location.href = '/';
+      const resultado = await login(usuario.dni, usuario.rol);
+
+      // Redirigir según rol
+      if (resultado.rol === 'arquitecto') {
+        window.location.href = '/informes';
+      } else {
+        window.location.href = '/';
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
   };
+
+  // Separar por rol para mostrar grupo en el select
+  const inspectores = usuarios.filter(u => u.rol === 'inspector');
+  const arquitectos = usuarios.filter(u => u.rol === 'arquitecto');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-800 to-blue-600 flex flex-col items-center justify-center p-4">
@@ -54,22 +64,31 @@ export default function Login() {
 
         <div className="card">
           <h2 className="text-xl font-bold text-center mb-6">Iniciar Sesión</h2>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
-              <label className="label-field">Seleccionar Inspector</label>
+              <label className="label-field">Seleccionar Usuario</label>
               <select
-                value={selectedInspector}
-                onChange={(e) => setSelectedInspector(e.target.value)}
+                value={selectedDni}
+                onChange={(e) => setSelectedDni(e.target.value)}
                 className="input-field"
                 required
               >
                 <option value="">-- Seleccione --</option>
-                {inspectores.map((inspector) => (
-                  <option key={inspector.dni} value={inspector.nombre}>
-                    {inspector.nombre}
-                  </option>
-                ))}
+                {inspectores.length > 0 && (
+                  <optgroup label="Inspectores">
+                    {inspectores.map(u => (
+                      <option key={u.dni} value={u.dni}>{u.nombre}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {arquitectos.length > 0 && (
+                  <optgroup label="Arquitectos">
+                    {arquitectos.map(u => (
+                      <option key={u.dni} value={u.dni}>{u.nombre}</option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
@@ -89,10 +108,7 @@ export default function Login() {
           </form>
 
           <div className="mt-6 text-center">
-            <a
-              href="/supervisor-login"
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
+            <a href="/supervisor-login" className="text-sm text-gray-500 hover:text-gray-700">
               Acceso Supervisor
             </a>
           </div>
