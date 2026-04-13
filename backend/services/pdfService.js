@@ -7,48 +7,47 @@ const handlebars = require('handlebars')
 
 // Detectar la ruta de Chromium disponible (para Railway/producción)
 function getChromiumPath() {
-  // 1. Variable de entorno explícita (configurar en Railway)
-  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-    return process.env.PUPPETEER_EXECUTABLE_PATH;
-  }
+  // 1. Intentar SIN executablePath primero (usa el Chrome que encuentra Puppeteer)
+  // No retornamos nada para que launchBrowser no pase executablePath
+  try {
+    const bundled = puppeteer.executablePath();
+    if (bundled && bundled.includes('chrome')) {
+      console.log(`[PDF] Usando Chrome bundled: ${bundled}`);
+      return bundled;
+    }
+  } catch {}
   
-  // 2. Intentar ruta completa de Nixpacks si existe
+  // 2. Intentar ruta de Nixpacks
   const nixPaths = [
     '/nix/var/nix/profiles/default/bin/chromium',
     '/nix/var/nix/profiles/default/bin/chromium-browser',
   ];
   for (const p of nixPaths) {
     try {
-      if (fs.existsSync(p)) return p;
+      const stat = fs.statSync(p);
+      if (stat && stat.size > 1000) { // Si tiene contenido
+        console.log(`[PDF] Nix Chrome OK: ${p}`);
+        return p;
+      }
     } catch {}
   }
   
-  // 3. Intentar encontrar chromium en PATH con ruta completa
+  // 3. which chromium
   try {
-    const found = execSync('which chromium 2>/dev/null || which chromium-browser 2>/dev/null || which google-chrome 2>/dev/null || echo ""', {
+    const found = execSync('which chromium 2>/dev/null || which chromium-browser 2>/dev/null || echo ""', {
       encoding: 'utf8', timeout: 3000
     }).trim();
-    // Solo usar si es ruta completa (comienza con /)
-    if (found && found.startsWith('/')) {
-      return found;
-    }
+    if (found && found.startsWith('/')) return found;
   } catch {}
   
-  // 4. Fallback al Chrome bundled de Puppeteer (funciona si se descargó)
-  try {
-    return puppeteer.executablePath();
-  } catch {}
-  
-  // 5. Último recurso: intentar sin executablePath (busca en PATH)
-  return 'chromium';
+  // 4..return empty - puppeteerBuscará en su PATH default
+  return '';
 }
 
 async function launchBrowser() {
-  let executablePath = getChromiumPath();
-  console.log(`[PDF] Chromium path: "${executablePath}"`);
-  
-  // Si executablePath está vacío o es solo "chromium" sin ruta, no pasarlo
+  const executablePath = getChromiumPath();
   const hasValidPath = executablePath && (executablePath.startsWith('/') || executablePath.startsWith('C:'));
+  
   const launchOpts = {
     headless: true,
     args: [
@@ -68,9 +67,11 @@ async function launchBrowser() {
   
   if (hasValidPath) {
     launchOpts.executablePath = executablePath;
+    console.log(`[PDF] Lanzando Chrome con path: ${executablePath}`);
+  } else {
+    console.log(`[PDF] Lanzando Chrome (sin path fixed)`);
   }
   
-  console.log(`[PDF] Lanzando Chrome con executablePath: ${hasValidPath ? executablePath : 'default'}`);
   return puppeteer.launch(launchOpts);
 }
 
