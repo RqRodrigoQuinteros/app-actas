@@ -9,7 +9,6 @@ import SupervisorLogin from './components/SupervisorLogin';
 import InformeArquitecto from './components/InformeArquitecto';
 import InformeArqGeriatricos from './components/InformeArqGeriatricos';
 
-
 function ProtectedRoute({ children, roles }) {
   const { usuario, loading } = useAuth();
 
@@ -39,41 +38,52 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/supervisor-login" element={<SupervisorLogin />} />
-      
+
       <Route path="/" element={
         <ProtectedRoute>
-          {usuario?.rol === 'supervisor' ? <Navigate to="/supervisor" replace /> : <Dashboard />}
+          {usuario?.rol === 'supervisor'
+            ? <Navigate to="/supervisor" replace />
+            : usuario?.rol === 'arquitecto'
+              ? <Navigate to="/informes" replace />
+              : <Dashboard />}
         </ProtectedRoute>
       } />
-      
+
       <Route path="/nueva-acta" element={
         <ProtectedRoute roles={['inspector']}>
           <NuevaActa />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/acta/:id" element={
         <ProtectedRoute>
           <VerActa />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/supervisor" element={
         <ProtectedRoute roles={['supervisor']}>
           <SupervisorDash />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/informes" element={
         <ProtectedRoute roles={['arquitecto']}>
           <InformeArquitecto />
         </ProtectedRoute>
       } />
-      <Route path="/informe/geriatricos" element={
-  <ProtectedRoute roles={['arquitecto']}>
-    <InformeArqGeriatricos />
-  </ProtectedRoute>
-} />
+
+      <Route path="/informe/geriatricos/nuevo" element={
+        <ProtectedRoute roles={['arquitecto']}>
+          <InformeArqGeriatricos />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/informe/geriatricos/:id" element={
+        <ProtectedRoute roles={['arquitecto']}>
+          <InformeArqGeriatricos />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 }
