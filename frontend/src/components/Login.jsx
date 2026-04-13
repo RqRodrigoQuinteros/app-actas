@@ -30,7 +30,6 @@ export default function Login() {
 
       const resultado = await login(usuario.dni, usuario.rol);
 
-      // Redirigir según rol
       if (resultado.rol === 'arquitecto') {
         window.location.href = '/informes';
       } else {
@@ -43,7 +42,6 @@ export default function Login() {
     }
   };
 
-  // Separar por rol para mostrar grupo en el select
   const inspectores = usuarios.filter(u => u.rol === 'inspector');
   const arquitectos = usuarios.filter(u => u.rol === 'arquitecto');
 
