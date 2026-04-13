@@ -3,29 +3,90 @@ import { useParams, useNavigate } from "react-router-dom";
 import { informesAPI } from "../utils/api";
 import api from "../utils/api";
 
-const CAMPOS_GENERALES = [
-  { id: "expDigital",    label: "N° Expediente Digital",     placeholder: "0425-XXXXXX/2025" },
-  { id: "expPapel",      label: "N° Expediente Papel",       placeholder: "-" },
-  { id: "nombreEst",     label: "Nombre del establecimiento",placeholder: "Nombre...", fullWidth: true },
-  { id: "arquitecto",    label: "Nombre del Arquitecto",     placeholder: "Nombre y apellido" },
-  { id: "matricula",     label: "Matrícula",                 placeholder: "N° matrícula" },
-  { id: "direccion",     label: "Dirección",                 placeholder: "Av. Italia N° 1537" },
-  { id: "barrio",        label: "Barrio / Localidad",        placeholder: "Río Cuarto" },
-  { id: "departamento",  label: "Departamento",              placeholder: "RÍO CUARTO" },
-  { id: "metros2",       label: "Metros cuadrados",          placeholder: "m²" },
-  { id: "fecha",         label: "Fecha",                     placeholder: "dd/mm/aaaa" },
-  { id: "fojasOrdenes",  label: "Fojas u Órdenes",           placeholder: "Nros de informe y plano", fullWidth: true },
-  { id: "circ",          label: "Circunscripción",           placeholder: "1" },
-  { id: "seccion",       label: "Sección",                   placeholder: "2" },
-  { id: "manzana",       label: "Manzana",                   placeholder: "226" },
-  { id: "parcela",       label: "Parcela",                   placeholder: "21" },
-  { id: "loteOficial",   label: "Lote Oficial",              placeholder: "-" },
-  { id: "cantCamas",     label: "Cantidad de camas",         placeholder: "22" },
-  { id: "pileta",        label: "Pileta",                    placeholder: "SI / NO" },
-  { id: "habMunicipal",  label: "Habilitación Municipal",    placeholder: "-" },
-  { id: "verificarInsp", label: "Verificar en Inspección",   placeholder: "-", fullWidth: true },
-  { id: "observaciones", label: "Observaciones",             placeholder: "Observaciones generales...", textarea: true },
-  { id: "conclusion",    label: "Conclusión",                placeholder: "EN ESPERA DE ACLARACION Y/O DOCUMENTACION", fullWidth: true },
+// ─── ESTILOS BASE ─────────────────────────────────────────────────────────────
+const S = {
+  inputBase: {
+    width: "100%", boxSizing: "border-box",
+    fontSize: "14px", padding: "10px 12px",
+    borderRadius: "8px",
+    border: "1.5px solid #d1d5db",
+    background: "#f9fafb",
+    color: "#111827",
+    fontFamily: "inherit",
+    transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",
+    outline: "none",
+  },
+  label: {
+    display: "block", fontSize: "11px", fontWeight: 700,
+    color: "#6b7280", marginBottom: "5px",
+    textTransform: "uppercase", letterSpacing: "0.07em",
+  },
+  fieldWrap: { display: "flex", flexDirection: "column" },
+  card: {
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    padding: "20px 24px",
+    marginBottom: "16px",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+  },
+  sectionTitle: {
+    fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em",
+    textTransform: "uppercase", color: "#9ca3af",
+    margin: "0 0 14px", paddingBottom: "8px",
+    borderBottom: "1px solid #f3f4f6",
+  },
+};
+
+// ─── CAMPOS ───────────────────────────────────────────────────────────────────
+const SECCIONES = [
+  {
+    titulo: "Expediente",
+    campos: [
+      { id: "expDigital", label: "N° Expediente Digital", placeholder: "0425-XXXXXX/2025" },
+      { id: "expPapel",   label: "N° Expediente Papel",   placeholder: "-" },
+      { id: "fojasOrdenes", label: "Fojas u Órdenes", placeholder: "Nros de informe y plano", fullWidth: true },
+    ]
+  },
+  {
+    titulo: "Establecimiento",
+    campos: [
+      { id: "nombreEst",   label: "Nombre del establecimiento", placeholder: "Nombre...", fullWidth: true },
+      { id: "arquitecto",  label: "Nombre del Arquitecto",      placeholder: "Nombre y apellido" },
+      { id: "direccion",   label: "Dirección",                  placeholder: "Av. Italia N° 1537" },
+      { id: "barrio",      label: "Barrio / Localidad",         placeholder: "Río Cuarto" },
+      { id: "departamento",label: "Departamento",               placeholder: "RÍO CUARTO" },
+      { id: "metros2",     label: "Metros cuadrados",           placeholder: "m²" },
+      { id: "cantCamas",   label: "Cantidad de camas",          placeholder: "22" },
+      { id: "fecha",       label: "Fecha",                      placeholder: "dd/mm/aaaa" },
+      { id: "pileta",      label: "Pileta",                     tipo: "sino" },
+      { id: "habMunicipal",label: "Habilitación Municipal",     tipo: "sino" },
+    ]
+  },
+  {
+    titulo: "Nomenclatura Catastral",
+    campos: [
+      { id: "circ",        label: "Circunscripción", placeholder: "1" },
+      { id: "seccion",     label: "Sección",         placeholder: "2" },
+      { id: "manzana",     label: "Manzana",         placeholder: "226" },
+      { id: "parcela",     label: "Parcela",         placeholder: "21" },
+      { id: "loteOficial", label: "Lote Oficial",    placeholder: "-" },
+    ]
+  },
+  {
+    titulo: "Observaciones y Conclusión",
+    campos: [
+      { id: "verificarInsp", label: "Verificar en Inspección", placeholder: "-", fullWidth: true },
+      { id: "observaciones", label: "Observaciones generales", placeholder: "Observaciones...", textarea: true },
+      { id: "conclusion",    label: "Conclusión", tipo: "conclusion", fullWidth: true },
+    ]
+  },
+];
+
+const CONCLUSIONES = [
+  "ADECUADO",
+  "OBSERVADO",
+  "EN ESPERA DE ACLARACION Y/O DOCUMENTACION",
 ];
 
 const ARTICULOS = [
@@ -71,94 +132,233 @@ const ARTICULOS = [
   { nro: "39",     desc: "Residuos patógenos. Deberá disponerse de un ámbito físico para concentrar los residuos generados, conforme la legislación vigente y su reglamentación." },
 ];
 
-const GENERALES_VACÍO = Object.fromEntries(CAMPOS_GENERALES.map(c => [c.id, ""]));
-const CHECKS_VACÍO    = Object.fromEntries(ARTICULOS.map(a => [a.nro, false]));
-const OBS_VACÍO       = Object.fromEntries(ARTICULOS.map(a => [a.nro, ""]));
+const GENERALES_VACÍO = {
+  expDigital: "", expPapel: "", fojasOrdenes: "",
+  nombreEst: "", arquitecto: "", direccion: "", barrio: "",
+  departamento: "", metros2: "", cantCamas: "", fecha: "",
+  pileta: "", habMunicipal: "", circ: "", seccion: "",
+  manzana: "", parcela: "", loteOficial: "",
+  verificarInsp: "", observaciones: "", conclusion: "",
+};
 
+// ─── CAMPO INDIVIDUAL ─────────────────────────────────────────────────────────
+function Campo({ c, valor, onChange }) {
+  const focusStyle = {
+    borderColor: "#2563eb",
+    background: "#fff",
+    boxShadow: "0 0 0 3px rgba(37,99,235,0.1)",
+  };
+
+  const commonProps = {
+    value: valor,
+    onChange: e => onChange(e.target.value),
+    onFocus: e => Object.assign(e.target.style, focusStyle),
+    onBlur: e => {
+      e.target.style.borderColor = "#d1d5db";
+      e.target.style.background = "#f9fafb";
+      e.target.style.boxShadow = "none";
+    },
+  };
+
+  if (c.tipo === "sino") {
+    return (
+      <div style={S.fieldWrap}>
+        <label style={S.label}>{c.label}</label>
+        <div style={{ display: "flex", gap: "8px" }}>
+          {["SI", "NO"].map(op => (
+            <button key={op} type="button"
+              onClick={() => onChange(op)}
+              style={{
+                flex: 1, padding: "10px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+                border: valor === op ? "2px solid #2563eb" : "1.5px solid #d1d5db",
+                background: valor === op ? "#eff6ff" : "#f9fafb",
+                color: valor === op ? "#1d4ed8" : "#6b7280",
+                cursor: "pointer", transition: "all 0.15s",
+              }}>
+              {op}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (c.tipo === "conclusion") {
+    return (
+      <div style={S.fieldWrap}>
+        <label style={S.label}>{c.label}</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {CONCLUSIONES.map(op => (
+            <button key={op} type="button"
+              onClick={() => onChange(op)}
+              style={{
+                padding: "11px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: valor === op ? 700 : 400,
+                border: valor === op ? "2px solid #2563eb" : "1.5px solid #d1d5db",
+                background: valor === op ? "#eff6ff" : "#f9fafb",
+                color: valor === op ? "#1d4ed8" : "#374151",
+                cursor: "pointer", textAlign: "left", transition: "all 0.15s",
+                display: "flex", alignItems: "center", gap: "10px",
+              }}>
+              <span style={{
+                width: "16px", height: "16px", borderRadius: "50%", flexShrink: 0,
+                border: valor === op ? "5px solid #2563eb" : "2px solid #d1d5db",
+                background: "#fff",
+              }} />
+              {op}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (c.textarea) {
+    return (
+      <div style={S.fieldWrap}>
+        <label style={S.label}>{c.label}</label>
+        <textarea rows={3} placeholder={c.placeholder}
+          style={{ ...S.inputBase, resize: "vertical" }}
+          {...commonProps} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={S.fieldWrap}>
+      <label style={S.label}>{c.label}</label>
+      <input type="text" placeholder={c.placeholder}
+        style={S.inputBase} {...commonProps} />
+    </div>
+  );
+}
+
+// ─── ARTÍCULO ITEM ────────────────────────────────────────────────────────────
 function ArticuloItem({ art, checked, obsValue, onCheck, onObs }) {
   return (
     <div style={{
-      borderBottom: "1px solid var(--color-border-tertiary)",
-      padding: "14px 0",
-      background: checked ? "var(--color-background-secondary)" : "transparent",
-      borderRadius: checked ? "8px" : "0",
-      paddingLeft: checked ? "12px" : "0", paddingRight: checked ? "12px" : "0",
-      marginLeft: checked ? "-12px" : "0", marginRight: checked ? "-12px" : "0",
+      borderRadius: "10px",
+      marginBottom: "8px",
+      border: checked ? "1.5px solid #bfdbfe" : "1.5px solid #f3f4f6",
+      background: checked ? "#eff6ff" : "#fafafa",
+      transition: "all 0.15s",
+      overflow: "hidden",
     }}>
-      <label style={{ display: "flex", gap: "12px", cursor: "pointer", alignItems: "flex-start" }}>
-        <input type="checkbox" checked={checked} onChange={e => onCheck(e.target.checked)}
-          style={{ marginTop: "3px", width: "17px", height: "17px", flexShrink: 0, cursor: "pointer", accentColor: "#1a5fa8" }} />
+      <label style={{ display: "flex", gap: "12px", cursor: "pointer", padding: "14px 16px", alignItems: "flex-start" }}>
+        {/* Checkbox custom */}
+        <div style={{
+          width: "20px", height: "20px", borderRadius: "6px", flexShrink: 0, marginTop: "1px",
+          border: checked ? "none" : "2px solid #d1d5db",
+          background: checked ? "#2563eb" : "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "all 0.15s",
+        }}>
+          {checked && <span style={{ color: "#fff", fontSize: "13px", lineHeight: 1 }}>✓</span>}
+          <input type="checkbox" checked={checked} onChange={e => onCheck(e.target.checked)}
+            style={{ position: "absolute", opacity: 0, width: 0, height: 0 }} />
+        </div>
         <div style={{ flex: 1 }}>
-          <span style={{ display: "inline-block", fontWeight: 600, fontSize: "12px", color: "var(--color-text-secondary)", background: "var(--color-background-tertiary)", padding: "2px 7px", borderRadius: "4px", fontFamily: "var(--font-mono)", marginBottom: "5px" }}>
+          <span style={{
+            display: "inline-block", fontWeight: 700, fontSize: "11px",
+            color: checked ? "#1d4ed8" : "#6b7280",
+            background: checked ? "#dbeafe" : "#f3f4f6",
+            padding: "2px 8px", borderRadius: "4px",
+            fontFamily: "monospace", marginBottom: "6px",
+            letterSpacing: "0.03em",
+          }}>
             Art. {art.nro}
           </span>
-          <p style={{ margin: 0, fontSize: "13.5px", lineHeight: "1.55", color: "var(--color-text-primary)" }}>{art.desc}</p>
+          <p style={{ margin: 0, fontSize: "13px", lineHeight: "1.6", color: checked ? "#1e3a5f" : "#4b5563" }}>
+            {art.desc}
+          </p>
         </div>
       </label>
+
       {checked && (
-        <div style={{ marginTop: "10px", marginLeft: "29px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Observaciones</label>
-          <textarea value={obsValue} onChange={e => onObs(e.target.value)} rows={3}
-            placeholder="Ingrese las observaciones para este artículo..."
-            style={{ width: "100%", boxSizing: "border-box", fontSize: "13px", padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", resize: "vertical", fontFamily: "var(--font-sans)", lineHeight: "1.5" }} />
+        <div style={{ padding: "0 16px 14px 48px", borderTop: "1px solid #bfdbfe" }}>
+          <label style={{ ...S.label, marginTop: "10px", color: "#3b82f6" }}>Observaciones del artículo</label>
+          <textarea
+            value={obsValue}
+            onChange={e => onObs(e.target.value)}
+            rows={2}
+            placeholder="Descripción de la observación..."
+            style={{
+              ...S.inputBase,
+              resize: "vertical",
+              background: "#fff",
+              borderColor: "#bfdbfe",
+            }}
+            onFocus={e => { e.target.style.borderColor = "#2563eb"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+            onBlur={e => { e.target.style.borderColor = "#bfdbfe"; e.target.style.boxShadow = "none"; }}
+          />
         </div>
       )}
     </div>
   );
 }
 
+// ─── BOTÓN NAV ────────────────────────────────────────────────────────────────
+function BtnNav({ onClick, children, primary, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled} type="button" style={{
+      padding: "10px 24px", fontSize: "14px", fontWeight: 600,
+      borderRadius: "8px", cursor: disabled ? "not-allowed" : "pointer",
+      border: primary ? "none" : "1.5px solid #d1d5db",
+      background: disabled ? "#9ca3af" : primary ? "#2563eb" : "#fff",
+      color: primary ? "#fff" : "#374151",
+      transition: "all 0.15s",
+    }}>
+      {children}
+    </button>
+  );
+}
+
+// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 export default function InformeArqGeriatricos() {
-  const { id } = useParams();           // undefined si es /nuevo
+  const { id } = useParams();
   const navigate = useNavigate();
   const esNuevo = !id;
 
   const [step, setStep] = useState(0);
   const [generales, setGenerales] = useState(GENERALES_VACÍO);
-  const [checks, setChecks]       = useState(CHECKS_VACÍO);
-  const [observaciones, setObs]   = useState(OBS_VACÍO);
+  const [checks, setChecks]       = useState(Object.fromEntries(ARTICULOS.map(a => [a.nro, false])));
+  const [obsArt, setObsArt]       = useState(Object.fromEntries(ARTICULOS.map(a => [a.nro, ""])));
 
-  const [guardando, setGuardando]     = useState(false);
+  const [guardando, setGuardando]       = useState(false);
   const [generandoPDF, setGenerandoPDF] = useState(false);
-  const [guardadoOk, setGuardadoOk]   = useState(false);
-  const [errorMsg, setErrorMsg]       = useState("");
-  const [cargando, setCargando]       = useState(!esNuevo);
+  const [guardadoOk, setGuardadoOk]     = useState(false);
+  const [errorMsg, setErrorMsg]         = useState("");
+  const [cargando, setCargando]         = useState(!esNuevo);
 
-  // ── Cargar informe existente ──────────────────────────────────────────────
   useEffect(() => {
     if (!esNuevo) {
       informesAPI.getById(id)
         .then(res => {
-          const inf = res.data;
-          const df  = inf.datos_formulario || {};
-          setGenerales(df.generales || GENERALES_VACÍO);
-          setChecks(df.checks     || CHECKS_VACÍO);
-          setObs(df.observaciones || OBS_VACÍO);
+          const df = res.data.datos_formulario || {};
+          setGenerales({ ...GENERALES_VACÍO, ...(df.generales || {}) });
+          setChecks({ ...Object.fromEntries(ARTICULOS.map(a => [a.nro, false])), ...(df.checks || {}) });
+          setObsArt({ ...Object.fromEntries(ARTICULOS.map(a => [a.nro, ""])), ...(df.observaciones || {}) });
         })
         .catch(() => setErrorMsg("No se pudo cargar el informe."))
         .finally(() => setCargando(false));
     }
   }, [id]);
 
-  const articulosObservados = ARTICULOS.filter(a => checks[a.nro]).map(a => ({
-    ...a, obs: observaciones[a.nro] || "",
-  }));
+  const articulosObservados = ARTICULOS.filter(a => checks[a.nro]).map(a => ({ ...a, obs: obsArt[a.nro] || "" }));
   const totalChecked = articulosObservados.length;
 
   const setGen   = (fid, val) => setGenerales(g => ({ ...g, [fid]: val }));
   const setCheck = (nro, val) => setChecks(c => ({ ...c, [nro]: val }));
-  const setObsF  = (nro, val) => setObs(o => ({ ...o, [nro]: val }));
+  const setObs   = (nro, val) => setObsArt(o => ({ ...o, [nro]: val }));
 
-  // ── Guardar en Supabase ───────────────────────────────────────────────────
   const guardar = async () => {
-    setGuardando(true);
-    setErrorMsg("");
+    setGuardando(true); setErrorMsg("");
     const payload = {
       establecimiento_nombre: generales.nombreEst || "",
       establecimiento_direccion: generales.direccion || "",
       establecimiento_localidad: generales.barrio || "",
       expediente: generales.expDigital || generales.expPapel || "",
       fecha: generales.fecha || null,
-      datos_formulario: { generales, checks, observaciones },
+      datos_formulario: { generales, checks, observaciones: obsArt },
       observaciones: generales.observaciones || "",
       tipo: "geriatrico",
     };
@@ -166,84 +366,102 @@ export default function InformeArqGeriatricos() {
       if (esNuevo) {
         const res = await informesAPI.create(payload);
         setGuardadoOk(true);
-        setTimeout(() => navigate(`/informe/geriatricos/${res.data.id}`, { replace: true }), 800);
+        setTimeout(() => navigate(`/informe/geriatricos/${res.data.id}`, { replace: true }), 600);
       } else {
         await informesAPI.update(id, payload);
         setGuardadoOk(true);
         setTimeout(() => setGuardadoOk(false), 2500);
       }
-    } catch (e) {
-      setErrorMsg("Error al guardar. Intentá de nuevo.");
-    } finally {
-      setGuardando(false);
-    }
+    } catch { setErrorMsg("Error al guardar. Intentá de nuevo."); }
+    finally { setGuardando(false); }
   };
 
-  // ── Generar PDF ───────────────────────────────────────────────────────────
   const handleGenerarPDF = async () => {
-    setGenerandoPDF(true);
-    setErrorMsg("");
+    setGenerandoPDF(true); setErrorMsg("");
     try {
       const response = await api.post("/pdf/geriatrico", { ...generales, articulosObservados }, { responseType: "blob" });
       const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `geriatrico_${generales.expDigital || generales.nombreEst || "informe"}.pdf`.replace(/[^a-zA-Z0-9_.\-]/g, "_"));
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      link.setAttribute("download", `geriatrico_${(generales.expDigital || generales.nombreEst || "informe").replace(/[^a-zA-Z0-9_.\-]/g, "_")}.pdf`);
+      document.body.appendChild(link); link.click(); link.remove();
       window.URL.revokeObjectURL(url);
-    } catch {
-      setErrorMsg("Error al generar el PDF.");
-    } finally {
-      setGenerandoPDF(false);
-    }
+    } catch { setErrorMsg("Error al generar el PDF."); }
+    finally { setGenerandoPDF(false); }
   };
 
-  const tabs = ["Datos Generales", "Artículos", "Vista Previa"];
+  const conclusionColor = {
+    "ADECUADO": { bg: "#f0fdf4", border: "#86efac", text: "#15803d" },
+    "OBSERVADO": { bg: "#fffbeb", border: "#fcd34d", text: "#b45309" },
+    "EN ESPERA DE ACLARACION Y/O DOCUMENTACION": { bg: "#eff6ff", border: "#93c5fd", text: "#1d4ed8" },
+  }[generales.conclusion] || {};
 
-  if (cargando) {
-    return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px", color: "var(--color-text-secondary)" }}>Cargando informe...</div>;
-  }
+  const tabs = ["Datos Generales", `Artículos${totalChecked > 0 ? ` (${totalChecked})` : ""}`, "Vista Previa"];
+
+  if (cargando) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px", color: "#9ca3af", fontSize: "14px" }}>
+      Cargando informe...
+    </div>
+  );
 
   return (
-    <div style={{ fontFamily: "var(--font-sans)", maxWidth: "820px", margin: "0 auto", padding: "1.5rem 1rem 3rem" }}>
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", maxWidth: "860px", margin: "0 auto", padding: "1.5rem 1rem 4rem", color: "#111827" }}>
 
-      {/* Header */}
-      <div style={{ marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "1px solid var(--color-border-tertiary)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
+      {/* ── HEADER ── */}
+      <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-            <button onClick={() => navigate("/informes")} style={{ fontSize: "12px", color: "var(--color-text-secondary)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+            <button type="button" onClick={() => navigate("/informes")}
+              style={{ fontSize: "12px", color: "#6b7280", background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: "4px" }}>
               ← Mis Informes
             </button>
-            <span style={{ color: "var(--color-text-secondary)" }}>/</span>
-            <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--color-text-info)", background: "var(--color-background-info)", padding: "2px 8px", borderRadius: "4px", textTransform: "uppercase" }}>Geriátricos</span>
+            <span style={{ color: "#d1d5db" }}>/</span>
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", background: "#f3e8ff", padding: "2px 9px", borderRadius: "20px", letterSpacing: "0.05em" }}>
+              GERIÁTRICOS
+            </span>
           </div>
-          <h1 style={{ margin: 0, fontSize: "20px", fontWeight: 600, color: "var(--color-text-primary)" }}>
+          <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>
             {generales.nombreEst || (esNuevo ? "Nuevo Informe" : "Informe")}
           </h1>
-          {generales.arquitecto && <p style={{ margin: "3px 0 0", fontSize: "13px", color: "var(--color-text-secondary)" }}>Arq. {generales.arquitecto}</p>}
+          {generales.arquitecto && (
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#6b7280" }}>Arq. {generales.arquitecto}</p>
+          )}
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {guardadoOk && <span style={{ fontSize: "13px", color: "var(--color-text-success)" }}>✓ Guardado</span>}
-          <button onClick={guardar} disabled={guardando}
-            style={{ padding: "8px 18px", fontSize: "13px", fontWeight: 600, background: guardando ? "#aaa" : "#2a6" , color: "#fff", border: "none", borderRadius: "7px", cursor: guardando ? "not-allowed" : "pointer" }}>
+          {guardadoOk && (
+            <span style={{ fontSize: "13px", color: "#16a34a", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
+              ✓ Guardado
+            </span>
+          )}
+          <button type="button" onClick={guardar} disabled={guardando} style={{
+            padding: "9px 20px", fontSize: "13px", fontWeight: 700,
+            borderRadius: "8px", cursor: guardando ? "not-allowed" : "pointer",
+            border: "none", background: guardando ? "#9ca3af" : "#16a34a",
+            color: "#fff", transition: "background 0.15s",
+          }}>
             {guardando ? "Guardando..." : esNuevo ? "Crear informe" : "Guardar cambios"}
           </button>
         </div>
       </div>
 
       {errorMsg && (
-        <div style={{ marginBottom: "1rem", padding: "10px 14px", background: "var(--color-background-danger)", borderRadius: "7px", fontSize: "13px", color: "var(--color-text-danger)" }}>
+        <div style={{ marginBottom: "1rem", padding: "10px 16px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", fontSize: "13px", color: "#dc2626" }}>
           {errorMsg}
         </div>
       )}
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: "4px", marginBottom: "1.5rem", borderBottom: "1px solid var(--color-border-tertiary)" }}>
+      {/* ── TABS ── */}
+      <div style={{ display: "flex", gap: "2px", marginBottom: "1.5rem", background: "#f3f4f6", borderRadius: "10px", padding: "4px" }}>
         {tabs.map((t, i) => (
-          <button key={t} onClick={() => setStep(i)} style={{ padding: "8px 16px", fontSize: "13.5px", fontWeight: step === i ? 600 : 400, color: step === i ? "var(--color-text-info)" : "var(--color-text-secondary)", background: "transparent", border: "none", borderBottom: step === i ? "2px solid #1a5fa8" : "2px solid transparent", cursor: "pointer", marginBottom: "-1px", borderRadius: 0 }}>
-            {t}{i === 1 && totalChecked > 0 ? ` (${totalChecked})` : ""}
+          <button key={i} type="button" onClick={() => setStep(i)} style={{
+            flex: 1, padding: "9px 12px", fontSize: "13px", fontWeight: step === i ? 700 : 400,
+            color: step === i ? "#2563eb" : "#6b7280",
+            background: step === i ? "#fff" : "transparent",
+            border: "none", borderRadius: "8px",
+            cursor: "pointer", transition: "all 0.15s",
+            boxShadow: step === i ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+          }}>
+            {t}
           </button>
         ))}
       </div>
@@ -251,22 +469,20 @@ export default function InformeArqGeriatricos() {
       {/* ── PASO 0: DATOS GENERALES ── */}
       {step === 0 && (
         <div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
-            {CAMPOS_GENERALES.map(c => (
-              <div key={c.id} style={{ gridColumn: (c.textarea || c.fullWidth) ? "1 / -1" : "auto" }}>
-                <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{c.label}</label>
-                {c.textarea ? (
-                  <textarea rows={3} value={generales[c.id]} onChange={e => setGen(c.id, e.target.value)} placeholder={c.placeholder}
-                    style={{ width: "100%", boxSizing: "border-box", fontSize: "13.5px", padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", resize: "vertical", fontFamily: "var(--font-sans)" }} />
-                ) : (
-                  <input type="text" value={generales[c.id]} onChange={e => setGen(c.id, e.target.value)} placeholder={c.placeholder}
-                    style={{ width: "100%", boxSizing: "border-box", fontSize: "13.5px", padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }} />
-                )}
+          {SECCIONES.map(sec => (
+            <div key={sec.titulo} style={S.card}>
+              <p style={S.sectionTitle}>{sec.titulo}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                {sec.campos.map(c => (
+                  <div key={c.id} style={{ gridColumn: (c.textarea || c.fullWidth || c.tipo === "conclusion") ? "1 / -1" : "auto" }}>
+                    <Campo c={c} valor={generales[c.id]} onChange={v => setGen(c.id, v)} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div style={{ marginTop: "1.5rem", display: "flex", justifyContent: "flex-end" }}>
-            <button onClick={() => setStep(1)} style={{ padding: "9px 22px", fontSize: "14px", fontWeight: 600, background: "#1a5fa8", color: "#fff", border: "none", borderRadius: "7px", cursor: "pointer" }}>Siguiente → Artículos</button>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "8px" }}>
+            <BtnNav primary onClick={() => setStep(1)}>Siguiente → Artículos</BtnNav>
           </div>
         </div>
       )}
@@ -274,16 +490,20 @@ export default function InformeArqGeriatricos() {
       {/* ── PASO 1: ARTÍCULOS ── */}
       {step === 1 && (
         <div>
-          <div style={{ marginBottom: "1rem", padding: "10px 14px", background: "var(--color-background-secondary)", borderRadius: "7px", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-            Marcá los artículos que presentan observaciones. Al tildar se despliega el campo para ingresarlas.
+          <div style={{ ...S.card, background: "#f0f9ff", border: "1px solid #bae6fd", marginBottom: "16px" }}>
+            <p style={{ margin: 0, fontSize: "13px", color: "#0369a1", lineHeight: 1.5 }}>
+              Marcá los artículos que presentan observaciones. Al tildar se despliega el campo para ingresarlas.
+              {totalChecked > 0 && <strong> — {totalChecked} artículo{totalChecked !== 1 ? "s" : ""} seleccionado{totalChecked !== 1 ? "s" : ""}.</strong>}
+            </p>
           </div>
           {ARTICULOS.map(art => (
-            <ArticuloItem key={art.nro} art={art} checked={checks[art.nro]} obsValue={observaciones[art.nro]}
-              onCheck={v => setCheck(art.nro, v)} onObs={v => setObsF(art.nro, v)} />
+            <ArticuloItem key={art.nro} art={art}
+              checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+              onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
           ))}
-          <div style={{ marginTop: "1.5rem", display: "flex", justifyContent: "space-between" }}>
-            <button onClick={() => setStep(0)} style={{ padding: "9px 22px", fontSize: "14px", background: "transparent", border: "1px solid var(--color-border-secondary)", borderRadius: "7px", cursor: "pointer", color: "var(--color-text-primary)" }}>← Datos Generales</button>
-            <button onClick={() => setStep(2)} style={{ padding: "9px 22px", fontSize: "14px", fontWeight: 600, background: "#1a5fa8", color: "#fff", border: "none", borderRadius: "7px", cursor: "pointer" }}>Ver Informe →</button>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
+            <BtnNav onClick={() => setStep(0)}>← Datos Generales</BtnNav>
+            <BtnNav primary onClick={() => setStep(2)}>Ver Informe →</BtnNav>
           </div>
         </div>
       )}
@@ -291,42 +511,80 @@ export default function InformeArqGeriatricos() {
       {/* ── PASO 2: VISTA PREVIA ── */}
       {step === 2 && (
         <div>
-          <div style={{ border: "1px solid var(--color-border-secondary)", borderRadius: "8px", padding: "20px 24px", marginBottom: "1.5rem", background: "var(--color-background-secondary)" }}>
-            <p style={{ margin: "0 0 12px", fontSize: "13px", fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: "0.05em" }}>Evaluación Técnica Geriátricos — Fiscalización Edilicia</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 24px", fontSize: "13px" }}>
-              {[["Auditor Arquitectura", generales.arquitecto], ["Matrícula", generales.matricula], ["Establecimiento", generales.nombreEst], ["Dirección", generales.direccion], ["Expte. Papel N°", generales.expPapel || "-"], ["Expte. Digital N°", generales.expDigital], ["Metros cuadrados", generales.metros2 ? generales.metros2 + " m²" : null], ["Fecha", generales.fecha || null], ["Fojas / Órdenes", generales.fojasOrdenes], ["Cant. camas", generales.cantCamas], ["Pileta", generales.pileta], ["Hab. Municipal", generales.habMunicipal || null]]
-                .filter(([, v]) => v).map(([k, v]) => (
-                  <div key={k}><span style={{ fontWeight: 600, color: "var(--color-text-secondary)" }}>{k}: </span><span>{v}</span></div>
-                ))}
+          {/* Cabecera del informe */}
+          <div style={S.card}>
+            <p style={{ ...S.sectionTitle, marginBottom: "16px" }}>Evaluación Técnica Geriátricos — Fiscalización Edilicia</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 32px", fontSize: "13px" }}>
+              {[
+                ["Auditor Arquitectura", generales.arquitecto],
+                ["Establecimiento", generales.nombreEst],
+                ["Dirección", generales.direccion],
+                ["Barrio / Localidad", generales.barrio],
+                ["Expte. Papel N°", generales.expPapel || "-"],
+                ["Expte. Digital N°", generales.expDigital],
+                ["Metros cuadrados", generales.metros2 ? generales.metros2 + " m²" : null],
+                ["Fecha", generales.fecha || null],
+                ["Fojas / Órdenes", generales.fojasOrdenes],
+                ["Cant. camas", generales.cantCamas],
+                ["Pileta", generales.pileta],
+                ["Hab. Municipal", generales.habMunicipal || null],
+              ].filter(([, v]) => v).map(([k, v]) => (
+                <div key={k}>
+                  <span style={{ fontWeight: 600, color: "#6b7280" }}>{k}: </span>
+                  <span style={{ color: "#111827" }}>{v}</span>
+                </div>
+              ))}
             </div>
-            {generales.observaciones && <p style={{ marginTop: "8px", fontSize: "13px" }}><strong>Observaciones:</strong> {generales.observaciones}</p>}
-            {generales.conclusion && <p style={{ marginTop: "8px", fontSize: "13px" }}><strong>Conclusión:</strong> {generales.conclusion}</p>}
+            {(generales.circ || generales.manzana) && (
+              <p style={{ marginTop: "10px", fontSize: "13px" }}>
+                <span style={{ fontWeight: 600, color: "#6b7280" }}>Nomenclatura Catastral: </span>
+                {[generales.circ && `CIRC: ${generales.circ}`, generales.seccion && `SEC: ${generales.seccion}`, generales.manzana && `MZ: ${generales.manzana}`, generales.parcela && `PARC: ${generales.parcela}`].filter(Boolean).join(" — ")}
+              </p>
+            )}
+            {generales.observaciones && (
+              <p style={{ marginTop: "10px", fontSize: "13px" }}><span style={{ fontWeight: 600, color: "#6b7280" }}>Observaciones: </span>{generales.observaciones}</p>
+            )}
           </div>
 
+          {/* Conclusión destacada */}
+          {generales.conclusion && (
+            <div style={{ ...S.card, background: conclusionColor.bg || "#f9fafb", border: `1.5px solid ${conclusionColor.border || "#e5e7eb"}`, marginBottom: "16px" }}>
+              <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: conclusionColor.text || "#374151" }}>
+                CONCLUSIÓN: {generales.conclusion}
+              </p>
+            </div>
+          )}
+
+          {/* Artículos */}
           {articulosObservados.length === 0 ? (
-            <div style={{ padding: "20px", textAlign: "center", color: "var(--color-text-secondary)", fontSize: "14px", background: "var(--color-background-secondary)", borderRadius: "8px" }}>No hay artículos observados.</div>
+            <div style={{ ...S.card, textAlign: "center", color: "#9ca3af", fontSize: "14px" }}>
+              No hay artículos observados. Volvé a la pestaña Artículos para seleccionarlos.
+            </div>
           ) : (
             articulosObservados.map(art => (
-              <div key={art.nro} style={{ borderLeft: "3px solid #1a5fa8", paddingLeft: "16px", marginBottom: "18px" }}>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#1a5fa8", fontFamily: "var(--font-mono)" }}>Art. {art.nro}</span>
-                <p style={{ margin: "5px 0 6px", fontSize: "13px", lineHeight: "1.6" }}>{art.desc}</p>
+              <div key={art.nro} style={{ ...S.card, borderLeft: "4px solid #2563eb", paddingLeft: "20px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#2563eb", fontFamily: "monospace", letterSpacing: "0.03em" }}>Art. {art.nro}</span>
+                <p style={{ margin: "6px 0 8px", fontSize: "13px", lineHeight: "1.65", color: "#374151" }}>{art.desc}</p>
                 {art.obs
-                  ? <div style={{ fontSize: "13px", padding: "7px 11px", background: "var(--color-background-warning)", borderRadius: "5px", color: "var(--color-text-warning)" }}><strong>Observación:</strong> {art.obs}</div>
-                  : <p style={{ fontSize: "12px", fontStyle: "italic", color: "var(--color-text-secondary)" }}>(sin observaciones adicionales)</p>}
+                  ? <div style={{ padding: "8px 12px", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: "6px", fontSize: "13px", color: "#92400e" }}>
+                      <strong>Observación:</strong> {art.obs}
+                    </div>
+                  : <p style={{ fontSize: "12px", fontStyle: "italic", color: "#9ca3af", margin: 0 }}>(sin observaciones adicionales)</p>
+                }
               </div>
             ))
           )}
 
-          <p style={{ marginTop: "1.5rem", fontSize: "12px", color: "var(--color-text-secondary)", fontStyle: "italic", lineHeight: 1.6 }}>
-            [*] Nota: el presente informe técnico incluye la evaluación de requisitos mínimos relacionados con normativas propias del Ministerio de Salud de la Pcia. de Córdoba.
+          <p style={{ fontSize: "12px", color: "#9ca3af", fontStyle: "italic", lineHeight: 1.6, marginTop: "8px" }}>
+            [*] El presente informe técnico incluye la evaluación de requisitos mínimos relacionados con normativas propias del Ministerio de Salud de la Pcia. de Córdoba.
           </p>
 
-          <div style={{ marginTop: "1.5rem", display: "flex", gap: "10px", justifyContent: "space-between", flexWrap: "wrap" }}>
-            <button onClick={() => setStep(1)} style={{ padding: "9px 22px", fontSize: "14px", background: "transparent", border: "1px solid var(--color-border-secondary)", borderRadius: "7px", cursor: "pointer", color: "var(--color-text-primary)" }}>← Volver a Artículos</button>
-            <button onClick={handleGenerarPDF} disabled={generandoPDF}
-              style={{ padding: "9px 28px", fontSize: "14px", fontWeight: 600, background: generandoPDF ? "#888" : "#1a5fa8", color: "#fff", border: "none", borderRadius: "7px", cursor: generandoPDF ? "not-allowed" : "pointer" }}>
+          {/* Botones */}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "24px", flexWrap: "wrap", gap: "10px" }}>
+            <BtnNav onClick={() => setStep(1)}>← Volver a Artículos</BtnNav>
+            <BtnNav primary disabled={generandoPDF} onClick={handleGenerarPDF}>
               {generandoPDF ? "Generando PDF..." : "⬇ Descargar PDF"}
-            </button>
+            </BtnNav>
           </div>
         </div>
       )}
