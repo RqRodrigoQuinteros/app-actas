@@ -1,22 +1,15 @@
 export const TIPOLOGIAS = [
-  { value: 'notificacion', label: 'Acta de Notificación' },
   { value: 'quirurgicos', label: 'Quirúrgicos' },
   { value: 'hemodialisis', label: 'Hemodiálisis' },
   { value: 'estetica', label: 'Estética' },
-  { value: 'oncologico', label: 'Oncológico' },
   { value: 'opticas', label: 'Ópticas' },
   { value: 'centambulatorios', label: 'Centros Ambulatorios' },
   { value: 'clinica', label: 'Clínica / Internación' },
-  { value: 'consultorios', label: 'Consultorios' },
-  { value: 'laboratorio', label: 'Laboratorio' },
-  { value: 'hemoterapia', label: 'Hemoterapia' },
-  { value: 'radiodiagnostico', label: 'Radiodiagnóstico' },
-  { value: 'obra', label: 'Obra' },
 ];
 
 export const SECCIONES_POR_TIPOLOGIA = {
   quirurgicos: [
-    'conclusion',
+    'conclusion_inspeccion',
     'registros',
     'datos_generales',
     'consultorios_externos',
@@ -41,7 +34,7 @@ export const SECCIONES_POR_TIPOLOGIA = {
     'quirurgicos_esterilizacion',
   ],
   hemodialisis: [
-    'conclusion',
+    'conclusion_inspeccion',
     'registros',
     'datos_generales',
     'sector_internacion',
@@ -51,15 +44,7 @@ export const SECCIONES_POR_TIPOLOGIA = {
     'hemodialisis_serologia',
   ],
   estetica: [
-    'conclusion',
-    'registros',
-    'datos_generales',
-    'estetica_inscripcion',
-    'estetica_direccion_funcionamiento',
-    'estetica_consultorios',
-  ],
-  oncologico: [
-    'conclusion',
+    'conclusion_inspeccion',
     'registros',
     'datos_generales',
     'estetica_inscripcion',
@@ -67,14 +52,14 @@ export const SECCIONES_POR_TIPOLOGIA = {
     'estetica_consultorios',
   ],
   opticas: [
-    'conclusion',
+    'conclusion_inspeccion',
     'registros',
     'opticas_local',
     'opticas_taller',
     'opticas_gabinete_contactologia',
   ],
   centambulatorios: [
-    'conclusion',
+    'conclusion_inspeccion',
     'registros',
     'datos_generales',
     'consultorios_externos',
@@ -85,7 +70,7 @@ export const SECCIONES_POR_TIPOLOGIA = {
     'centamb_esterilizacion',
   ],
   clinica: [
-    'conclusion',
+    'conclusion_inspeccion',
     'registros',
     'datos_generales',
     'consultorios_externos',
@@ -104,11 +89,6 @@ export const SECCIONES_POR_TIPOLOGIA = {
     'hemodinamia',
     'hospital_dia',
   ],
-  consultorios: ['conclusion', 'consultorios_general', 'direccion_funcionamiento'],
-  laboratorio: ['conclusion', 'laboratorio_general', 'direccion_funcionamiento'],
-  hemoterapia: ['conclusion', 'hemoterapia_general', 'direccion_funcionamiento'],
-  radiodiagnostico: ['conclusion', 'radiodiagnostico_general', 'direccion_funcionamiento'],
-  obra: ['conclusion'],
 };
 
 export const SECCION_LABELS = {

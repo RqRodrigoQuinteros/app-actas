@@ -127,6 +127,19 @@ function normalizarBooleanos(obj) {
   return resultado;
 }
 
+function mapSeccion(value) {
+  if (!value || typeof value !== 'string') return '';
+  const key = value.trim().toLowerCase();
+  const translations = {
+    conclusion: 'conclusion_inspeccion',
+    conclusion_inspeccion: 'conclusion_inspeccion',
+    hemodialisis_serologia: 'hemodialisis_serologia',
+    hemodialisis_serologia_personal: 'hemodialisis_serologia_personal',
+    hemodialisis_serologia_pacientes: 'hemodialisis_serologia_pacientes',
+  };
+  return translations[key] || key;
+}
+
 const SECCIONES_POR_TIPOLOGIA = {
   quirurgicos: [
     'conclusion_inspeccion',
@@ -164,14 +177,6 @@ const SECCIONES_POR_TIPOLOGIA = {
     'hemodialisis_serologia'
   ],
   estetica: [
-    'conclusion_inspeccion',
-    'registros',
-    'datos_generales',
-    'estetica_inscripcion',
-    'estetica_direccion_funcionamiento',
-    'estetica_consultorios'
-  ],
-  oncologico: [
     'conclusion_inspeccion',
     'registros',
     'datos_generales',
@@ -217,44 +222,13 @@ const SECCIONES_POR_TIPOLOGIA = {
     'hemodinamia',
     'hospital_dia'
   ],
-  obra: ['conclusion_inspeccion'],
-  laboratorio: [
-    'conclusion_inspeccion',
-    'laboratorio_general'
-  ],
-  consultorios: [
-    'conclusion_inspeccion',
-    'consultorios_general'
-  ],
-  hemoterapia: [
-    'conclusion_inspeccion',
-    'hemoterapia_general'
-  ],
-  radiodiagnostico: [
-    'conclusion_inspeccion',
-    'radiodiagnostico_general'
-  ],
-  internacion: [
-    'conclusion_inspeccion',
-    'internacion_general'
-  ],
-  emergencias: [
-    'conclusion_inspeccion',
-    'emergencias_general'
-  ],
-  salud_mental: [
-    'conclusion_inspeccion',
-    'salud_mental_general'
-  ],
-  odontologia: [
-    'conclusion_inspeccion',
-    'odontologia_general'
-  ],
-  farmacia: [
-    'conclusion_inspeccion',
-    'farmacia_general'
-  ],
-  otro: ['conclusion_inspeccion']
+};
+
+// Secciones base (siempre presentes) por tipología
+const TIPOLOGIAS_CON_SELECTOR = ['clinica'];
+
+const SECCIONES_BASE = {
+  clinica: ['conclusion_inspeccion', 'registros', 'datos_generales'],
 };
 
 handlebars.registerHelper('mod', function(a, b) {
@@ -272,6 +246,14 @@ handlebars.registerHelper('chunk', function(array, size) {
     chunks.push(array.slice(i, i + size));
   }
   return chunks;
+});
+
+// Wrapper para secciones: solo renderiza si la tabla tiene al menos una fila con datos
+handlebars.registerHelper('seccion', function(options) {
+  const contenido = options.fn(this);
+  const tieneFilas = /\<tr[\s>]/i.test(contenido);
+  if (!tieneFilas) return '';
+  return `<div class="seccion">${contenido}</div>`;
 });
 
 handlebars.registerHelper('siNo', function(value) {
@@ -306,10 +288,26 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
       console.log(`[PDF] Template base cargado`);
 
-      const mapSeccion = s => s === 'conclusion' ? 'conclusion_inspeccion' : s;
-      const secciones = acta.secciones_inspeccionadas && acta.secciones_inspeccionadas.length > 0
-        ? acta.secciones_inspeccionadas.map(mapSeccion)
-        : SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion_inspeccion'];
+      let secciones = [];
+      const tipologia = acta.establecimiento_tipologia;
+      const tieneSelector = TIPOLOGIAS_CON_SELECTOR.includes(tipologia);
+      const seccionesSeleccionadas = (acta.secciones_seleccionadas || [])
+        .map(mapSeccion)
+        .filter(Boolean);
+
+      if (tieneSelector) {
+        if (seccionesSeleccionadas.length > 0) {
+          secciones = [...new Set([...SECCIONES_BASE[tipologia], ...seccionesSeleccionadas])];
+        } else {
+          secciones = SECCIONES_BASE[tipologia] || [];
+        }
+      } else {
+        secciones = SECCIONES_POR_TIPOLOGIA[tipologia] || [];
+      }
+      
+      if (secciones.length === 0) {
+        secciones.push('conclusion_inspeccion');
+      }
       
       console.log(`[PDF] Secciones a renderizar: ${secciones.join(', ')}`);
       
@@ -354,17 +352,28 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       // Normalizar todos los valores booleanos en contextoSecciones
       const contextoNormalizado = normalizarBooleanos(contextoSecciones);
 
+      const isSectionEmpty = (html) => {
+        const trimmed = html.replace(/\s+/g, ' ').trim();
+        return !/\<tr[\s>]/i.test(trimmed) && !/\<p[\s>]/i.test(trimmed) && !/\<li[\s>]/i.test(trimmed);
+      };
+
       const seccionesHTML = secciones.map(s => {
         const filePath = path.join(__dirname, `../templates/secciones/${s}.html`);
-        if (fs.existsSync(filePath)) {
-          const sectionTemplateContent = fs.readFileSync(filePath, 'utf8');
-          const sectionTemplate = handlebars.compile(sectionTemplateContent);
-          return sectionTemplate(contextoNormalizado);
-        } else {
+        if (!fs.existsSync(filePath)) {
           console.log(`[PDF] WARN: Archivo no encontrado: ${filePath}`);
           return '';
         }
-      }).join('\n');
+
+        const sectionTemplateContent = fs.readFileSync(filePath, 'utf8');
+        const sectionTemplate = handlebars.compile(sectionTemplateContent);
+        const renderedSection = sectionTemplate(contextoNormalizado);
+
+        if (isSectionEmpty(renderedSection)) {
+          return '';
+        }
+
+        return renderedSection;
+      }).filter(Boolean).join('\n');
       console.log(`[PDF] Secciones renderizadas`);
 
       const template = handlebars.compile(baseTemplate);
@@ -372,6 +381,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         expediente: acta.expediente || '',
         fecha: acta.fecha,
         hora: acta.hora,
+        tipo_inspeccion: acta.tipo_inspeccion || 'RUTINA',
         virtual: acta.virtual ? 'SI' : 'NO',
         presencial: acta.presencial ? 'SI' : 'NO',
         inspector_nombre: acta.inspector_nombre || '',

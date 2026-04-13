@@ -43,7 +43,7 @@ const SECCIONES = [
   {
     titulo: "Expediente",
     campos: [
-      { id: "expDigital", label: "N° Expediente Digital", placeholder: "0425-XXXXXX/2025" },
+      { id: "expDigital", label: "N° Expediente Digital", placeholder: "0425-xxxxxx/20xx" },
       { id: "expPapel",   label: "N° Expediente Papel",   placeholder: "-" },
       { id: "fojasOrdenes", label: "Fojas u Órdenes", placeholder: "Nros de informe y plano", fullWidth: true },
     ]

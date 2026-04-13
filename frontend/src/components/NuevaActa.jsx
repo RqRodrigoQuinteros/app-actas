@@ -8,12 +8,16 @@ import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';
 
 // Tipologías que tienen secciones opcionales seleccionables
-const TIPOLOGIAS_CON_SELECTOR = ['clinica', 'quirurgicos'];
+const TIPOLOGIAS_CON_SELECTOR = ['clinica'];
 
 // Secciones base (siempre presentes) por tipología
 const SECCIONES_BASE = {
   clinica: ['conclusion_inspeccion', 'registros', 'datos_generales'],
   quirurgicos: ['conclusion_inspeccion', 'registros', 'datos_generales', 'quirurgicos_inscripcion', 'quirurgicos_direccion_funcionamiento'],
+  hemodialisis: ['conclusion_inspeccion', 'registros', 'datos_generales'],
+  estetica: ['conclusion_inspeccion', 'registros', 'datos_generales'],
+  opticas: ['conclusion_inspeccion', 'registros'],
+  centambulatorios: ['conclusion_inspeccion', 'registros', 'datos_generales'],
 };
 
 // Secciones opcionales con label para el selector
@@ -55,6 +59,31 @@ const SECCIONES_OPCIONALES = {
     { key: 'hemodinamia', label: 'Hemodinamia' },
     { key: 'hospital_dia', label: 'Hospital de Día' },
   ],
+  hemodialisis: [
+    { key: 'sector_internacion', label: 'Sector de Internación' },
+    { key: 'enfermeria', label: 'Enfermería' },
+    { key: 'hemodialisis_direccion_funcionamiento', label: 'Dirección y Funcionamiento - Hemodiálisis' },
+    { key: 'hemodialisis_analisis_agua', label: 'Análisis de Agua' },
+    { key: 'hemodialisis_serologia', label: 'Serología' },
+  ],
+  estetica: [
+    { key: 'estetica_inscripcion', label: 'Inscripción y Habilitación' },
+    { key: 'estetica_direccion_funcionamiento', label: 'Dirección y Funcionamiento' },
+    { key: 'estetica_consultorios', label: 'Consultorios' },
+  ],
+  opticas: [
+    { key: 'opticas_local', label: 'Local' },
+    { key: 'opticas_taller', label: 'Taller' },
+    { key: 'opticas_gabinete_contactologia', label: 'Gabinete de Contactología' },
+  ],
+  centambulatorios: [
+    { key: 'consultorios_externos', label: 'Consultorios Externos' },
+    { key: 'sector_internacion', label: 'Sector de Internación' },
+    { key: 'enfermeria', label: 'Enfermería' },
+    { key: 'centamb_inscripcion', label: 'Inscripción y Habilitación' },
+    { key: 'centamb_direccion_funcionamiento', label: 'Dirección y Funcionamiento' },
+    { key: 'centamb_esterilizacion', label: 'Esterilización' },
+  ],
 };
 
 const PASOS = [
@@ -89,6 +118,7 @@ export default function NuevaActa() {
     hora: new Date().toTimeString().slice(0, 5),
     virtual: false,
     presencial: true,
+    tipo_inspeccion: 'RUTINA',
     observaciones: '',
     emplazamiento_valor: 48,
     emplazamiento_tipo: 'HORAS',
@@ -102,7 +132,7 @@ export default function NuevaActa() {
     try {
       setLoading(true);
 
-      const response = await actasAPI.create({
+      const payload = {
         inspector_id: usuario.id,
         establecimiento_nombre: datos.establecimiento_nombre,
         establecimiento_direccion: datos.establecimiento_direccion,
@@ -113,6 +143,7 @@ export default function NuevaActa() {
         hora: datos.hora,
         virtual: datos.virtual,
         presencial: datos.presencial,
+        tipo_inspeccion: datos.tipo_inspeccion,
         responsable_nombre: datos.responsable_nombre,
         responsable_dni: datos.responsable_dni,
         responsable_caracter: datos.responsable_caracter,
@@ -120,7 +151,13 @@ export default function NuevaActa() {
         emplazamiento_valor: datos.emplazamiento_valor,
         emplazamiento_tipo: datos.emplazamiento_tipo,
         datos_formulario: datos.datos_formulario,
-      });
+      };
+
+      if (seccionesSeleccionadas.length > 0) {
+        payload.secciones_seleccionadas = seccionesSeleccionadas;
+      }
+
+      const response = await actasAPI.create(payload);
 
       setActaId(response.data.id);
       return response.data.id;
@@ -188,15 +225,22 @@ export default function NuevaActa() {
       // por eso capturamos el ID del retorno directamente.
       const idParaUsar = actaId || (await crearActa());
 
-      await actasAPI.update(idParaUsar, {
+      const updatePayload = {
         datos_formulario: datos.datos_formulario,
         observaciones: datos.observaciones,
         emplazamiento_valor: datos.emplazamiento_valor,
         emplazamiento_tipo: datos.emplazamiento_tipo,
+        tipo_inspeccion: datos.tipo_inspeccion,
         firma_inspector_base64: datos.firma_inspector_base64,
         firma_responsable_base64: datos.firma_responsable_base64,
         fotos_urls: datos.fotos_urls,
-      });
+      };
+
+      if (seccionesSeleccionadas.length > 0) {
+        updatePayload.secciones_seleccionadas = seccionesSeleccionadas;
+      }
+
+      await actasAPI.update(idParaUsar, updatePayload);
 
       const esNotificacion = datos.tipologia === 'notificacion';
       let blob;
@@ -250,6 +294,8 @@ export default function NuevaActa() {
         } catch {
           alert(`Error del servidor: ${text}`);
         }
+      } else if (err.response?.data?.error) {
+        alert(`Error del servidor: ${err.response.data.error}`);
       } else {
         alert(`Error al generar el PDF: ${err.message || ''}`);
       }
@@ -259,10 +305,13 @@ export default function NuevaActa() {
   };
 
   // Si la tipología tiene selector de secciones y ya hay seleccionadas, usarlas.
-  // Si no hay seleccionadas aún (o no tiene selector), usar las de constants.
+  // Si no hay seleccionadas aún, mostrar solo las secciones base de esa tipología.
   const secciones = (() => {
-    if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia) && seccionesSeleccionadas.length > 0) {
-      return seccionesSeleccionadas;
+    if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) {
+      if (seccionesSeleccionadas.length > 0) {
+        return seccionesSeleccionadas;
+      }
+      return SECCIONES_BASE[datos.tipologia] || ['conclusion_inspeccion'];
     }
     return SECCIONES_POR_TIPOLOGIA[datos.tipologia] || ['conclusion_inspeccion'];
   })();
@@ -356,7 +405,7 @@ export default function NuevaActa() {
                   value={datos.expediente}
                   onChange={(e) => setDatos(prev => ({ ...prev, expediente: e.target.value }))}
                   className="input-field"
-                  placeholder="Ej: 2024-001234"
+                  placeholder="0425-xxxxxx/20xx"
                 />
               </div>
 
@@ -482,24 +531,36 @@ export default function NuevaActa() {
               <div className="mb-4">
                 <label className="label-field">Tipo de Inspección</label>
                 <div className="flex gap-4">
-                  <label className={`flex items-center gap-2 p-4 border-2 rounded-lg cursor-pointer flex-1 ${datos.presencial ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
-                    <input
-                      type="checkbox"
-                      checked={datos.presencial}
-                      onChange={(e) => setDatos(prev => ({ ...prev, presencial: e.target.checked }))}
-                      className="w-6 h-6"
-                    />
-                    <span>Presencial</span>
-                  </label>
-                  <label className={`flex items-center gap-2 p-4 border-2 rounded-lg cursor-pointer flex-1 ${datos.virtual ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
-                    <input
-                      type="checkbox"
-                      checked={datos.virtual}
-                      onChange={(e) => setDatos(prev => ({ ...prev, virtual: e.target.checked }))}
-                      className="w-6 h-6"
-                    />
-                    <span>Virtual</span>
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setDatos(prev => ({ ...prev, presencial: true, virtual: false }))}
+                    className={`flex-1 py-4 rounded-lg font-semibold transition-colors ${datos.presencial ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Presencial
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDatos(prev => ({ ...prev, presencial: false, virtual: true }))}
+                    className={`flex-1 py-4 rounded-lg font-semibold transition-colors ${datos.virtual ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Virtual
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="label-field">Motivo de la Inspección</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['HABILITACION', 'RUTINA', 'DENUNCIA'].map((tipo) => (
+                    <button
+                      key={tipo}
+                      type="button"
+                      onClick={() => setDatos(prev => ({ ...prev, tipo_inspeccion: tipo }))}
+                      className={`py-4 rounded-lg font-semibold transition-colors ${datos.tipo_inspeccion === tipo ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                      {tipo}
+                    </button>
+                  ))}
                 </div>
               </div>
 

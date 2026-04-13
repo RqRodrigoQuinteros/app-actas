@@ -158,7 +158,7 @@ export default function VerActa() {
     );
   }
 
-  const secciones = SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion'];
+  const secciones = SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion_inspeccion'];
 
   return (
     <div className="min-h-screen bg-gray-100">

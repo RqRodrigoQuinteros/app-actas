@@ -1,5 +1,5 @@
 {{#each ucos}}
-<div class="seccion">
+{{#seccion}}
   <h3>UNIDAD CORONARIA DE CUIDADOS INTENSIVOS (UCO){{#if nombre}} — {{nombre}}{{/if}}</h3>
   <table>
     {{#if (hasValue nro_camas)}}
@@ -225,5 +225,5 @@
     <tr><td>Botiquín c/medicamentos para urgencias de 24 hs</td><td style="text-align: center;"><strong class="{{valorClass bot24}}">{{valorSiNo bot24}}</strong></td></tr>
     {{/if}}
   </table>
-</div>
+{{/seccion}}
 {{/each}}

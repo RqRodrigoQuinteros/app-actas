@@ -4,6 +4,30 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+const ACTAS_FALLBACK_COLUMNS = [
+  'secciones_seleccionadas',
+  'tipo_inspeccion',
+  'emplazamiento_tipo',
+  'emplazamiento_valor',
+  'fotos_urls',
+  'datos_formulario',
+  'firma_inspector_base64',
+  'firma_responsable_base64'
+];
+
+function removeMissingColumnsFromPayload(error, payload) {
+  if (!error?.message || typeof payload !== 'object') return false;
+  let removed = false;
+  const message = error.message.toLowerCase();
+  ACTAS_FALLBACK_COLUMNS.forEach((column) => {
+    if (payload.hasOwnProperty(column) && message.includes(column)) {
+      delete payload[column];
+      removed = true;
+    }
+  });
+  return removed;
+}
+
 router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
@@ -16,7 +40,7 @@ router.get('/', async (req, res) => {
       .select(`
         id, expediente, estado, fecha, hora, subido_cidi, created_at,
         establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
-        responsable_nombre, virtual, presencial, inspector_id,
+        responsable_nombre, virtual, presencial, inspector_id, secciones_seleccionadas,
         inspector:usuarios!actas_inspector_id_fkey(nombre, dni)
       `)
       .order('created_at', { ascending: false });
@@ -90,9 +114,11 @@ router.post('/', async (req, res) => {
       hora,
       virtual,
       presencial,
+      tipo_inspeccion,
       responsable_nombre,
       responsable_dni,
       responsable_caracter,
+      secciones_seleccionadas,
       observaciones,
       emplazamiento_dias,
       establecimiento_nombre,
@@ -108,9 +134,11 @@ router.post('/', async (req, res) => {
       hora,
       virtual: virtual || false,
       presencial: presencial !== false,
+      tipo_inspeccion: tipo_inspeccion || 'RUTINA',
       responsable_nombre,
       responsable_dni,
       responsable_caracter,
+      secciones_seleccionadas: secciones_seleccionadas || [],
       observaciones,
       emplazamiento_dias: emplazamiento_dias || 0,
       establecimiento_nombre,
@@ -120,17 +148,25 @@ router.post('/', async (req, res) => {
       estado: 'borrador'
     };
 
-    const { data, error } = await supabase
+    let insertResult = await supabase
       .from('actas')
       .insert(actaData)
       .select()
       .single();
 
-    if (error) throw error;
-    res.status(201).json(data);
+    if (insertResult.error && removeMissingColumnsFromPayload(insertResult.error, actaData)) {
+      insertResult = await supabase
+        .from('actas')
+        .insert(actaData)
+        .select()
+        .single();
+    }
+
+    if (insertResult.error) throw insertResult.error;
+    res.status(201).json(insertResult.data);
   } catch (err) {
     console.error('Error creating acta:', err);
-    res.status(500).json({ error: 'Error al crear acta' });
+    res.status(500).json({ error: err.message || 'Error al crear acta' });
   }
 });
 
@@ -166,18 +202,27 @@ router.put('/:id', async (req, res) => {
       updates.estado = 'borrador';
     }
 
-    const { data, error } = await supabase
+    let updateResult = await supabase
       .from('actas')
       .update(updates)
       .eq('id', id)
       .select()
       .single();
 
-    if (error) throw error;
-    res.json(data);
+    if (updateResult.error && removeMissingColumnsFromPayload(updateResult.error, updates)) {
+      updateResult = await supabase
+        .from('actas')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+    }
+
+    if (updateResult.error) throw updateResult.error;
+    res.json(updateResult.data);
   } catch (err) {
     console.error('Error updating acta:', err);
-    res.status(500).json({ error: 'Error al actualizar acta' });
+    res.status(500).json({ error: err.message || 'Error al actualizar acta' });
   }
 });
 
