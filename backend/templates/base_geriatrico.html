@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #000; }
+
+    h1.titulo {
+      text-align: center;
+      text-decoration: underline;
+      font-size: 13pt;
+      font-weight: bold;
+      margin: 10px 0 4px;
+      text-transform: uppercase;
+    }
+    h2.subtitulo {
+      text-align: center;
+      font-size: 11pt;
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+
+    .datos-cabecera { margin-bottom: 14px; }
+    .datos-cabecera p { margin-bottom: 4px; font-size: 10.5pt; }
+    .datos-cabecera strong { font-weight: bold; }
+
+    .catastral { margin: 6px 0 10px; font-size: 10.5pt; }
+
+    .obs-generales {
+      margin: 8px 0 12px;
+      font-size: 10.5pt;
+    }
+
+    .intro { text-align: justify; margin-bottom: 14px; font-size: 10.5pt; }
+
+    /* Artículos observados */
+    .articulo {
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+    .articulo-header {
+      font-weight: bold;
+      font-size: 10.5pt;
+      margin-bottom: 4px;
+    }
+    .articulo-nro {
+      display: inline-block;
+      font-weight: bold;
+    }
+    .articulo-desc {
+      text-align: justify;
+      font-size: 10pt;
+      margin-bottom: 5px;
+      color: #222;
+    }
+    .articulo-obs {
+      font-size: 10.5pt;
+      font-style: italic;
+      color: #000;
+      padding-left: 8px;
+      border-left: 2px solid #555;
+      margin-top: 4px;
+    }
+    .articulo-sin-obs {
+      font-size: 10pt;
+      font-style: italic;
+      color: #555;
+      padding-left: 8px;
+    }
+
+    .conclusion-box {
+      border: 1.5px solid #000;
+      padding: 8px 12px;
+      margin: 20px 0 14px;
+      font-size: 10.5pt;
+    }
+    .conclusion-box strong { font-weight: bold; }
+
+    .nota-legal {
+      font-size: 9pt;
+      text-align: justify;
+      margin-top: 14px;
+      color: #333;
+    }
+
+    .firma-bloque {
+      margin-top: 50px;
+      text-align: center;
+    }
+    .firma-img { max-width: 180px; max-height: 90px; margin-bottom: 4px; }
+    .linea-firma { border-top: 1px solid black; width: 200px; margin: 0 auto 4px; }
+
+    hr.separador { border: none; border-top: 1px solid #aaa; margin: 12px 0; }
+  </style>
+</head>
+<body>
+
+  <h1 class="titulo">Evaluación Técnica Geriátricos</h1>
+  <h2 class="subtitulo">Fiscalización Edilicia</h2>
+
+  <div class="datos-cabecera">
+    <p><strong>Auditor Arquitectura:</strong> {{arquitecto}}</p>
+    <p><strong>Establecimiento:</strong> {{nombreEst}}</p>
+    <p><strong>Ubicación:</strong> {{direccion}}</p>
+    <p><strong>Expte. Papel N°:</strong> {{expPapel}}</p>
+    <p><strong>Expte. Digital N°</strong> {{expDigital}}</p>
+    <p><strong>Metros cuadrados:</strong> {{#if metros2}}{{metros2}} m²{{else}}-{{/if}}</p>
+    <p class="catastral">
+      <strong>Nomenclatura Catastral:</strong><br>
+      {{#if circ}}CIRC:{{circ}}{{/if}}
+      {{#if seccion}} - SECCION:{{seccion}}{{/if}}
+      {{#if manzana}} - MANZANA:{{manzana}}{{/if}}<br>
+      {{#if parcela}}PARCELA:{{parcela}}{{/if}}
+      {{#if loteOficial}} - LOTE OFICIAL: {{loteOficial}}{{/if}}
+    </p>
+    <p><strong>Pileta:</strong> {{pileta}}</p>
+    {{#if habMunicipal}}<p><strong>Habilitación Municipal:</strong> {{habMunicipal}}</p>{{/if}}
+    {{#if verificarInsp}}<p><strong>Verificar en Inspección:</strong> {{verificarInsp}}</p>{{/if}}
+    {{#if observaciones}}<p class="obs-generales"><strong>Observaciones:</strong> {{observaciones}}</p>{{/if}}
+    {{#if cantCamas}}<p><strong>Cantidad de camas:</strong> {{cantCamas}}</p>{{/if}}
+  </div>
+
+  <hr class="separador">
+
+  <p class="intro">
+    Vista documentación técnica obrante a <strong>{{fojasOrdenes}}</strong> de acuerdo a lo que puede
+    visualizarse en la misma, se informa que:
+  </p>
+
+  {{#if articulosObservados.length}}
+    {{#each articulosObservados}}
+    <div class="articulo">
+      <p class="articulo-header">N° {{nro}}&nbsp;&nbsp; {{tituloCorto}}</p>
+      <p class="articulo-desc">{{desc}}</p>
+      {{#if obs}}
+        <p class="articulo-obs">{{obs}}</p>
+      {{else}}
+        <p class="articulo-sin-obs">(sin observaciones adicionales)</p>
+      {{/if}}
+    </div>
+    {{/each}}
+  {{else}}
+    <p style="font-style: italic; color: #555; margin-bottom: 16px;">Sin artículos observados.</p>
+  {{/if}}
+
+  <div class="conclusion-box">
+    <strong>Conclusión:</strong> {{conclusion}}
+  </div>
+
+  <p class="nota-legal">
+    [*] Nota: el presente informe técnico incluye la evaluación de requisitos mínimos relacionados
+    con normativas propias del Ministerio de Salud de la Pcia. de Córdoba. Toda otra habilitación
+    (nacional, municipal, bomberos, Colegios Profesionales, etc.) deberá ser tramitada ante el
+    organismo correspondiente.
+  </p>
+
+  <div style="margin-top: 14px; text-align: right; font-size: 10.5pt;">
+    <strong>Córdoba,</strong> {{fecha}}
+  </div>
+
+  <div class="firma-bloque">
+    {{#if firmaBase64}}
+      <img src="{{firmaBase64}}" class="firma-img" alt="Firma" />
+    {{/if}}
+    <div class="linea-firma"></div>
+    <p><strong>{{arquitecto}}</strong></p>
+    {{#if matricula}}<p>Mat. {{matricula}}</p>{{/if}}
+    <p>Arquitecto/a — Dirección General de Regulación Sanitaria</p>
+  </div>
+
+</body>
+</html>
