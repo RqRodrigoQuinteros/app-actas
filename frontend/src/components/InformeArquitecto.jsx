@@ -1,26 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { informesAPI, pdfAPI } from '../utils/api';
 
 export default function InformeArquitecto() {
   const { usuario, logout } = useAuth();
+  const navigate = useNavigate();
   const [informes, setInformes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [nuevoInforme, setNuevoInforme] = useState({
-    establecimiento_nombre: '',
-    establecimiento_direccion: '',
-    establecimiento_localidad: '',
-    expediente: '',
-    fecha: new Date().toISOString().split('T')[0],
-    contenido: '',
-    observaciones: '',
-  });
 
-  useEffect(() => {
-    loadInformes();
-  }, []);
+  useEffect(() => { loadInformes(); }, []);
 
   const loadInformes = async () => {
     try {
@@ -33,42 +22,20 @@ export default function InformeArquitecto() {
     }
   };
 
-  const crearInforme = async () => {
-    try {
-      await informesAPI.create(nuevoInforme);
-      setMostrarFormulario(false);
-      setNuevoInforme({
-        establecimiento_nombre: '',
-        establecimiento_direccion: '',
-        establecimiento_localidad: '',
-        expediente: '',
-        fecha: new Date().toISOString().split('T')[0],
-        contenido: '',
-        observaciones: '',
-      });
-      loadInformes();
-    } catch (err) {
-      console.error('Error creando informe:', err);
-    }
-  };
-
   const decodeBase64Pdf = (base64) => {
-    const cleaned = typeof base64 === 'string'
-      ? base64.replace(/[^A-Za-z0-9+/=]/g, '')
-      : '';
+    const cleaned = typeof base64 === 'string' ? base64.replace(/[^A-Za-z0-9+/=]/g, '') : '';
     return Uint8Array.from(atob(cleaned), c => c.charCodeAt(0));
   };
 
-  const generarPDF = async (id, nombre) => {
+  const generarPDF = async (informe) => {
     try {
-      const response = await pdfAPI.generarInforme(id);
+      const response = await pdfAPI.generarInforme(informe.id);
       if (response.data.pdfBuffer) {
         const blob = decodeBase64Pdf(response.data.pdfBuffer);
         const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        const nombreArchivo = `Informe ${nombre || 'SinNombre'}.pdf`;
         const a = document.createElement('a');
         a.href = url;
-        a.download = nombreArchivo;
+        a.download = `Informe ${informe.establecimiento_nombre || 'SinNombre'}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -80,6 +47,23 @@ export default function InformeArquitecto() {
     }
   };
 
+  const editarInforme = (informe) => {
+    // Detectar tipo para saber a qué ruta enviar
+    const tipo = informe.tipo || informe.datos_formulario?.tipo || 'otro';
+    if (tipo === 'geriatrico') {
+      navigate(`/informe/geriatricos/${informe.id}`);
+    } else {
+      // Para futuros tipos o informes genéricos — acá se puede expandir
+      alert('Este tipo de informe aún no tiene editor específico.');
+    }
+  };
+
+  const tipoLabel = (informe) => {
+    const tipo = informe.tipo || informe.datos_formulario?.tipo;
+    if (tipo === 'geriatrico') return { label: 'Geriátrico', color: '#7c3aed' };
+    return { label: 'General', color: '#1a5fa8' };
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-purple-800 text-white p-4">
@@ -88,10 +72,7 @@ export default function InformeArquitecto() {
             <h1 className="text-xl font-bold">Informes de Arquitectura</h1>
             <p className="text-sm text-purple-200">{usuario?.nombre}</p>
           </div>
-          <button
-            onClick={logout}
-            className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600"
-          >
+          <button onClick={logout} className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600">
             Cerrar Sesión
           </button>
         </div>
@@ -100,94 +81,14 @@ export default function InformeArquitecto() {
       <main className="max-w-4xl mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Mis Informes</h2>
+          {/* Botón para nuevo informe geriátrico */}
           <button
-            onClick={() => setMostrarFormulario(!mostrarFormulario)}
-            className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg"
+            onClick={() => navigate('/informe/geriatricos/nuevo')}
+            className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700"
           >
-            {mostrarFormulario ? 'Cancelar' : '+ Nuevo Informe'}
+            + Nuevo Geriátrico
           </button>
         </div>
-
-        {mostrarFormulario && (
-          <div className="card mb-6">
-            <h3 className="font-bold text-lg mb-4">Nuevo Informe</h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="label-field">Nombre del Establecimiento</label>
-                <input
-                  type="text"
-                  value={nuevoInforme.establecimiento_nombre}
-                  onChange={(e) => setNuevoInforme(prev => ({ ...prev, establecimiento_nombre: e.target.value }))}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="label-field">Expediente</label>
-                <input
-                  type="text"
-                  value={nuevoInforme.expediente}
-                  onChange={(e) => setNuevoInforme(prev => ({ ...prev, expediente: e.target.value }))}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="label-field">Dirección</label>
-                <input
-                  type="text"
-                  value={nuevoInforme.establecimiento_direccion}
-                  onChange={(e) => setNuevoInforme(prev => ({ ...prev, establecimiento_direccion: e.target.value }))}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="label-field">Localidad</label>
-                <input
-                  type="text"
-                  value={nuevoInforme.establecimiento_localidad}
-                  onChange={(e) => setNuevoInforme(prev => ({ ...prev, establecimiento_localidad: e.target.value }))}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="label-field">Fecha</label>
-                <input
-                  type="date"
-                  value={nuevoInforme.fecha}
-                  onChange={(e) => setNuevoInforme(prev => ({ ...prev, fecha: e.target.value }))}
-                  className="input-field"
-                />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <label className="label-field">Contenido del Informe</label>
-              <textarea
-                value={nuevoInforme.contenido}
-                onChange={(e) => setNuevoInforme(prev => ({ ...prev, contenido: e.target.value }))}
-                className="input-field h-32"
-                placeholder="Describa las condiciones de infraestructura observadas..."
-              />
-            </div>
-
-            <div className="mt-4">
-              <label className="label-field">Observaciones</label>
-              <textarea
-                value={nuevoInforme.observaciones}
-                onChange={(e) => setNuevoInforme(prev => ({ ...prev, observaciones: e.target.value }))}
-                className="input-field h-24"
-                placeholder="Observaciones adicionales..."
-              />
-            </div>
-
-            <button
-              onClick={crearInforme}
-              className="btn-primary mt-4 bg-purple-600"
-            >
-              Crear Informe
-            </button>
-          </div>
-        )}
 
         {loading ? (
           <div className="text-center py-8">
@@ -195,40 +96,57 @@ export default function InformeArquitecto() {
           </div>
         ) : informes.length === 0 ? (
           <div className="card text-center py-8">
-            <p className="text-gray-500">No hay informes creados</p>
+            <p className="text-gray-500 mb-4">No hay informes creados</p>
+            <p className="text-sm text-gray-400">Usá el botón "Nuevo Geriátrico" para crear el primero</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {informes.map((informe) => (
-              <div key={informe.id} className="card">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-semibold text-lg">
-                      {informe.establecimiento_nombre || 'Sin nombre'}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {informe.establecimiento_direccion}, {informe.establecimiento_localidad}
-                    </p>
+            {informes.map((informe) => {
+              const { label, color } = tipoLabel(informe);
+              return (
+                <div key={informe.id} className="card">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span style={{ fontSize: '11px', fontWeight: 600, color, background: color + '18', padding: '2px 8px', borderRadius: '4px' }}>
+                          {label}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          informe.estado === 'cerrado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {informe.estado?.toUpperCase()}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-lg">
+                        {informe.establecimiento_nombre || 'Sin nombre'}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {[informe.establecimiento_direccion, informe.establecimiento_localidad].filter(Boolean).join(', ')}
+                      </p>
+                    </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    informe.estado === 'cerrado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {informe.estado.toUpperCase()}
-                  </span>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-sm text-gray-500">
+                      Expte: {informe.expediente || '-'} | {informe.fecha || '-'}
+                    </span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => editarInforme(informe)}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => generarPDF(informe)}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+                      >
+                        ⬇ PDF
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center mt-4">
-                  <span className="text-sm text-gray-500">
-                    Expte: {informe.expediente || '-'} | {informe.fecha}
-                  </span>
-                  <button
-                    onClick={() => generarPDF(informe.id, informe.establecimiento_nombre)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm"
-                  >
-                    Generar PDF
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
