@@ -4,16 +4,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -21,7 +17,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      // Solo redirigir si NO estamos en una página de login
       const path = window.location.pathname;
       const esLoginPage = path === '/login' || path === '/supervisor-login';
       if (!esLoginPage) {
@@ -38,7 +33,7 @@ export const authAPI = {
   login: (dni, rol, password) => api.post('/auth/login', { dni, rol, password }),
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
-  getInspectores: () => api.get('/auth/inspectores'),
+  getUsuariosLogin: () => api.get('/auth/usuarios-login'),
 };
 
 export const actasAPI = {
