@@ -88,6 +88,44 @@ handlebars.registerHelper('orFunc', function(...args) {
   return values.some(v => v);
 });
 
+// Helper para normalizar valores de SI/NO
+handlebars.registerHelper('normalizeSiNo', function(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'si' || value.toLowerCase() === 'true' || value === '1';
+  }
+  return !!value; // Convertir a booleano
+});
+
+// Función para normalizar todos los valores booleanos en un objeto
+function normalizarBooleanos(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  
+  const resultado = Array.isArray(obj) ? [...obj] : { ...obj };
+  
+  for (let key in resultado) {
+    if (resultado.hasOwnProperty(key)) {
+      const valor = resultado[key];
+      const tipo = typeof valor;
+      
+      // Si es string que parece booleano, convertir
+      if (tipo === 'string') {
+        if (valor.toLowerCase() === 'true' || valor === '1') {
+          resultado[key] = true;
+        } else if (valor.toLowerCase() === 'false' || valor === '0' || valor === '') {
+          resultado[key] = false;
+        }
+      }
+      // Si es un objeto anidado, normalizar recursivamente (para arrays de UTIs/UCOs)
+      else if (tipo === 'object' && valor !== null) {
+        resultado[key] = normalizarBooleanos(valor);
+      }
+    }
+  }
+  
+  return resultado;
+}
+
 const SECCIONES_POR_TIPOLOGIA = {
   quirurgicos: [
     'conclusion_inspeccion',
@@ -309,13 +347,16 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
               }]
             : [],
       };
+      
+      // Normalizar todos los valores booleanos en contextoSecciones
+      const contextoNormalizado = normalizarBooleanos(contextoSecciones);
 
       const seccionesHTML = secciones.map(s => {
         const filePath = path.join(__dirname, `../templates/secciones/${s}.html`);
         if (fs.existsSync(filePath)) {
           const sectionTemplateContent = fs.readFileSync(filePath, 'utf8');
           const sectionTemplate = handlebars.compile(sectionTemplateContent);
-          return sectionTemplate(contextoSecciones);
+          return sectionTemplate(contextoNormalizado);
         } else {
           console.log(`[PDF] WARN: Archivo no encontrado: ${filePath}`);
           return '';
