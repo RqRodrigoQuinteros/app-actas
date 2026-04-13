@@ -581,9 +581,49 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
   throw lastError;
 }
 
+async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
+  const templatePath = path.join(__dirname, '../templates/base_geriatrico.html');
+  const baseTemplate = fs.readFileSync(templatePath, 'utf8');
+
+  const template = handlebars.compile(baseTemplate);
+  const htmlFinal = template(datos);
+
+  const browser = await launchBrowser();
+  const page = await browser.newPage();
+  page.setDefaultNavigationTimeout(60000);
+  await page.setContent(htmlFinal, { waitUntil: 'load' });
+
+  const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+  const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+  const headerContent = membreteBase64
+    ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+    : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+
+  const pdfBuffer = await page.pdf({
+    format: 'A4',
+    printBackground: true,
+    margin: { top: '28mm', bottom: '15mm', left: '20mm', right: '20mm' },
+    displayHeaderFooter: true,
+    headerTemplate: `
+      <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+        ${headerContent}
+      </div>
+    `,
+    footerTemplate: `
+      <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+      </div>
+    `
+  });
+
+  await browser.close();
+  return pdfBuffer;
+}
+
 module.exports = {
   generarActaPDF,
   generarInformePDF,
   generarNotificacionPDF,
+  generarInformeGeriatricoPDF,
   SECCIONES_POR_TIPOLOGIA
 };
