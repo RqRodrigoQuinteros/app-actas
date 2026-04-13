@@ -11,23 +11,46 @@ function getChromiumPath() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
     return process.env.PUPPETEER_EXECUTABLE_PATH;
   }
-  // 2. Intentar encontrar chromium en el PATH del sistema (nix/nixpacks)
+  
+  // 2. Intentar ruta completa de Nixpacks si existe
+  const nixPaths = [
+    '/nix/var/nix/profiles/default/bin/chromium',
+    '/nix/var/nix/profiles/default/bin/chromium-browser',
+  ];
+  for (const p of nixPaths) {
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch {}
+  }
+  
+  // 3. Intentar encontrar chromium en PATH con ruta completa
   try {
     const found = execSync('which chromium 2>/dev/null || which chromium-browser 2>/dev/null || which google-chrome 2>/dev/null || echo ""', {
       encoding: 'utf8', timeout: 3000
     }).trim();
-    if (found) return found;
+    // Solo usar si es ruta completa (comienza con /)
+    if (found && found.startsWith('/')) {
+      return found;
+    }
   } catch {}
-  // 3. Fallback al Chrome bundleado de Puppeteer
-  return puppeteer.executablePath();
+  
+  // 4. Fallback al Chrome bundled de Puppeteer (funciona si se descargó)
+  try {
+    return puppeteer.executablePath();
+  } catch {}
+  
+  // 5. Último recurso: intentar sin executablePath (busca en PATH)
+  return 'chromium';
 }
 
 async function launchBrowser() {
-  const executablePath = getChromiumPath();
-  console.log(`[PDF] Usando Chrome en: ${executablePath}`);
-  return puppeteer.launch({
+  let executablePath = getChromiumPath();
+  console.log(`[PDF] Chromium path: "${executablePath}"`);
+  
+  // Si executablePath está vacío o es solo "chromium" sin ruta, no pasarlo
+  const hasValidPath = executablePath && (executablePath.startsWith('/') || executablePath.startsWith('C:'));
+  const launchOpts = {
     headless: true,
-    executablePath,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -38,10 +61,17 @@ async function launchBrowser() {
       '--disable-extensions',
       '--disable-accelerated-2d-canvas',
       '--disable-web-security',
-      '--font-render-hinting=none',
+      '--font-render-hintng=none',
       '--run-all-compositor-stages-before-draw',
     ],
-  });
+  };
+  
+  if (hasValidPath) {
+    launchOpts.executablePath = executablePath;
+  }
+  
+  console.log(`[PDF] Lanzando Chrome con executablePath: ${hasValidPath ? executablePath : 'default'}`);
+  return puppeteer.launch(launchOpts);
 }
 
 // Registrar helpers personalizados
