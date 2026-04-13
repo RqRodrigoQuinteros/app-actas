@@ -225,4 +225,50 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
   }
 });
 
+// ─── PDF INFORME GERIÁTRICO ───────────────────────────────────────────────────
+router.post('/geriatrico', authenticateToken, async (req, res) => {
+  try {
+    const { rol } = req.user;
+    if (rol !== 'arquitecto' && rol !== 'supervisor') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+
+    const datos = req.body;
+    if (!datos || !datos.nombreEst) {
+      return res.status(400).json({ error: 'Datos del informe incompletos' });
+    }
+
+    const { generarInformeGeriatricoPDF } = require('../services/pdfService');
+
+    const logoMembrete   = cargarLogoBase64('img6.jpg');
+    const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
+    const logoCordoba    = cargarLogoBase64('logo_cordoba.png');
+
+    const pdfBuffer = await generarInformeGeriatricoPDF(
+      datos, logoMinisterio, logoCordoba, logoMembrete
+    );
+
+    let buffer = pdfBuffer;
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      if (pdfBuffer instanceof Uint8Array) {
+        buffer = Buffer.from(pdfBuffer);
+      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
+        buffer = Buffer.from(pdfBuffer.data);
+      } else {
+        throw new Error('PDF generation returned invalid buffer');
+      }
+    }
+
+    const nombreArchivo = `geriatrico_${datos.expDigital || datos.nombreEst || 'informe'}.pdf`
+      .replace(/[^a-zA-Z0-9_.\-]/g, '_');
+
+    res.set('Content-Type', 'application/pdf');
+    res.set('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
+    res.send(buffer);
+  } catch (err) {
+    console.error('Error generando PDF geriátrico:', err);
+    res.status(500).json({ error: 'Error al generar el PDF' });
+  }
+});
+
 module.exports = router;
