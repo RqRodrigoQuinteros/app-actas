@@ -263,6 +263,13 @@ export default function NuevaActa() {
         emplazamiento_valor: datos.emplazamiento_valor,
         emplazamiento_tipo: datos.emplazamiento_tipo,
         tipo_inspeccion: datos.tipo_inspeccion,
+        responsable_nombre: datos.responsable_nombre,
+        responsable_dni: datos.responsable_dni,
+        responsable_caracter: datos.responsable_caracter,
+        fecha: datos.fecha,
+        hora: datos.hora,
+        virtual: datos.virtual,
+        presencial: datos.presencial,
         firma_inspector_base64: datos.firma_inspector_base64,
         firma_responsable_base64: datos.firma_responsable_base64,
         fotos_urls: datos.fotos_urls,
@@ -541,7 +548,12 @@ export default function NuevaActa() {
                   ← Anterior
                 </button>
                 <button
-                  onClick={() => datos.responsable_nombre && setPaso(3)}
+                  onClick={async () => {
+                    if (datos.responsable_nombre) {
+                      await guardarBorrador();
+                      setPaso(3);
+                    }
+                  }}
                   disabled={!datos.responsable_nombre}
                   className="btn-primary disabled:opacity-50"
                 >
