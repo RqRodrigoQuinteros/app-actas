@@ -249,7 +249,7 @@ handlebars.registerHelper('chunk', function(array, size) {
 });
 
 // Wrapper para secciones: solo renderiza si la tabla tiene al menos una fila con datos
-handlebars.registerHelper('seccion', function(options) {
+handlebars.registerHelper('seccionWrapper', function(options) {
   const contenido = options.fn(this);
   const tieneFilas = /\<tr[\s>]/i.test(contenido);
   if (!tieneFilas) return '';
