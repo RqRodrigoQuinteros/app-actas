@@ -1,0 +1,89 @@
+{{#seccionWrapper}}
+  <h3>INSCRIPCIÓN Y HABILITACIÓN - ESTÉTICA/ONCOLÓGICO</h3>
+  <table>
+    {{#if (hasValue nro_cam_rec)}}
+    <tr>
+      <td style="width: 70%;">N° Total de Camas de recuperación</td>
+      <td style="width: 30%; text-align: center;">{{nro_cam_rec}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ti_soc)}}
+    <tr>
+      <td>Tipo de Sociedad</td>
+      <td style="text-align: center;">{{ti_soc}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ad_priv)}}
+    <tr>
+      <td>Aditamento Privado</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass ad_priv}}">{{valorSiNo ad_priv}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue pla)}}
+    <tr>
+      <td>Planos</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass pla}}">{{valorSiNo pla}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue cer_au_lab)}}
+    <tr>
+      <td>Certificado autorización Laboratorio</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass cer_au_lab}}">{{valorSiNo cer_au_lab}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue cer_au_ind)}}
+    <tr>
+      <td>Certificado autorización Individual</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass cer_au_ind}}">{{valorSiNo cer_au_ind}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue cer_hab_hemo)}}
+    <tr>
+      <td>Certificado Habilitación Hemoterapia</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass cer_hab_hemo}}">{{valorSiNo cer_hab_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue cer_au_dia_ima)}}
+    <tr>
+      <td>Certificado autorización Diagnóstico x Imágenes</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass cer_au_dia_ima}}">{{valorSiNo cer_au_dia_ima}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue dir_lis_pro)}}
+    <tr>
+      <td>Director y Listado de Profesionales</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass dir_lis_pro}}">{{valorSiNo dir_lis_pro}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue org_func)}}
+    <tr>
+      <td>Organigrama funcional</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass org_func}}">{{valorSiNo org_func}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue conv_serv)}}
+    <tr>
+      <td>Convenio Servicio de Emergencias / Unidades Móviles</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass conv_serv}}">{{valorSiNo conv_serv}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+  </table>
+{{/seccionWrapper}}

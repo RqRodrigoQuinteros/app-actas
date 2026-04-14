@@ -1,0 +1,31 @@
+{{#seccionWrapper}}
+  <h3>CONSULTORIOS SALUD MENTAL</h3>
+  <table>
+    {{#if (hasValue con_sal_men)}}
+    <tr>
+      <td style="width: 70%;">Posee Consultorios Salud Mental</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{valorClass con_sal_men}}">{{valorSiNo con_sal_men}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ven_plan_evac)}}
+    <tr>
+      <td>Fecha vencimiento Plan Evacuación</td>
+      <td style="text-align: center;">{{ven_plan_evac}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ven_bomb)}}
+    <tr>
+      <td>Fecha vencimiento Bomberos</td>
+      <td style="text-align: center;">{{ven_bomb}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ven_exti)}}
+    <tr>
+      <td>Fecha vencimiento Extinguidores</td>
+      <td style="text-align: center;">{{ven_exti}}</td>
+    </tr>
+    {{/if}}
+  </table>
+{{/seccionWrapper}}

@@ -1,0 +1,235 @@
+{{#seccionWrapper}}
+  <h3>ÁREA INTERNACIÓN</h3>
+  <table>
+    {{#if (hasValue habrec_quir)}}
+    <tr>
+      <td style="width: 70%;">Habitación de recuperación y/o prácticas clínicas</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{valorClass habrec_quir}}">{{valorSiNo habrec_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue boc_quir)}}
+    <tr>
+      <td>Boca de oxígeno</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass boc_quir}}">{{valorSiNo boc_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue poban_quir)}}
+    <tr>
+      <td>Posee baño privado o compartido</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass poban_quir}}">{{valorSiNo poban_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue pocamort_quir)}}
+    <tr>
+      <td>Posee cama ortopédica</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass pocamort_quir}}">{{valorSiNo pocamort_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue libgir_quir)}}
+    <tr>
+      <td>Libre giro de camillas</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass libgir_quir}}">{{valorSiNo libgir_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue can_quir)}}
+    <tr>
+      <td>Cantidad</td>
+      <td style="text-align: center;">{{can_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue lav_quiru)}}
+    <tr>
+      <td>Lavabos</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass lav_quiru}}">{{valorSiNo lav_quiru}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue priva_quir)}}
+    <tr>
+      <td>Privacidad</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass priva_quir}}">{{valorSiNo priva_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue llamind_quir)}}
+    <tr>
+      <td>Llamador individual</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass llamind_quir}}">{{valorSiNo llamind_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue climat_quir)}}
+    <tr>
+      <td>Climatización</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass climat_quir}}">{{valorSiNo climat_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue tuoxig_quir)}}
+    <tr>
+      <td>Tubo de Oxígeno</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass tuoxig_quir}}">{{valorSiNo tuoxig_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue bovac_quir)}}
+    <tr>
+      <td>Boca de Vacío</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass bovac_quir}}">{{valorSiNo bovac_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue habped_quir)}}
+    <tr>
+      <td>Habitación Pediátrica Diferenciada</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass habped_quir}}">{{valorSiNo habped_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue habpacesp_quir)}}
+    <tr>
+      <td>Habitación Pacientes Especiales</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass habpacesp_quir}}">{{valorSiNo habpacesp_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue nro_quirofnos_quir)}}
+    <tr>
+      <td>N° de quirófanos</td>
+      <td style="text-align: center;">{{nro_quirofnos_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue obs1_quir)}}
+    <tr>
+      <td>Observaciones quirófano</td>
+      <td style="text-align: center;">{{obs1_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue quir_dimen)}}
+    <tr>
+      <td>Quirófano: dimensiones</td>
+      <td style="text-align: center;">{{quir_dimen}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue pisos_quir)}}
+    <tr>
+      <td>Pisos</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass pisos_quir}}">{{valorSiNo pisos_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue paredes_quir)}}
+    <tr>
+      <td>Paredes</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass paredes_quir}}">{{valorSiNo paredes_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue vest_quir)}}
+    <tr>
+      <td>Vestuarios</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass vest_quir}}">{{valorSiNo vest_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ingtran_quir)}}
+    <tr>
+      <td>Ingreso y Transferencia de Pacientes</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass ingtran_quir}}">{{valorSiNo ingtran_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue comdir_quir)}}
+    <tr>
+      <td>Comunicación directa a Quirófano</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass comdir_quir}}">{{valorSiNo comdir_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue obs2_quir)}}
+    <tr>
+      <td>Observaciones sala recuperación</td>
+      <td style="text-align: center;">{{obs2_quir}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue techos_quir)}}
+    <tr>
+      <td>Techo</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass techos_quir}}">{{valorSiNo techos_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue salrecu_quir)}}
+    <tr>
+      <td>Sala de Recuperación</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass salrecu_quir}}">{{valorSiNo salrecu_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ilum_quir)}}
+    <tr>
+      <td>Iluminación</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass ilum_quir}}">{{valorSiNo ilum_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue climati_quir)}}
+    <tr>
+      <td>Climatización</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass climati_quir}}">{{valorSiNo climati_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue lavprev_quir)}}
+    <tr>
+      <td>Lavabos filtro previo por Vestuario</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass lavprev_quir}}">{{valorSiNo lavprev_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue salpre_quir)}}
+    <tr>
+      <td>Sala de Pre-Anestesia</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass salpre_quir}}">{{valorSiNo salpre_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue arapoy_quir)}}
+    <tr>
+      <td>Área de Apoyo para material sucio</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass arapoy_quir}}">{{valorSiNo arapoy_quir}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+  </table>
+{{/seccionWrapper}}

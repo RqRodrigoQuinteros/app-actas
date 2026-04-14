@@ -1,0 +1,137 @@
+{{#seccionWrapper}}
+  <h3>HEMODINAMIA</h3>
+  <table>
+    {{#if (hasValue nro_camas_hemo)}}
+    <tr>
+      <td style="width: 70%;">N° de Camas</td>
+      <td style="width: 30%; text-align: center;">{{nro_camas_hemo}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue planos_hemo)}}
+    <tr>
+      <td>Planos</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass planos_hemo}}">{{valorSiNo planos_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue coed_hemo)}}
+    <tr>
+      <td>Coincide con edificación</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass coed_hemo}}">{{valorSiNo coed_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue jefserv_hemo)}}
+    <tr>
+      <td>Jefe de Servicio</td>
+      <td style="text-align: center;">{{jefserv_hemo}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue med_hemo)}}
+    <tr>
+      <td>Médico</td>
+      <td style="text-align: center;">{{med_hemo}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue enfprof_hemo)}}
+    <tr>
+      <td>Enfermero profesional</td>
+      <td style="text-align: center;">{{enfprof_hemo}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue meradi_hemo)}}
+    <tr>
+      <td>Médico radiólogo</td>
+      <td style="text-align: center;">{{meradi_hemo}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue meanes_hemo)}}
+    <tr>
+      <td>Médico anestesista</td>
+      <td style="text-align: center;">{{meanes_hemo}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue arcc_hemo)}}
+    <tr>
+      <td>Arco en C o paralelogramo deformable</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass arcc_hemo}}">{{valorSiNo arcc_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue mecate_hemo)}}
+    <tr>
+      <td>Mesa de Cateterismo</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass mecate_hemo}}">{{valorSiNo mecate_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue intiima_hemo)}}
+    <tr>
+      <td>Intensificador de imágenes</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass intiima_hemo}}">{{valorSiNo intiima_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue tubrayx_hemo)}}
+    <tr>
+      <td>Tubo de rayos X</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass tubrayx_hemo}}">{{valorSiNo tubrayx_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue genpul_hemo)}}
+    <tr>
+      <td>Generadores pulsados por tetrodos</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass genpul_hemo}}">{{valorSiNo genpul_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue elec_hemo)}}
+    <tr>
+      <td>Electrocardiógrafo</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass elec_hemo}}">{{valorSiNo elec_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue oxipul_hemo)}}
+    <tr>
+      <td>Oxímetro de pulso</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass oxipul_hemo}}">{{valorSiNo oxipul_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue cardio_hemo)}}
+    <tr>
+      <td>Cardiodesfibrilador</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass cardio_hemo}}">{{valorSiNo cardio_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue iny_con_hemo)}}
+    <tr>
+      <td>Inyectora de contraste</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass iny_con_hemo}}">{{valorSiNo iny_con_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue mondig_hemo)}}
+    <tr>
+      <td>Monitor digital</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass mondig_hemo}}">{{valorSiNo mondig_hemo}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+  </table>
+{{/seccionWrapper}}

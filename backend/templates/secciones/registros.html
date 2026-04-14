@@ -1,0 +1,59 @@
+{{#seccionWrapper}}
+  <h3>REGISTROS</h3>
+  <table>
+    {{#if (hasValue reg_his_cli)}}
+    <tr>
+      <td style="width: 70%;">Registro de Historias Clínicas</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{valorClass reg_his_cli}}">{{valorSiNo reg_his_cli}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue tipo)}}
+    <tr>
+      <td>Tipo</td>
+      <td style="text-align: center;">{{tipo}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue rev_hc)}}
+    <tr>
+      <td>Revisión de HC</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass rev_hc}}">{{valorSiNo rev_hc}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue comp)}}
+    <tr>
+      <td>Completas</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass comp}}">{{valorSiNo comp}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue incomp)}}
+    <tr>
+      <td>Incompletas</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass incomp}}">{{valorSiNo incomp}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ri_mc)}}
+    <tr>
+      <td>Reglamento Interno / Manual de Procedimientos</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass ri_mc}}">{{valorSiNo ri_mc}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ad_priv)}}
+    <tr>
+      <td>Aditamento privado / Denominación correcta</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass ad_priv}}">{{valorSiNo ad_priv}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+  </table>
+{{/seccionWrapper}}

@@ -1,0 +1,107 @@
+{{#seccionWrapper}}
+  <h3>DIRECCIÓN Y FUNCIONAMIENTO - ESTÉTICA/ONCOLÓGICO</h3>
+  <table>
+    {{#if (hasValue reg_enf_trans)}}
+    <tr>
+      <td style="width: 70%;">Registro de Enfermedades Transmisibles</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{valorClass reg_enf_trans}}">{{valorSiNo reg_enf_trans}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue reg_int)}}
+    <tr>
+      <td>Reglamento Interno</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass reg_int}}">{{valorSiNo reg_int}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue reg_psico)}}
+    <tr>
+      <td>Registro de Psicofármacos</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass reg_psico}}">{{valorSiNo reg_psico}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue reg_his_cli_comp)}}
+    <tr>
+      <td>Registro de Historias Clínicas Completo</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass reg_his_cli_comp}}">{{valorSiNo reg_his_cli_comp}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue nro_plantas)}}
+    <tr>
+      <td>Número de Plantas</td>
+      <td style="text-align: center;">{{nro_plantas}}</td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue asc_mon)}}
+    <tr>
+      <td>Ascensor / Montacamillas</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass asc_mon}}">{{valorSiNo asc_mon}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue pla_inc)}}
+    <tr>
+      <td>Plano inclinado</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass pla_inc}}">{{valorSiNo pla_inc}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue sal_emerg)}}
+    <tr>
+      <td>Salida de Emergencia</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass sal_emerg}}">{{valorSiNo sal_emerg}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue pl_eva_inc)}}
+    <tr>
+      <td>Plan de evacuación de Incendios</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass pl_eva_inc}}">{{valorSiNo pl_eva_inc}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue minu)}}
+    <tr>
+      <td>Municipalidad</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass minu}}">{{valorSiNo minu}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue gas)}}
+    <tr>
+      <td>Gas</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass gas}}">{{valorSiNo gas}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue agua)}}
+    <tr>
+      <td>Agua</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass agua}}">{{valorSiNo agua}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue luz)}}
+    <tr>
+      <td>Luz</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass luz}}">{{valorSiNo luz}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+  </table>
+{{/seccionWrapper}}

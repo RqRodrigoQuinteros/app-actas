@@ -1,0 +1,53 @@
+{{#seccionWrapper}}
+  <h3>LA INSTITUCIÓN POSEÉ</h3>
+  <table>
+    {{#if (hasValue vac_hab)}}
+    <tr>
+      <td style="width: 70%;">Vacunatorio habilitado</td>
+      <td style="width: 30%; text-align: center;">
+        <strong class="{{valorClass vac_hab}}">{{valorSiNo vac_hab}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue bot_dro_urg)}}
+    <tr>
+      <td>Botiquín con drogas para urgencias</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass bot_dro_urg}}">{{valorSiNo bot_dro_urg}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue far_prov)}}
+    <tr>
+      <td>Farmacia o provisión de medicamentos habilitados</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass far_prov}}">{{valorSiNo far_prov}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue bco_san)}}
+    <tr>
+      <td>Banco de Sangre y/o Servicio de Med. Transfusional</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass bco_san}}">{{valorSiNo bco_san}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue ate_per)}}
+    <tr>
+      <td>Con atención permanente (24 hs)</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass ate_per}}">{{valorSiNo ate_per}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+    {{#if (hasValue bot_are_pis)}}
+    <tr>
+      <td>Botiquín con drogas por área y piso (2)</td>
+      <td style="text-align: center;">
+        <strong class="{{valorClass bot_are_pis}}">{{valorSiNo bot_are_pis}}</strong>
+      </td>
+    </tr>
+    {{/if}}
+  </table>
+{{/seccionWrapper}}
