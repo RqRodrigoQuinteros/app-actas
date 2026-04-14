@@ -66,7 +66,11 @@ export default function SupervisorDash() {
   const loadActas = async () => {
     setLoadingActas(true);
     try {
-      const response = await actasAPI.getAll(filtrosActas);
+      // Omitir filtros con valor vacío para que Supabase no los interprete como filtros activos
+      const params = Object.fromEntries(
+        Object.entries(filtrosActas).filter(([, v]) => v !== '' && v !== null && v !== undefined)
+      );
+      const response = await actasAPI.getAll(params);
       setActas(response.data);
       const uniq = [...new Map(response.data.map(a => [a.inspector_id, a.inspector])).values()]
         .filter(Boolean);
@@ -105,7 +109,9 @@ export default function SupervisorDash() {
       const tipo = informe.tipo || informe.datos_formulario?.tipo || 'geriatrico';
       let response;
       if (tipo === 'geriatrico') {
-        const df = informe.datos_formulario?.generales || {};
+        const df = { ...(informe.datos_formulario?.generales || {}) };
+        // Fallback: si nombreEst está vacío, usar el campo top-level del informe
+        if (!df.nombreEst) df.nombreEst = informe.establecimiento_nombre || '';
         const checks = informe.datos_formulario?.checks || {};
         const obsArt = informe.datos_formulario?.observaciones || {};
         const articulosObservados = Object.keys(checks)
