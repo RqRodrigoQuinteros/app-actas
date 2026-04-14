@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
       .select(`
         id, expediente, estado, fecha, hora, subido_cidi, created_at,
         establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
-        responsable_nombre, virtual, presencial, inspector_id, secciones_seleccionadas,
+        responsable_nombre, virtual, presencial, inspector_id,
         inspector:usuarios!actas_inspector_id_fkey(nombre, dni)
       `)
       .order('created_at', { ascending: false });
@@ -75,7 +75,7 @@ router.get('/', async (req, res) => {
         console.warn('JOIN con usuarios falló, reintentando sin join:', error.message);
         let q2 = supabase
           .from('actas')
-          .select('id, expediente, estado, fecha, hora, subido_cidi, created_at, establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia, responsable_nombre, virtual, presencial, inspector_id, secciones_seleccionadas')
+          .select('id, expediente, estado, fecha, hora, subido_cidi, created_at, establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia, responsable_nombre, virtual, presencial, inspector_id')
           .order('created_at', { ascending: false });
         if (rol === 'inspector') q2 = q2.eq('inspector_id', userId);
         else if (inspector_id) q2 = q2.eq('inspector_id', inspector_id);
