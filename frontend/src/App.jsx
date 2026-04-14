@@ -80,7 +80,7 @@ function AppRoutes() {
       } />
 
       <Route path="/informe/geriatricos/:id" element={
-        <ProtectedRoute roles={['arquitecto']}>
+        <ProtectedRoute roles={['arquitecto', 'supervisor']}>
           <InformeArqGeriatricos />
         </ProtectedRoute>
       } />

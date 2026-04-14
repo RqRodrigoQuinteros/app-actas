@@ -68,8 +68,10 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
     }
     
     console.log(`[PDF] Tamaño final: ${buffer.length} bytes`);
+    const safeName = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').slice(0, 40);
+    const pdfFilename = `acta_${safeName(acta.expediente)}_${safeName(acta.establecimiento_nombre)}_${acta.fecha || ''}.pdf`;
     res.set('Content-Type', 'application/pdf');
-    res.set('Content-Disposition', `attachment; filename="acta_${id}.pdf"`);
+    res.set('Content-Disposition', `attachment; filename="${pdfFilename}"`);
     res.send(buffer);
   } catch (err) {
     console.error('Error generando PDF del acta:', err);
@@ -119,7 +121,9 @@ router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
     }
     
     const base64 = buffer.toString('base64');
-    res.json({ pdfBuffer: base64 });
+    const safeName = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').slice(0, 40);
+    const pdfFilename = `acta_${safeName(acta.expediente)}_${safeName(acta.establecimiento_nombre)}_${acta.fecha || ''}.pdf`;
+    res.json({ pdfBuffer: base64, filename: pdfFilename });
   } catch (err) {
     console.error('Error generando PDF base64 del acta:', err);
     res.status(500).json({ error: 'Error al generar el PDF' });

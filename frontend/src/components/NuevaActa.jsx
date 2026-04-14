@@ -184,6 +184,38 @@ export default function NuevaActa() {
     setDatos(prev => ({ ...prev, firma_responsable_base64: firma }));
   };
 
+  const guardarBorrador = async () => {
+    try {
+      const payload = {
+        inspector_id: usuario.id,
+        establecimiento_nombre: datos.establecimiento_nombre,
+        establecimiento_direccion: datos.establecimiento_direccion,
+        establecimiento_localidad: datos.establecimiento_localidad,
+        establecimiento_tipologia: datos.tipologia,
+        expediente: datos.expediente,
+        fecha: datos.fecha,
+        hora: datos.hora,
+        virtual: datos.virtual,
+        presencial: datos.presencial,
+        tipo_inspeccion: datos.tipo_inspeccion,
+        responsable_nombre: datos.responsable_nombre,
+        responsable_dni: datos.responsable_dni,
+        responsable_caracter: datos.responsable_caracter,
+        observaciones: datos.observaciones,
+        emplazamiento_valor: datos.emplazamiento_valor,
+        emplazamiento_tipo: datos.emplazamiento_tipo,
+      };
+      if (actaId) {
+        await actasAPI.update(actaId, payload);
+      } else {
+        const response = await actasAPI.create(payload);
+        setActaId(response.data.id);
+      }
+    } catch (err) {
+      console.error('Error guardando borrador:', err);
+    }
+  };
+
   const validarActa = () => {
     const errores = [];
 
@@ -244,12 +276,14 @@ export default function NuevaActa() {
 
       const esNotificacion = datos.tipologia === 'notificacion';
       let blob;
+      let pdfFilenameFromServer = null;
 
       try {
-        const responseBase64 = esNotificacion 
+        const responseBase64 = esNotificacion
           ? await pdfAPI.generarNotificacion(idParaUsar) // Notificacion no tiene base64 aún
           : await pdfAPI.generarActaBase64(idParaUsar);
         if (responseBase64.data?.pdfBuffer) {
+          pdfFilenameFromServer = responseBase64.data?.filename || null;
           const base64 = responseBase64.data.pdfBuffer;
           let bytes;
           try {
@@ -277,9 +311,17 @@ export default function NuevaActa() {
         blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
       }
       const url = window.URL.createObjectURL(blob);
+      const safeName = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').slice(0, 40);
+      const pdfFilename = pdfFilenameFromServer || `acta_${safeName(datos.expediente)}_${safeName(datos.establecimiento_nombre)}_${datos.fecha || ''}.pdf`;
 
       // Abrir en nueva pestaña (más confiable en Android que a.click())
-      window.open(url, '_blank');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = pdfFilename;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       // No revocar inmediatamente para que el browser pueda usarlo
       setTimeout(() => window.URL.revokeObjectURL(url), 60000);
 
@@ -442,7 +484,12 @@ export default function NuevaActa() {
               </div>
 
               <button
-                onClick={() => datos.tipologia && datos.establecimiento_nombre && setPaso(2)}
+                onClick={async () => {
+                  if (datos.tipologia && datos.establecimiento_nombre) {
+                    await guardarBorrador();
+                    setPaso(2);
+                  }
+                }}
                 disabled={!datos.tipologia || !datos.establecimiento_nombre}
                 className="btn-primary disabled:opacity-50"
               >
