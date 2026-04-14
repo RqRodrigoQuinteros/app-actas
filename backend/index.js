@@ -8,6 +8,7 @@ const establecimientosRoutes = require('./routes/establecimientos');
 const pdfRoutes = require('./routes/pdf');
 const fotosRoutes = require('./routes/fotos');
 const informesRoutes = require('./routes/informes');
+const templatesRoutes = require('./routes/templates');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.use('/api/establecimientos', establecimientosRoutes);
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/fotos', fotosRoutes);
 app.use('/api/informes', informesRoutes);
+app.use('/api/templates', templatesRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
