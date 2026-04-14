@@ -69,11 +69,30 @@ router.get('/', async (req, res) => {
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      // Exponer mensaje real para diagnóstico, y fallback si el JOIN falla
+      if (error.message && error.message.toLowerCase().includes('usuarios')) {
+        console.warn('JOIN con usuarios falló, reintentando sin join:', error.message);
+        let q2 = supabase
+          .from('actas')
+          .select('id, expediente, estado, fecha, hora, subido_cidi, created_at, establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia, responsable_nombre, virtual, presencial, inspector_id, secciones_seleccionadas')
+          .order('created_at', { ascending: false });
+        if (rol === 'inspector') q2 = q2.eq('inspector_id', userId);
+        else if (inspector_id) q2 = q2.eq('inspector_id', inspector_id);
+        if (estado) q2 = q2.eq('estado', estado);
+        if (fechaDesde) q2 = q2.gte('fecha', fechaDesde);
+        if (fechaHasta) q2 = q2.lte('fecha', fechaHasta);
+        if (subido_cidi !== undefined) q2 = q2.eq('subido_cidi', subido_cidi === 'true');
+        const { data: d2, error: e2 } = await q2;
+        if (e2) throw e2;
+        return res.json(d2 || []);
+      }
+      throw error;
+    }
     res.json(data || []);
   } catch (err) {
     console.error('Error fetching actas:', err);
-    res.status(500).json({ error: 'Error al obtener actas' });
+    res.status(500).json({ error: err.message || 'Error al obtener actas' });
   }
 });
 
