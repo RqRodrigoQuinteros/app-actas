@@ -7,7 +7,7 @@ router.use(authenticateToken);
 
 // Middleware: solo supervisores pueden modificar templates
 function soloSupervisor(req, res, next) {
-  if (req.user.rol !== 'supervisor') {
+  if (req.user.rol !== 'supervisor' && req.user.rol !== 'admin') {
     return res.status(403).json({ error: 'Solo supervisores pueden modificar templates' });
   }
   next();

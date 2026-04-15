@@ -15,7 +15,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'DNI y rol son requeridos' });
     }
 
-    if (rol === 'supervisor' && !password) {
+    if ((rol === 'supervisor' || rol === 'admin') && !password) {
       return res.status(400).json({ error: 'DNI y contraseña son requeridos' });
     }
 
@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    if (rol === 'supervisor') {
+    if (rol === 'supervisor' || rol === 'admin') {
       if (!usuario.password) {
         return res.status(401).json({ error: 'Usuario sin contraseña configurada' });
       }
