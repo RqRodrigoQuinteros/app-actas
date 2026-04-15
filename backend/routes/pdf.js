@@ -34,15 +34,20 @@ function toBuffer(pdfBuffer) {
 async function enriquecerConRespuestas(acta) {
   console.log('[PDF] enriquecerConRespuestas - acta.id:', acta.id);
 
+  // Paso 1: obtener respuestas con info del campo (incluyendo seccion_id)
   const { data: respuestas, error } = await supabase
     .from('actas_respuestas')
-    .select('valor, campo:template_campos(token, tipo, etiqueta, orden, seccion:template_secciones(id, titulo, orden, texto_previo, texto_posterior))')
+    .select('valor, campo:template_campos(id, token, tipo, etiqueta, orden, seccion_id)')
     .eq('acta_id', acta.id);
 
   console.log('[PDF] respuestas count:', respuestas?.length ?? 0);
   console.log('[PDF] respuestas error:', error?.message ?? 'ninguno');
   if (respuestas?.length > 0) {
     console.log('[PDF] primera respuesta raw:', JSON.stringify(respuestas[0], null, 2));
+  }
+
+  if (error) {
+    console.log('[PDF] ERROR en query respuestas:', error.message);
   }
 
   if (!respuestas || respuestas.length === 0) {
@@ -55,22 +60,43 @@ async function enriquecerConRespuestas(acta) {
   for (const r of respuestas) {
     if (!r.campo?.token) continue;
     datosFormulario[r.campo.token] = r.campo.tipo === 'si_no'
-      ? r.valor === 'SI'
+      ? (r.valor === 'SI' || r.valor === 'true')
       : r.valor;
   }
-  console.log('[PDF] datosFormulario:', JSON.stringify(datosFormulario, null, 2));
+  console.log('[PDF] datosFormulario keys:', Object.keys(datosFormulario));
 
-  // Construir estructura de secciones para renderizado agrupado en el PDF
+  // Paso 2: obtener secciones por sus IDs (query separada, más robusta)
+  const seccionIds = [...new Set(
+    respuestas.map(r => r.campo?.seccion_id).filter(Boolean)
+  )];
+  console.log('[PDF] seccionIds:', seccionIds);
+
+  let seccionLookup = {};
+  if (seccionIds.length > 0) {
+    const { data: secciones, error: errSec } = await supabase
+      .from('template_secciones')
+      .select('id, titulo, orden, texto_previo, texto_posterior')
+      .in('id', seccionIds);
+    if (errSec) console.log('[PDF] ERROR en query secciones:', errSec.message);
+    if (secciones) {
+      seccionLookup = Object.fromEntries(secciones.map(s => [s.id, s]));
+    }
+  }
+  console.log('[PDF] seccionLookup keys:', Object.keys(seccionLookup));
+
+  // Construir estructura de secciones agrupando campos por seccion
   const seccionesMap = {};
   for (const r of respuestas) {
-    if (!r.campo?.seccion) {
-      console.log('[PDF] WARN: campo sin seccion:', r.campo?.token);
+    if (!r.campo?.token) continue;
+    const seccionId = r.campo.seccion_id;
+    if (!seccionId || !seccionLookup[seccionId]) {
+      console.log('[PDF] WARN: campo sin seccion en lookup:', r.campo.token, 'seccion_id:', seccionId);
       continue;
     }
-    const sec = r.campo.seccion;
-    if (!seccionesMap[sec.id]) {
-      seccionesMap[sec.id] = {
-        id: sec.id,
+    const sec = seccionLookup[seccionId];
+    if (!seccionesMap[seccionId]) {
+      seccionesMap[seccionId] = {
+        id: seccionId,
         titulo: sec.titulo,
         orden: sec.orden,
         texto_previo: sec.texto_previo,
@@ -78,7 +104,7 @@ async function enriquecerConRespuestas(acta) {
         campos: [],
       };
     }
-    seccionesMap[sec.id].campos.push({
+    seccionesMap[seccionId].campos.push({
       token: r.campo.token,
       etiqueta: r.campo.etiqueta,
       tipo: r.campo.tipo,
@@ -91,7 +117,6 @@ async function enriquecerConRespuestas(acta) {
     .map(s => ({ ...s, campos: s.campos.sort((a, b) => a.orden - b.orden) }));
 
   console.log('[PDF] secciones_render count:', secciones_render.length);
-  console.log('[PDF] secciones_render:', JSON.stringify(secciones_render, null, 2));
 
   return { ...acta, datos_formulario: datosFormulario, secciones_render };
 }

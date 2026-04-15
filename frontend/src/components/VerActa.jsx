@@ -83,7 +83,7 @@ export default function VerActa() {
     const mapa = {};
     for (const r of respuestas) {
       if (!r.campo) continue;
-      const seccionTitulo = r.seccion_titulo || 'General';
+      const seccionTitulo = r.campo?.seccion?.titulo || 'General';
       if (!mapa[seccionTitulo]) mapa[seccionTitulo] = [];
       mapa[seccionTitulo].push(r);
     }
