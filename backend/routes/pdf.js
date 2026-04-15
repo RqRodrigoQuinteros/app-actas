@@ -32,27 +32,68 @@ function toBuffer(pdfBuffer) {
 
 // Enriquecer acta con respuestas dinámicas desde actas_respuestas
 async function enriquecerConRespuestas(acta) {
-  const { data: respuestas } = await supabase
+  console.log('[PDF] enriquecerConRespuestas - acta.id:', acta.id);
+
+  const { data: respuestas, error } = await supabase
     .from('actas_respuestas')
-    .select('valor, campo:template_campos(token, tipo)')
+    .select('valor, campo:template_campos(token, tipo, etiqueta, orden, seccion:template_secciones(id, titulo, orden, texto_previo, texto_posterior))')
     .eq('acta_id', acta.id);
 
-  if (!respuestas || respuestas.length === 0) return acta;
+  console.log('[PDF] respuestas count:', respuestas?.length ?? 0);
+  console.log('[PDF] respuestas error:', error?.message ?? 'ninguno');
+  if (respuestas?.length > 0) {
+    console.log('[PDF] primera respuesta raw:', JSON.stringify(respuestas[0], null, 2));
+  }
 
-  // Construir objeto { token: valor } para que el template Handlebars los use
+  if (!respuestas || respuestas.length === 0) {
+    console.log('[PDF] sin respuestas, devolviendo acta sin enriquecer');
+    return acta;
+  }
+
+  // Construir { token: valor } para Handlebars
   const datosFormulario = {};
   for (const r of respuestas) {
     if (!r.campo?.token) continue;
-    const token = r.campo.token;
-    // Convertir SI/NO a booleano para mantener compatibilidad con helpers Handlebars
-    if (r.campo.tipo === 'si_no') {
-      datosFormulario[token] = r.valor === 'SI';
-    } else {
-      datosFormulario[token] = r.valor;
+    datosFormulario[r.campo.token] = r.campo.tipo === 'si_no'
+      ? r.valor === 'SI'
+      : r.valor;
+  }
+  console.log('[PDF] datosFormulario:', JSON.stringify(datosFormulario, null, 2));
+
+  // Construir estructura de secciones para renderizado agrupado en el PDF
+  const seccionesMap = {};
+  for (const r of respuestas) {
+    if (!r.campo?.seccion) {
+      console.log('[PDF] WARN: campo sin seccion:', r.campo?.token);
+      continue;
     }
+    const sec = r.campo.seccion;
+    if (!seccionesMap[sec.id]) {
+      seccionesMap[sec.id] = {
+        id: sec.id,
+        titulo: sec.titulo,
+        orden: sec.orden,
+        texto_previo: sec.texto_previo,
+        texto_posterior: sec.texto_posterior,
+        campos: [],
+      };
+    }
+    seccionesMap[sec.id].campos.push({
+      token: r.campo.token,
+      etiqueta: r.campo.etiqueta,
+      tipo: r.campo.tipo,
+      orden: r.campo.orden,
+    });
   }
 
-  return { ...acta, datos_formulario: datosFormulario };
+  const secciones_render = Object.values(seccionesMap)
+    .sort((a, b) => a.orden - b.orden)
+    .map(s => ({ ...s, campos: s.campos.sort((a, b) => a.orden - b.orden) }));
+
+  console.log('[PDF] secciones_render count:', secciones_render.length);
+  console.log('[PDF] secciones_render:', JSON.stringify(secciones_render, null, 2));
+
+  return { ...acta, datos_formulario: datosFormulario, secciones_render };
 }
 
 router.post('/generar/:id', authenticateToken, async (req, res) => {
@@ -97,6 +138,7 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
 
 router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
   try {
+    console.log('[PDF] REQUEST RECIBIDO generar-base64, id:', req.params.id);
     const { id } = req.params;
     const { rol, id: userId } = req.user;
 

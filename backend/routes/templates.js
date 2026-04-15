@@ -469,7 +469,7 @@ router.get('/actas/:actaId/respuestas', async (req, res) => {
 
     const { data, error } = await supabase
       .from('actas_respuestas')
-      .select('*, campo:template_campos(etiqueta, tipo, token)')
+      .select('*, campo:template_campos(etiqueta, tipo, token, orden, seccion:template_secciones(titulo, orden))')
       .eq('acta_id', actaId);
 
     if (error) throw error;

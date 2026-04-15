@@ -288,93 +288,50 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
       console.log(`[PDF] Template base cargado`);
 
-      let secciones = [];
-      const tipologia = acta.establecimiento_tipologia;
-      const tieneSelector = TIPOLOGIAS_CON_SELECTOR.includes(tipologia);
-      const seccionesSeleccionadas = (acta.secciones_seleccionadas || [])
-        .map(mapSeccion)
-        .filter(Boolean);
-
-      if (tieneSelector) {
-        if (seccionesSeleccionadas.length > 0) {
-          secciones = [...new Set([...SECCIONES_BASE[tipologia], ...seccionesSeleccionadas])];
-        } else {
-          secciones = SECCIONES_BASE[tipologia] || [];
-        }
-      } else {
-        secciones = SECCIONES_POR_TIPOLOGIA[tipologia] || [];
-      }
+      console.log(`[PDF] Generando secciones dinámicas desde datos_formulario`);
       
-      if (secciones.length === 0) {
-        secciones.push('conclusion_inspeccion');
-      }
-      
-      console.log(`[PDF] Secciones a renderizar: ${secciones.join(', ')}`);
-      
+      // Generar seccionesHTML dinámicamente desde datos_formulario (tokens desde actas_respuestas)
       const df = acta.datos_formulario || {};
-      const contextoSecciones = {
-        ...df,
-        utis: Array.isArray(df.utis) && df.utis.length > 0
-          ? df.utis
-          : (df.nro_camas_uti || df.planos_uti || df.c_c_e_uti || df.martrans_nouco_uti || df.suptot_uti)
-            ? [{ nombre: '', nro_camas: df.nro_camas_uti, planos: df.planos_uti, c_c_e: df.c_c_e_uti, martrans_nouco: df.martrans_nouco_uti, suptot: df.suptot_uti }]
-            : [],
-        ucos: Array.isArray(df.ucos) && df.ucos.length > 0
-          ? df.ucos
-          : (df.nro_camas_uco || df.planos_uco || df.c_c_e_uco)
-            ? [{
-                nombre: '', nro_camas: df.nro_camas_uco, planos: df.planos_uco, c_c_e: df.c_c_e_uco,
-                s_v: df.s_v_uco, b_d: df.b_d, v_i_e: df.v_i_e_uco, m: df.m_uco,
-                u_z_c_s: df.u_z_c_s_uco, s_i_p_l: df.s_i_p_l_uco, o_d_e: df.o_d_e_uco,
-                mon: df.mon_uco, l_r_m_u: df.l_r_m_u_uco, a_l: df.a_l_uco, d_c_a: df.d_c_a_uco,
-                s_m: df.s_m_uco, g_e: df.g_e_uco, a_c_d: df.a_c_d_uco, f_c_c: df.f_c_c_uco,
-                pr: df.pr_uco, c_o_a: df.c_o_a_uco, d_c: df.d_c_uco, ro: df.ro_uco,
-                p_a_r: df.p_a_r_uco, a_p: df.a_p_uco, v_p_d_c: df.v_p_d_c_uco,
-                l_i_m: df.l_i_m_uco, l_c_c: df.l_c_c_uco, e_v_h: df.e_v_h_uco,
-                v_v_p: df.v_v_p_uco, h_c: df.h_c_uco, c_l: df.c_l_uco, p_u: df.p_u_uco,
-                d_t_e: df.d_t_e_uco, s_i: df.s_i_uco, herm: df.herm_uco, s_t_s: df.s_t_s_uco,
-                i_n: df.i_n_uco, i_a: df.i_a_uco, i_i: df.i_i_uco, v_a_e_p: df.v_a_e_p_uco,
-                e_asp: df.e_asp_uco, res_mec_vol: df.res_mec_vol_uco, e_des_sin: df.e_des_sin_uco,
-                bo_inf: df.bo_inf_uco, car1: df.car1_uco, lari: df.lari_uco, masc: df.masc_uco,
-                res_ambu: df.res_ambu_uco, tens: df.tens_uco, nebu: df.nebu_uco,
-                el_in_endo: df.el_in_endo_uco, sis_por_as: df.sis_por_as_uco,
-                cat_naso: df.cat_naso_uco, e_pun_raq: df.e_pun_raq_uco, e_pun_abd: df.e_pun_abd_uco,
-                car_par: df.car_par_uco, ox_pul_por: df.ox_pul_por_uco, elec: df.elec_uco,
-                mar2cat: df.mar2cat_uco, eqrx: df.eqrx_uco, el_traq: df.el_traq_uco,
-                bol: df.bol_uco, ada: df.ada_uco, car_cur: df.car_cur_uco,
-                ins_exa: df.ins_exa_uco, il_ind: df.il_ind_uco, sis_tor: df.sis_tor_uco,
-                cat_ves: df.cat_ves_uco, cat_cat_ven: df.cat_cat_ven_uco,
-                e_pun_tor: df.e_pun_tor_uco, bot24: df.bot24_uco
-              }]
-            : [],
-      };
-      
-      // Normalizar todos los valores booleanos en contextoSecciones
-      const contextoNormalizado = normalizarBooleanos(contextoSecciones);
 
-      const isSectionEmpty = (html) => {
-        const trimmed = html.replace(/\s+/g, ' ').trim();
-        return !/\<tr[\s>]/i.test(trimmed) && !/\<p[\s>]/i.test(trimmed) && !/\<li[\s>]/i.test(trimmed);
-      };
+      const seccionesHTML = (() => {
+        const secciones = acta.secciones_render || [];
 
-      const seccionesHTML = secciones.map(s => {
-        const filePath = path.join(__dirname, `../templates/secciones/${s}.html`);
-        if (!fs.existsSync(filePath)) {
-          console.log(`[PDF] WARN: Archivo no encontrado: ${filePath}`);
-          return '';
+        if (secciones.length > 0) {
+          return secciones.map(sec => {
+            const filas = (sec.campos || [])
+              .filter(c => df[c.token] !== undefined && df[c.token] !== null && df[c.token] !== '')
+              .map(c => {
+                const val = df[c.token];
+                const esBool = val === true || val === false;
+                const texto = esBool ? (val ? 'SI' : 'NO') : String(val);
+                const clase = esBool ? (val ? 'valor-si' : 'valor-no') : '';
+                return `<tr><td>${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:80px">${texto}</td></tr>`;
+              }).join('');
+            if (!filas) return '';
+            return `
+              <div class="seccion">
+                <h3>${sec.titulo}</h3>
+                ${sec.texto_previo ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-bottom:8px">${sec.texto_previo}</p>` : ''}
+                <table><tbody>${filas}</tbody></table>
+                ${sec.texto_posterior ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-top:8px">${sec.texto_posterior}</p>` : ''}
+              </div>`;
+          }).filter(Boolean).join('\n');
         }
 
-        const sectionTemplateContent = fs.readFileSync(filePath, 'utf8');
-        const sectionTemplate = handlebars.compile(sectionTemplateContent);
-        const renderedSection = sectionTemplate(contextoNormalizado);
+        // Fallback: tabla genérica con todos los tokens
+        const filas = Object.entries(df)
+          .filter(([, v]) => v !== undefined && v !== null && v !== '')
+          .map(([token, val]) => {
+            const esBool = val === true || val === false;
+            const texto = esBool ? (val ? 'SI' : 'NO') : String(val);
+            const clase = esBool ? (val ? 'valor-si' : 'valor-no') : '';
+            return `<tr><td>${token}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:80px">${texto}</td></tr>`;
+          }).join('');
+        if (!filas) return '';
+        return `<div class="seccion"><h3>Datos de la Inspección</h3><table><tbody>${filas}</tbody></table></div>`;
+      })();
 
-        if (isSectionEmpty(renderedSection)) {
-          return '';
-        }
-
-        return renderedSection;
-      }).filter(Boolean).join('\n');
-      console.log(`[PDF] Secciones renderizadas`);
+      console.log(`[PDF] Secciones renderizadas dinámicamente`);
 
       const template = handlebars.compile(baseTemplate);
       const htmlFinal = template({

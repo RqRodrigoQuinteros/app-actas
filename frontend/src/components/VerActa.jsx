@@ -1,36 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { actasAPI, pdfAPI } from '../utils/api';
-import { SECCION_LABELS, SECCIONES_POR_TIPOLOGIA } from '../utils/constants';
-import { CAMPOS_POR_SECCION } from './SeccionDinamica';
+import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
 
 export default function VerActa() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { usuario } = useAuth();
   const [acta, setActa] = useState(null);
+  const [respuestas, setRespuestas] = useState([]); // [{ valor, campo: { etiqueta, tipo, token } }]
   const [loading, setLoading] = useState(true);
   const [generandoPDF, setGenerandoPDF] = useState(false);
   const [actualizandoCidi, setActualizandoCidi] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
-  const [pdfBase64, setPdfBase64] = useState(null);
-  const [loadingPdf, setLoadingPdf] = useState(false);
 
-  useEffect(() => {
-    loadActa();
-  }, [id]);
+  useEffect(() => { loadActa(); }, [id]);
 
   const loadActa = async () => {
     try {
-      const response = await actasAPI.getById(id);
-      setActa(response.data);
-      console.log('Acta cargada:', response.data);
-      console.log('Firmas:', {
-        firma_inspector: response.data.firma_inspector_base64?.substring(0, 50),
-        firma_responsable: response.data.firma_responsable_base64?.substring(0, 50)
-      });
-      console.log('Fotos:', response.data.fotos_urls);
+      const [actaRes, respuestasRes] = await Promise.all([
+        actasAPI.getById(id),
+        templatesAPI.getRespuestas(id).catch(() => ({ data: [] })),
+      ]);
+      setActa(actaRes.data);
+      setRespuestas(respuestasRes.data || []);
     } catch (err) {
       console.error('Error cargando acta:', err);
     } finally {
@@ -41,80 +34,33 @@ export default function VerActa() {
   const generarPDF = async () => {
     try {
       setGenerandoPDF(true);
-      setPdfBase64(null);
       setPdfBlobUrl(null);
-      
-      const esNotificacion = acta.establecimiento_tipologia === 'notificacion';
-      console.log('[VerActa] Generando PDF, tipologia:', acta.establecimiento_tipologia);
-      
-      // Intentar método base64 primero (más confiable en Android)
+
       try {
-        console.log('[VerActa] Intentando método base64...');
         const response = await pdfAPI.generarActaBase64(id);
         if (response.data?.pdfBuffer) {
-          console.log('[VerActa] Base64 recibido, decodificando...');
           const base64 = response.data.pdfBuffer;
-          
-          // Método más robusto usando Uint8Array desde un ArrayBuffer
-          let bytes;
-          try {
-            // Método 1: atob estándar
-            const binaryString = atob(base64);
-            bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i);
-            }
-          } catch (atobErr) {
-            // Método 2: si falla atob, usar Blob + ArrayBuffer (más兼容)
-            console.log('[VerActa] atob falló, usando método alternativo');
-            const binary = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
-            bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-              bytes[i] = binary.charCodeAt(i);
-            }
-          }
-          
+          const binaryString = atob(base64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
           const blob = new Blob([bytes], { type: 'application/pdf' });
-          if (pdfBlobUrl) window.URL.revokeObjectURL(pdfBlobUrl);
           const url = window.URL.createObjectURL(blob);
           setPdfBlobUrl(url);
-          setPdfBase64(base64);
-          console.log('[VerActa] PDF creado exitosamente');
           window.open(url, '_blank');
           loadActa();
-          setGenerandoPDF(false);
           return;
         }
-      } catch (base64Err) {
-        console.warn('[VerActa] Método base64 falló, tentando blob:', base64Err.message);
+      } catch {
+        const response = await pdfAPI.generarActa(id);
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        setPdfBlobUrl(url);
+        window.open(url, '_blank');
+        loadActa();
       }
-
-      // Fallback al método blob original
-      console.log('[VerActa] Usando método blob como fallback...');
-      const response = esNotificacion
-        ? await pdfAPI.generarNotificacion(id)
-        : await pdfAPI.generarActa(id);
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      if (pdfBlobUrl) window.URL.revokeObjectURL(pdfBlobUrl);
-      const url = window.URL.createObjectURL(blob);
-      setPdfBlobUrl(url);
-
-      window.open(url, '_blank');
-      loadActa();
     } catch (err) {
       console.error('Error generando PDF:', err);
-      if (err.response?.data instanceof Blob) {
-        const text = await err.response.data.text();
-        try {
-          const json = JSON.parse(text);
-          alert(`Error del servidor: ${json.error || text}`);
-        } catch {
-          alert(`Error del servidor: ${text}`);
-        }
-      } else {
-        alert(`Error al generar el PDF: ${err.message || ''}`);
-      }
+      alert(`Error al generar el PDF: ${err.response?.data?.error || err.message || ''}`);
     } finally {
       setGenerandoPDF(false);
     }
@@ -126,27 +72,40 @@ export default function VerActa() {
       await actasAPI.toggleCidi(id);
       loadActa();
     } catch (err) {
-      console.error('Error actualizando CIDI:', err);
       alert('Error al actualizar estado CIDI');
     } finally {
       setActualizandoCidi(false);
     }
   };
 
-  const getValorClass = (valor) => {
-    return valor ? 'text-black' : 'text-red-600 font-bold';
+  // Agrupar respuestas por sección
+  const respuestasPorSeccion = () => {
+    const mapa = {};
+    for (const r of respuestas) {
+      if (!r.campo) continue;
+      const seccionTitulo = r.seccion_titulo || 'General';
+      if (!mapa[seccionTitulo]) mapa[seccionTitulo] = [];
+      mapa[seccionTitulo].push(r);
+    }
+    return mapa;
   };
 
-  const getValorTexto = (valor) => {
-    return valor ? 'SI' : 'NO';
+  const renderValor = (r) => {
+    if (r.campo.tipo === 'si_no') {
+      return (
+        <span className={r.valor === 'SI' ? 'text-black font-semibold' : 'text-red-600 font-bold'}>
+          {r.valor || '-'}
+        </span>
+      );
+    }
+    if (r.campo.tipo === 'check') {
+      return <span>{r.valor === 'true' ? '✓' : '✗'}</span>;
+    }
+    return <span className="font-medium text-sm">{r.valor || '-'}</span>;
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl">Cargando...</p>
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center"><p className="text-xl">Cargando...</p></div>;
   }
 
   if (!acta) {
@@ -158,60 +117,48 @@ export default function VerActa() {
     );
   }
 
-  const secciones = SECCIONES_POR_TIPOLOGIA[acta.establecimiento_tipologia] || ['conclusion_inspeccion'];
+  const seccionesAgrupadas = respuestasPorSeccion();
 
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-blue-800 text-white p-4">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
-          <button onClick={() => navigate(-1)} className="text-blue-200 hover:text-white">
-            ← Volver
-          </button>
+          <button onClick={() => navigate(-1)} className="text-blue-200 hover:text-white">← Volver</button>
           <h1 className="text-xl font-bold">Ver Acta</h1>
           <div />
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto p-4">
+
+        {/* Datos del establecimiento */}
         <div className="card mb-4">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-xl font-bold">{acta.establecimiento_nombre || acta.establecimiento?.nombre}</h2>
-              <p className="text-gray-600">
-                {acta.establecimiento_direccion || acta.establecimiento?.direccion}, {acta.establecimiento_localidad || acta.establecimiento?.localidad}
-              </p>
+              <h2 className="text-xl font-bold">{acta.establecimiento_nombre}</h2>
+              <p className="text-gray-600">{acta.establecimiento_direccion}, {acta.establecimiento_localidad}</p>
+              <p className="text-sm text-gray-500 mt-1">{acta.establecimiento_tipologia}</p>
             </div>
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
               acta.estado === 'borrador' ? 'bg-yellow-100 text-yellow-800' :
               acta.estado === 'firmado' ? 'bg-blue-100 text-blue-800' :
               'bg-green-100 text-green-800'
             }`}>
-              {acta.estado.toUpperCase()}
+              {acta.estado?.toUpperCase()}
             </span>
           </div>
-
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">Expediente:</span>
-              <span className="ml-2 font-semibold">{acta.expediente || '-'}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Fecha:</span>
-              <span className="ml-2 font-semibold">{acta.fecha}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Hora:</span>
-              <span className="ml-2 font-semibold">{acta.hora}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Tipo:</span>
-              <span className="ml-2 font-semibold">
-                {acta.virtual && 'Virtual'}{acta.virtual && acta.presencial && ' / '}{acta.presencial && 'Presencial'}
-              </span>
-            </div>
+            <div><span className="text-gray-500">Expediente:</span> <span className="font-semibold">{acta.expediente || '-'}</span></div>
+            <div><span className="text-gray-500">Fecha:</span> <span className="font-semibold">{acta.fecha}</span></div>
+            <div><span className="text-gray-500">Hora:</span> <span className="font-semibold">{acta.hora}</span></div>
+            <div><span className="text-gray-500">Modalidad:</span> <span className="font-semibold">
+              {acta.virtual && 'Virtual'}{acta.virtual && acta.presencial && ' / '}{acta.presencial && 'Presencial'}
+            </span></div>
+            <div><span className="text-gray-500">Tipo:</span> <span className="font-semibold">{acta.tipo_inspeccion}</span></div>
           </div>
         </div>
 
+        {/* Responsable */}
         <div className="card mb-4">
           <h3 className="font-bold text-lg mb-3">Responsable</h3>
           <p><strong>Nombre:</strong> {acta.responsable_nombre}</p>
@@ -219,37 +166,32 @@ export default function VerActa() {
           <p><strong>Carácter:</strong> {acta.responsable_caracter}</p>
         </div>
 
-        {secciones.map((seccion) => {
-          const campos = CAMPOS_POR_SECCION[seccion] || [];
-          const camposConValor = campos.filter(campo => {
-            const valor = acta.datos_formulario?.[campo.key];
-            return valor !== undefined && valor !== null && valor !== '';
-          });
-          if (camposConValor.length === 0) return null;
-          return (
-            <div key={seccion} className="card mb-4">
+        {/* Respuestas dinámicas agrupadas por sección */}
+        {Object.keys(seccionesAgrupadas).length > 0 ? (
+          Object.entries(seccionesAgrupadas).map(([titulo, items]) => (
+            <div key={titulo} className="card mb-4">
               <h3 className="font-bold text-lg mb-3 uppercase bg-gray-100 p-2 -mx-4 -mt-4 rounded-t-lg">
-                {SECCION_LABELS[seccion] || seccion}
+                {titulo}
               </h3>
               <div className="space-y-2">
-                {camposConValor.map((campo) => {
-                  const valor = acta.datos_formulario[campo.key];
-                  return (
-                    <div key={campo.key} className="flex justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">{campo.label}</span>
-                      {typeof valor === 'boolean' ? (
-                        <span className={getValorClass(valor)}>{getValorTexto(valor)}</span>
-                      ) : (
-                        <span className="font-medium text-sm">{valor}</span>
-                      )}
-                    </div>
-                  );
-                })}
+                {items.map(r => (
+                  <div key={r.id} className="flex justify-between p-2 bg-gray-50 rounded">
+                    <span className="text-sm">{r.campo.etiqueta}</span>
+                    {renderValor(r)}
+                  </div>
+                ))}
               </div>
             </div>
-          );
-        })}
+          ))
+        ) : (
+          respuestas.length === 0 && (
+            <div className="card mb-4 text-gray-500 text-sm">
+              Sin respuestas registradas para esta acta.
+            </div>
+          )
+        )}
 
+        {/* Observaciones */}
         {acta.observaciones && (
           <div className="card mb-4">
             <h3 className="font-bold text-lg mb-2">Observaciones</h3>
@@ -257,12 +199,14 @@ export default function VerActa() {
           </div>
         )}
 
+        {/* Emplazamiento */}
         <div className="card mb-4">
           <p className="uppercase font-semibold">
-            SE EMPLAZA POR EL TÉRMINO DE <strong>{acta.emplazamiento_dias} {acta.emplazamiento_dias > 1 ? 'DÍAS' : 'DÍA'}</strong>
+            SE EMPLAZA POR EL TÉRMINO DE <strong>{acta.emplazamiento_valor} {acta.emplazamiento_tipo}</strong>
           </p>
         </div>
 
+        {/* Firmas */}
         {(acta.firma_inspector_base64 || acta.firma_responsable_base64) && (
           <div className="card mb-4">
             <h3 className="font-bold text-lg mb-4">Firmas</h3>
@@ -285,91 +229,55 @@ export default function VerActa() {
           </div>
         )}
 
-        {acta.fotos_urls && acta.fotos_urls.length > 0 && (
+        {/* Fotos */}
+        {acta.fotos_urls?.length > 0 && (
           <div className="card mb-4">
             <h3 className="font-bold text-lg mb-3">Fotos ({acta.fotos_urls.length})</h3>
             <div className="grid grid-cols-2 gap-2">
-              {acta.fotos_urls.map((url, index) => (
-                <img key={index} src={url} alt={`Foto ${index + 1}`} className="w-full h-32 object-cover rounded" />
+              {acta.fotos_urls.map((url, i) => (
+                <img key={i} src={url} alt={`Foto ${i + 1}`} className="w-full h-32 object-cover rounded" />
               ))}
             </div>
           </div>
         )}
 
-        {acta.pdf_url && (
-          <div className="card mb-4">
-            <h3 className="font-bold text-lg mb-2">PDF Generado</h3>
-            <a href={acta.pdf_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-              Ver PDF en Google Drive →
-            </a>
-          </div>
-        )}
-
+        {/* CIDI */}
         <div className="card mb-4 bg-gray-50">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-lg">Estado CIDI</h3>
-              <p className="text-sm text-gray-600">
-                Marcar cuando el acta haya sido cargada en el sistema CIDI
-              </p>
+              <p className="text-sm text-gray-600">Marcar cuando el acta haya sido cargada en CIDI</p>
             </div>
-            <button
-              onClick={toggleCidi}
-              disabled={actualizandoCidi}
+            <button onClick={toggleCidi} disabled={actualizandoCidi}
               className={`px-6 py-3 rounded-lg font-semibold text-lg transition-colors flex items-center gap-2 ${
-                acta.subido_cidi
-                  ? 'bg-green-500 text-white hover:bg-green-600'
-                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-              } disabled:opacity-50`}
-            >
-              {actualizandoCidi ? (
-                <span>Actualizando...</span>
-              ) : acta.subido_cidi ? (
-                <>
-                  <span className="text-xl">✓</span>
-                  <span>CARGADO EN CIDI</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xl">○</span>
-                  <span>MARCAR CARGADO</span>
-                </>
-              )}
+                acta.subido_cidi ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+              } disabled:opacity-50`}>
+              {actualizandoCidi ? 'Actualizando...' : acta.subido_cidi ? '✓ CARGADO EN CIDI' : '○ MARCAR CARGADO'}
             </button>
           </div>
         </div>
 
+        {/* Acciones PDF */}
         <div className="flex flex-col gap-3">
-          <button
-            onClick={generarPDF}
-            disabled={generandoPDF}
-            className="btn-primary bg-green-600 hover:bg-green-700 disabled:opacity-50"
-          >
+          <button onClick={generarPDF} disabled={generandoPDF}
+            className="btn-primary bg-green-600 hover:bg-green-700 disabled:opacity-50">
             {generandoPDF ? 'Generando PDF...' : 'Generar/Actualizar PDF'}
           </button>
           {pdfBlobUrl && (
-            <a
-              href={pdfBlobUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-center py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
-            >
+            <a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer"
+              className="block text-center py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
               Ver PDF en nueva pestaña →
             </a>
           )}
         </div>
 
-        {/* Visor de PDF inline */}
         {pdfBlobUrl && (
           <div className="card mt-4">
             <h3 className="font-bold text-lg mb-3">Vista previa del PDF</h3>
-            <iframe
-              src={pdfBlobUrl}
-              className="w-full h-[600px] border rounded"
-              title="Vista previa PDF"
-            />
+            <iframe src={pdfBlobUrl} className="w-full h-[600px] border rounded" title="Vista previa PDF" />
           </div>
         )}
+
       </main>
     </div>
   );
