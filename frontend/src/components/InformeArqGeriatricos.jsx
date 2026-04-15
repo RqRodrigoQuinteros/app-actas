@@ -74,6 +74,34 @@ const SECCIONES = [
     ]
   },
   {
+    titulo: "Radiofísica",
+    campos: [
+      { id: "rad_convencional",  label: "Radiología Convencional Simple y Contrastada (Rayos X)", tipo: "sino" },
+      { id: "rad_acelerador",    label: "Acelerador Lineal de Electrones",                        tipo: "sino" },
+      { id: "rad_ortopanto",     label: "Ortopantomografía",                                      tipo: "sino" },
+      { id: "rad_tomografia",    label: "Tomografía Computada",                                   tipo: "sino" },
+      { id: "rad_litotricia",    label: "Litotricia",                                             tipo: "sino" },
+      { id: "rad_laser",         label: "Láser",                                                  tipo: "sino" },
+      { id: "rad_hemodinamia",   label: "Radiología Intervencionista - Hemodinamia",               tipo: "sino" },
+      { id: "rad_pet",           label: "PET / SPECT / Tomografía por emisión de positrones",     tipo: "sino" },
+      { id: "rad_ultravioleta",  label: "Ultra Violeta",                                          tipo: "sino" },
+      { id: "rad_arco_c",        label: "Radiología Intervencionista - Arco en C",                tipo: "sino" },
+      { id: "rad_conebeam",      label: "Tomografía Computada - Dental / Cone Beam",              tipo: "sino" },
+      { id: "rad_resonancia",    label: "Resonancia Magnética",                                   tipo: "sino" },
+      { id: "rad_densitometria", label: "Densitometría Ósea",                                    tipo: "sino" },
+      { id: "rad_dental",        label: "Radiología Dental / Rayos X Dental",                    tipo: "sino" },
+    ]
+  },
+  {
+    titulo: "Otros",
+    campos: [
+      { id: "otro_laboratorio",  label: "Laboratorio",  tipo: "sino" },
+      { id: "otro_hemodialisis", label: "Hemodiálisis", tipo: "sino" },
+      { id: "otro_oncologicos",  label: "Oncológicos",  tipo: "sino" },
+      { id: "otro_pileta",       label: "Pileta",       tipo: "sino" },
+    ]
+  },
+  {
     titulo: "Observaciones y Conclusión",
     campos: [
       { id: "verificarInsp", label: "Verificar en Inspección", placeholder: "-", fullWidth: true },
@@ -140,6 +168,13 @@ const GENERALES_VACÍO = {
   pileta: "", habMunicipal: "", circ: "", seccion: "",
   manzana: "", parcela: "", loteOficial: "",
   verificarInsp: "", observaciones: "", conclusion: "",
+  // Radiofísica
+  rad_convencional: "", rad_acelerador: "", rad_ortopanto: "", rad_tomografia: "",
+  rad_litotricia: "", rad_laser: "", rad_hemodinamia: "", rad_pet: "",
+  rad_ultravioleta: "", rad_arco_c: "", rad_conebeam: "", rad_resonancia: "",
+  rad_densitometria: "", rad_dental: "",
+  // Otros
+  otro_laboratorio: "", otro_hemodialisis: "", otro_oncologicos: "", otro_pileta: "",
 };
 
 // ─── CAMPO INDIVIDUAL ─────────────────────────────────────────────────────────
@@ -324,6 +359,96 @@ function BtnNav({ onClick, children, primary, disabled }) {
   );
 }
 
+// ─── ARTÍCULOS CON SECCIONES COLAPSABLES ─────────────────────────────────────
+function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalChecked, setCheck, setObs, onBack, onNext }) {
+  // Agrupar artículos por grupo
+  const articulosPorGrupo = articulos.reduce((acc, art) => {
+    const g = art.grupo || '__sin_grupo__';
+    if (!acc[g]) acc[g] = [];
+    acc[g].push(art);
+    return acc;
+  }, {});
+  const grupos = Object.entries(articulosPorGrupo);
+  const tieneGrupos = grupos.some(([g]) => g !== '__sin_grupo__');
+
+  const [openGrupos, setOpenGrupos] = useState(
+    () => Object.fromEntries(grupos.map(([g], i) => [g, i === 0]))
+  );
+  const toggleGrupo = (g) => setOpenGrupos(prev => ({ ...prev, [g]: !prev[g] }));
+
+  // Contar seleccionados por grupo
+  const countGrupo = (arts) => arts.filter(a => checks[a.nro]).length;
+
+  return (
+    <div>
+      <div style={{ ...S.card, background: "#f0f9ff", border: "1px solid #bae6fd", marginBottom: "16px" }}>
+        <p style={{ margin: 0, fontSize: "13px", color: "#0369a1", lineHeight: 1.5 }}>
+          Marcá los artículos que presentan observaciones. Al tildar se despliega el campo para ingresarlas.
+          {totalChecked > 0 && <strong> — {totalChecked} artículo{totalChecked !== 1 ? "s" : ""} seleccionado{totalChecked !== 1 ? "s" : ""}.</strong>}
+        </p>
+      </div>
+
+      {loadingArticulos ? (
+        <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontSize: "14px" }}>
+          Cargando artículos...
+        </div>
+      ) : tieneGrupos ? (
+        // Renderizado con acordeón por grupo
+        grupos.map(([grupoNombre, arts]) => {
+          const isOpen = !!openGrupos[grupoNombre];
+          const seleccionados = countGrupo(arts);
+          const label = grupoNombre === '__sin_grupo__' ? 'Sin sección' : grupoNombre;
+          return (
+            <div key={grupoNombre} style={{ marginBottom: "8px", borderRadius: "10px", border: "1.5px solid #e5e7eb", overflow: "hidden" }}>
+              <div
+                onClick={() => toggleGrupo(grupoNombre)}
+                style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  minHeight: "52px", cursor: "pointer", padding: "0 16px",
+                  background: isOpen ? "#f9fafb" : "#e5e7eb", userSelect: "none",
+                }}
+              >
+                <span style={{ fontWeight: 700, fontSize: "14px", color: "#111827", textTransform: "uppercase" }}>
+                  {label}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  {seleccionados > 0 && (
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", background: "#eff6ff", padding: "2px 8px", borderRadius: "12px" }}>
+                      {seleccionados} seleccionado{seleccionados !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                  <span style={{ fontSize: "18px", color: "#6b7280" }}>{isOpen ? "▲" : "▼"}</span>
+                </div>
+              </div>
+              {isOpen && (
+                <div style={{ padding: "12px" }}>
+                  {arts.map(art => (
+                    <ArticuloItem key={art.nro} art={art}
+                      checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+                      onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        // Lista plana (sin grupos, ej: geriátricos)
+        articulos.map(art => (
+          <ArticuloItem key={art.nro} art={art}
+            checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+            onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+        ))
+      )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
+        <BtnNav onClick={onBack}>← Datos Generales</BtnNav>
+        <BtnNav primary onClick={onNext}>Ver Informe →</BtnNav>
+      </div>
+    </div>
+  );
+}
+
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 export default function InformeArqGeriatricos() {
   const { id } = useParams();
@@ -353,12 +478,12 @@ export default function InformeArqGeriatricos() {
         let arts;
         if (tipologiaId) {
           const r = await informesTemplatesAPI.getItems(tipologiaId);
-          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion }));
+          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null }));
         } else {
           const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
           setTipologiaId(r.data.id);
           if (!tipologiaNombre) setTipologiaNombre(r.data.nombre);
-          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion }));
+          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null }));
         }
         const lista = arts.length > 0 ? arts : ARTICULOS_FALLBACK;
         setArticulos(lista);
@@ -547,27 +672,14 @@ export default function InformeArqGeriatricos() {
 
       {/* ── PASO 1: ARTÍCULOS ── */}
       {step === 1 && (
-        <div>
-          <div style={{ ...S.card, background: "#f0f9ff", border: "1px solid #bae6fd", marginBottom: "16px" }}>
-            <p style={{ margin: 0, fontSize: "13px", color: "#0369a1", lineHeight: 1.5 }}>
-              Marcá los artículos que presentan observaciones. Al tildar se despliega el campo para ingresarlas.
-              {totalChecked > 0 && <strong> — {totalChecked} artículo{totalChecked !== 1 ? "s" : ""} seleccionado{totalChecked !== 1 ? "s" : ""}.</strong>}
-            </p>
-          </div>
-          {loadingArticulos ? (
-            <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontSize: "14px" }}>
-              Cargando artículos...
-            </div>
-          ) : articulos.map(art => (
-            <ArticuloItem key={art.nro} art={art}
-              checked={checks[art.nro]} obsValue={obsArt[art.nro]}
-              onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
-          ))}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
-            <BtnNav onClick={() => setStep(0)}>← Datos Generales</BtnNav>
-            <BtnNav primary onClick={() => setStep(2)}>Ver Informe →</BtnNav>
-          </div>
-        </div>
+        <ArticulosStep
+          articulos={articulos}
+          loadingArticulos={loadingArticulos}
+          checks={checks} obsArt={obsArt}
+          totalChecked={totalChecked}
+          setCheck={setCheck} setObs={setObs}
+          onBack={() => setStep(0)} onNext={() => setStep(2)}
+        />
       )}
 
       {/* ── PASO 2: VISTA PREVIA ── */}

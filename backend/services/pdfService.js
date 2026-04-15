@@ -587,10 +587,59 @@ async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCord
   return pdfBuffer;
 }
 
+const CAMPOS_RADIOFISICA = [
+  'rad_convencional', 'rad_acelerador', 'rad_ortopanto', 'rad_tomografia',
+  'rad_litotricia', 'rad_laser', 'rad_hemodinamia', 'rad_pet',
+  'rad_ultravioleta', 'rad_arco_c', 'rad_conebeam', 'rad_resonancia',
+  'rad_densitometria', 'rad_dental',
+];
+
+async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
+  const templatePath = path.join(__dirname, '../templates/base_informe_arq.html');
+  const baseTemplate = fs.readFileSync(templatePath, 'utf8');
+
+  const template = handlebars.compile(baseTemplate);
+  const tieneRadiofisica = CAMPOS_RADIOFISICA.some(k => datos[k]);
+  const tieneOtros = ['otro_laboratorio', 'otro_hemodialisis', 'otro_oncologicos', 'otro_pileta'].some(k => datos[k]);
+  const htmlFinal = template({ ...datos, tieneRadiofisica, tieneOtros });
+
+  const browser = await launchBrowser();
+  const page = await browser.newPage();
+  page.setDefaultNavigationTimeout(60000);
+  await page.setContent(htmlFinal, { waitUntil: 'load' });
+
+  const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+  const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+  const headerContent = membreteBase64
+    ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+    : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+
+  const pdfBuffer = await page.pdf({
+    format: 'A4',
+    printBackground: true,
+    margin: { top: '28mm', bottom: '15mm', left: '20mm', right: '20mm' },
+    displayHeaderFooter: true,
+    headerTemplate: `
+      <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+        ${headerContent}
+      </div>
+    `,
+    footerTemplate: `
+      <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+      </div>
+    `
+  });
+
+  await browser.close();
+  return pdfBuffer;
+}
+
 module.exports = {
   generarActaPDF,
   generarInformePDF,
   generarNotificacionPDF,
   generarInformeGeriatricoPDF,
+  generarInformeArqPDF,
   SECCIONES_POR_TIPOLOGIA
 };

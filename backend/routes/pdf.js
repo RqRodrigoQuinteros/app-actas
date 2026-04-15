@@ -299,7 +299,22 @@ router.post('/geriatrico', authenticateToken, async (req, res) => {
     };
     const datosConTitulos = { ...datos, ...titulos };
 
-    const buffer = toBuffer(await generarInformeGeriatricoPDF(datosConTitulos, logoMinisterio, logoCordoba, logoMembrete));
+    const esGeriatrico = tipNombre === 'Geriátricos';
+    let buffer;
+    if (esGeriatrico) {
+      buffer = toBuffer(await generarInformeGeriatricoPDF(datosConTitulos, logoMinisterio, logoCordoba, logoMembrete));
+    } else {
+      const { generarInformeArqPDF } = require('../services/pdfService');
+      // Agrupar artículos observados por grupo
+      const gruposMap = {};
+      (datos.articulosObservados || []).forEach(art => {
+        const g = art.grupo || 'General';
+        if (!gruposMap[g]) gruposMap[g] = { nombre: g, articulos: [] };
+        gruposMap[g].articulos.push(art);
+      });
+      const datosArq = { ...datosConTitulos, gruposArticulos: Object.values(gruposMap) };
+      buffer = toBuffer(await generarInformeArqPDF(datosArq, logoMinisterio, logoCordoba, logoMembrete));
+    }
 
     const partes = [
       'Evaluación técnica Arquitectura',

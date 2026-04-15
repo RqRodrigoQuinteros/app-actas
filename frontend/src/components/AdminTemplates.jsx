@@ -806,6 +806,7 @@ function TabInformes() {
   function FormItem({ item, tipologiaId, onClose }) {
     const [nro, setNro] = useState(item?.nro || '');
     const [descripcion, setDescripcion] = useState(item?.descripcion || '');
+    const [grupo, setGrupo] = useState(item?.grupo || '');
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
 
@@ -814,10 +815,11 @@ function TabInformes() {
       if (!descripcion.trim()) return setError('La descripción es requerida');
       setGuardando(true);
       try {
+        const payload = { nro: nro.trim(), descripcion: descripcion.trim(), grupo: grupo.trim() || null };
         if (item) {
-          await informesTemplatesAPI.actualizarItem(item.id, { nro: nro.trim(), descripcion: descripcion.trim() });
+          await informesTemplatesAPI.actualizarItem(item.id, payload);
         } else {
-          await informesTemplatesAPI.crearItem(tipologiaId, { nro: nro.trim(), descripcion: descripcion.trim() });
+          await informesTemplatesAPI.crearItem(tipologiaId, payload);
         }
         await cargarDetalle(tipologiaId || seleccionada.id);
         onClose();
@@ -836,6 +838,12 @@ function TabInformes() {
           <input style={{ ...S.input, fontFamily: 'monospace' }} value={nro}
             onChange={e => setNro(e.target.value)}
             placeholder="ej: 13.a.1, 27, 31.c" autoFocus />
+        </div>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={S.label}>Sección / Grupo (opcional)</label>
+          <input style={S.input} value={grupo}
+            onChange={e => setGrupo(e.target.value)}
+            placeholder="ej: Circulaciones, Baños, Cocina..." />
         </div>
         <div style={{ marginBottom: '20px' }}>
           <label style={S.label}>Descripción del artículo *</label>
@@ -958,6 +966,15 @@ function TabInformes() {
                     }}>
                       Art. {item.nro}
                     </span>
+                    {item.grupo && (
+                      <span style={{
+                        fontSize: '11px', fontWeight: 600, color: '#7c3aed',
+                        background: '#f3e8ff', padding: '2px 7px', borderRadius: '4px',
+                        whiteSpace: 'nowrap', flexShrink: 0,
+                      }}>
+                        {item.grupo}
+                      </span>
+                    )}
                     <span style={{ flex: 1, fontSize: '12px', color: '#374151', lineHeight: 1.5 }}>
                       {item.descripcion}
                     </span>
