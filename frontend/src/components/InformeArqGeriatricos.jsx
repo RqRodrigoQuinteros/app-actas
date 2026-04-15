@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { informesAPI } from "../utils/api";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { informesAPI, informesTemplatesAPI } from "../utils/api";
 import api from "../utils/api";
 
 // ─── ESTILOS BASE ─────────────────────────────────────────────────────────────
@@ -89,7 +89,8 @@ const CONCLUSIONES = [
   "EN ESPERA DE ACLARACION Y/O DOCUMENTACION",
 ];
 
-const ARTICULOS = [
+// ARTICULOS ya no es hardcodeado — se carga desde la BD en useEffect
+const ARTICULOS_FALLBACK = [
   { nro: "2.a",    desc: "Documentación. Al momento de solicitar la habilitación se deberá presentar la siguiente documentación, en original o fotocopia debidamente autenticada, sin perjuicio de la documentación anexa específica para algunos tipos de establecimientos: a) Cuadernillo habilitante – categorizante." },
   { nro: "8",      desc: "Establecimientos con internación. Excepto los Hogares de Residencia, tendrán como mínimo las siguientes dependencias: habitaciones; baños; comedor, sala de estar-usos múltiples; consultorio interno y office de enfermería; cocina; despensa; lavadero con tendedero; patio o jardín. Todas las circulaciones y conexiones entre las distintas dependencias deberán ser cubiertas y cerradas." },
   { nro: "9",      desc: "Establecimientos sin internación. Dispondrán de espacios de uso común (estar, comedor – usos múltiples) con sanitarios en proporción y dimensiones conforme a lo establecido por el Código de Edificación de la localidad. Dispondrán de espacios separados de los de uso común, destinados al descanso y recreación de los usuarios." },
@@ -327,12 +328,16 @@ function BtnNav({ onClick, children, primary, disabled }) {
 export default function InformeArqGeriatricos() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const esNuevo = !id;
 
   const [step, setStep] = useState(0);
   const [generales, setGenerales] = useState(GENERALES_VACÍO);
-  const [checks, setChecks]       = useState(Object.fromEntries(ARTICULOS.map(a => [a.nro, false])));
-  const [obsArt, setObsArt]       = useState(Object.fromEntries(ARTICULOS.map(a => [a.nro, ""])));
+  const [checks, setChecks]   = useState({});
+  const [obsArt, setObsArt]   = useState({});
+  const [articulos, setArticulos]     = useState([]);
+  const [tipologiaId, setTipologiaId] = useState(location.state?.tipologia_id || null);
+  const [loadingArticulos, setLoadingArticulos] = useState(true);
 
   const [guardando, setGuardando]       = useState(false);
   const [generandoPDF, setGenerandoPDF] = useState(false);
@@ -340,21 +345,51 @@ export default function InformeArqGeriatricos() {
   const [errorMsg, setErrorMsg]         = useState("");
   const [cargando, setCargando]         = useState(!esNuevo);
 
+  // Cargar items de tipología desde la BD (por id o por nombre "Geriátricos")
+  useEffect(() => {
+    const cargarItems = async () => {
+      try {
+        let arts;
+        if (tipologiaId) {
+          const r = await informesTemplatesAPI.getItems(tipologiaId);
+          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion }));
+        } else {
+          const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
+          setTipologiaId(r.data.id);
+          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion }));
+        }
+        const lista = arts.length > 0 ? arts : ARTICULOS_FALLBACK;
+        setArticulos(lista);
+        setChecks(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, false])), ...prev }));
+        setObsArt(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, ""])), ...prev }));
+      } catch {
+        setArticulos(ARTICULOS_FALLBACK);
+        setChecks(prev => ({ ...Object.fromEntries(ARTICULOS_FALLBACK.map(a => [a.nro, false])), ...prev }));
+        setObsArt(prev => ({ ...Object.fromEntries(ARTICULOS_FALLBACK.map(a => [a.nro, ""])), ...prev }));
+      } finally {
+        setLoadingArticulos(false);
+      }
+    };
+    cargarItems();
+  }, [tipologiaId]);
+
+  // Cargar informe existente
   useEffect(() => {
     if (!esNuevo) {
       informesAPI.getById(id)
         .then(res => {
           const df = res.data.datos_formulario || {};
           setGenerales({ ...GENERALES_VACÍO, ...(df.generales || {}) });
-          setChecks({ ...Object.fromEntries(ARTICULOS.map(a => [a.nro, false])), ...(df.checks || {}) });
-          setObsArt({ ...Object.fromEntries(ARTICULOS.map(a => [a.nro, ""])), ...(df.observaciones || {}) });
+          if (df.tipologia_id) setTipologiaId(df.tipologia_id);
+          if (df.checks) setChecks(prev => ({ ...prev, ...df.checks }));
+          if (df.observaciones) setObsArt(prev => ({ ...prev, ...df.observaciones }));
         })
         .catch(() => setErrorMsg("No se pudo cargar el informe."))
         .finally(() => setCargando(false));
     }
   }, [id]);
 
-  const articulosObservados = ARTICULOS.filter(a => checks[a.nro]).map(a => ({ ...a, obs: obsArt[a.nro] || "" }));
+  const articulosObservados = articulos.filter(a => checks[a.nro]).map(a => ({ ...a, obs: obsArt[a.nro] || "" }));
   const totalChecked = articulosObservados.length;
 
   const setGen   = (fid, val) => setGenerales(g => ({ ...g, [fid]: val }));
@@ -369,7 +404,7 @@ export default function InformeArqGeriatricos() {
       establecimiento_localidad: generales.barrio || "",
       expediente: generales.expDigital || generales.expPapel || "",
       fecha: generales.fecha || null,
-      datos_formulario: { generales, checks, observaciones: obsArt },
+      datos_formulario: { generales, checks, observaciones: obsArt, tipo: "geriatrico", tipologia_id: tipologiaId },
       observaciones: generales.observaciones || "",
       tipo: "geriatrico",
     };
@@ -507,7 +542,11 @@ export default function InformeArqGeriatricos() {
               {totalChecked > 0 && <strong> — {totalChecked} artículo{totalChecked !== 1 ? "s" : ""} seleccionado{totalChecked !== 1 ? "s" : ""}.</strong>}
             </p>
           </div>
-          {ARTICULOS.map(art => (
+          {loadingArticulos ? (
+            <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontSize: "14px" }}>
+              Cargando artículos...
+            </div>
+          ) : articulos.map(art => (
             <ArticuloItem key={art.nro} art={art}
               checked={checks[art.nro]} obsValue={obsArt[art.nro]}
               onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />

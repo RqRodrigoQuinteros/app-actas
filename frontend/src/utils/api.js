@@ -72,6 +72,20 @@ export const informesAPI = {
 
 export default api;
 
+export const informesTemplatesAPI = {
+  // Tipologías
+  getTipologias: (todas = false) => api.get('/informes-templates/tipologias', { params: todas ? { todas: true } : {} }),
+  getTipologiaPorNombre: (nombre) => api.get(`/informes-templates/tipologias/por-nombre/${encodeURIComponent(nombre)}`),
+  getItems: (tipologiaId) => api.get(`/informes-templates/tipologias/${tipologiaId}/items`),
+  crearTipologia: (data) => api.post('/informes-templates/tipologias', data),
+  actualizarTipologia: (id, data) => api.put(`/informes-templates/tipologias/${id}`, data),
+
+  // Items
+  crearItem: (tipologiaId, data) => api.post(`/informes-templates/tipologias/${tipologiaId}/items`, data),
+  actualizarItem: (id, data) => api.put(`/informes-templates/items/${id}`, data),
+  eliminarItem: (id) => api.delete(`/informes-templates/items/${id}`),
+};
+
 export const templatesAPI = {
   // Encabezado
   getEncabezado: () => api.get('/templates/encabezado'),

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { informesAPI } from '../utils/api';
+import { informesAPI, informesTemplatesAPI } from '../utils/api';
 import api from '../utils/api';
 
 export default function InformeArquitecto() {
@@ -9,9 +9,16 @@ export default function InformeArquitecto() {
   const navigate = useNavigate();
   const [informes, setInformes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [pdfCargando, setPdfCargando] = useState(null); // id del informe cargando
+  const [pdfCargando, setPdfCargando] = useState(null);
+  const [tipologias, setTipologias] = useState([]);
+  const [modalNuevo, setModalNuevo] = useState(false);
 
-  useEffect(() => { loadInformes(); }, []);
+  useEffect(() => {
+    loadInformes();
+    informesTemplatesAPI.getTipologias()
+      .then(r => setTipologias(r.data || []))
+      .catch(() => {});
+  }, []);
 
   const loadInformes = async () => {
     try {
@@ -22,6 +29,11 @@ export default function InformeArquitecto() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const crearNuevo = (tipologia) => {
+    setModalNuevo(false);
+    navigate('/informe/geriatricos/nuevo', { state: { tipologia_id: tipologia.id } });
   };
 
   // Detecta el tipo del informe mirando tipo, datos_formulario.tipo, o el nombre del establecimiento
@@ -102,10 +114,61 @@ export default function InformeArquitecto() {
       </header>
 
       <main className="max-w-4xl mx-auto p-4">
+        {/* Modal selector de tipología */}
+        {modalNuevo && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1000, padding: '16px',
+          }}>
+            <div style={{
+              background: '#fff', borderRadius: '14px', width: '100%',
+              maxWidth: '420px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{
+                padding: '16px 20px', borderBottom: '1px solid #f3f4f6',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <span style={{ fontWeight: 700, fontSize: '15px' }}>Seleccioná el tipo de informe</span>
+                <button onClick={() => setModalNuevo(false)} style={{
+                  background: 'none', border: 'none', fontSize: '22px',
+                  cursor: 'pointer', color: '#6b7280', lineHeight: 1,
+                }}>×</button>
+              </div>
+              <div style={{ padding: '12px' }}>
+                {tipologias.length === 0 ? (
+                  <p style={{ padding: '16px', color: '#9ca3af', fontSize: '13px', textAlign: 'center' }}>
+                    No hay tipologías disponibles. Pedile al administrador que las configure.
+                  </p>
+                ) : (
+                  tipologias.map(tip => (
+                    <button key={tip.id} onClick={() => crearNuevo(tip)} style={{
+                      display: 'block', width: '100%', padding: '14px 16px',
+                      marginBottom: '8px', borderRadius: '10px', border: '1.5px solid #e5e7eb',
+                      background: '#fafafa', cursor: 'pointer', textAlign: 'left',
+                      fontSize: '14px', fontWeight: 600, color: '#374151',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}>
+                      {tip.nombre}
+                      {tip.descripcion && (
+                        <span style={{ display: 'block', fontSize: '12px', fontWeight: 400, color: '#9ca3af', marginTop: '2px' }}>
+                          {tip.descripcion}
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Mis Informes</h2>
           <button
-            onClick={() => navigate('/informe/geriatricos/nuevo')}
+            onClick={() => setModalNuevo(true)}
             className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700"
           >
             + Nuevo Informe

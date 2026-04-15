@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { templatesAPI } from '../utils/api';
+import { templatesAPI, informesTemplatesAPI } from '../utils/api';
 
 // ─── Estilos ────────────────────────────────────────────────────────────────
 const S = {
@@ -711,6 +711,267 @@ function TabTipologias() {
                       ↓ {sec.texto_posterior}
                     </div>
                   )}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Tab: Informes de Arquitecto ─────────────────────────────────────────────
+function TabInformes() {
+  const [tipologias, setTipologias] = useState([]);
+  const [seleccionada, setSeleccionada] = useState(null); // { id, nombre, items: [] }
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState(null);
+
+  const [modalTipologia, setModalTipologia] = useState(false);
+  const [modalItem, setModalItem] = useState(false);
+  const [editandoItem, setEditandoItem] = useState(null);
+
+  const cargarTipologias = async () => {
+    try {
+      const r = await informesTemplatesAPI.getTipologias(true);
+      setTipologias(r.data || []);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al cargar tipologías' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cargarDetalle = async (id) => {
+    try {
+      const r = await informesTemplatesAPI.getItems(id);
+      setSeleccionada(prev => ({ ...prev, items: r.data || [] }));
+    } catch {
+      setMsg({ type: 'error', text: 'Error al cargar items' });
+    }
+  };
+
+  useEffect(() => { cargarTipologias(); }, []);
+
+  const seleccionar = (tip) => {
+    setSeleccionada(tip);
+    cargarDetalle(tip.id);
+  };
+
+  // ── Nueva tipología ──────────────────────────────────────────────────────
+  function FormNuevaTipologia({ onClose }) {
+    const [nombre, setNombre] = useState('');
+    const [descripcion, setDescripcion] = useState('');
+    const [error, setError] = useState('');
+    const [guardando, setGuardando] = useState(false);
+
+    const guardar = async () => {
+      if (!nombre.trim()) return setError('El nombre es requerido');
+      setGuardando(true);
+      try {
+        await informesTemplatesAPI.crearTipologia({ nombre: nombre.trim(), descripcion });
+        await cargarTipologias();
+        onClose();
+      } catch (e) {
+        setError(e.response?.data?.error || 'Error al crear');
+      } finally {
+        setGuardando(false);
+      }
+    };
+
+    return (
+      <>
+        {error && <div style={S.alert('error')}>{error}</div>}
+        <div style={{ marginBottom: '14px' }}>
+          <label style={S.label}>Nombre *</label>
+          <input style={S.input} value={nombre} onChange={e => setNombre(e.target.value)}
+            placeholder="ej: Geriátricos, Farmacia" autoFocus />
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={S.label}>Descripción (opcional)</label>
+          <input style={S.input} value={descripcion} onChange={e => setDescripcion(e.target.value)} />
+        </div>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button style={S.btnOutline} onClick={onClose}>Cancelar</button>
+          <button style={S.btn('blue')} onClick={guardar} disabled={guardando}>
+            {guardando ? 'Creando...' : 'Crear tipología'}
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // ── Nuevo / editar item ──────────────────────────────────────────────────
+  function FormItem({ item, tipologiaId, onClose }) {
+    const [nro, setNro] = useState(item?.nro || '');
+    const [descripcion, setDescripcion] = useState(item?.descripcion || '');
+    const [error, setError] = useState('');
+    const [guardando, setGuardando] = useState(false);
+
+    const guardar = async () => {
+      if (!nro.trim()) return setError('El número de artículo es requerido');
+      if (!descripcion.trim()) return setError('La descripción es requerida');
+      setGuardando(true);
+      try {
+        if (item) {
+          await informesTemplatesAPI.actualizarItem(item.id, { nro: nro.trim(), descripcion: descripcion.trim() });
+        } else {
+          await informesTemplatesAPI.crearItem(tipologiaId, { nro: nro.trim(), descripcion: descripcion.trim() });
+        }
+        await cargarDetalle(tipologiaId || seleccionada.id);
+        onClose();
+      } catch (e) {
+        setError(e.response?.data?.error || 'Error al guardar');
+      } finally {
+        setGuardando(false);
+      }
+    };
+
+    return (
+      <>
+        {error && <div style={S.alert('error')}>{error}</div>}
+        <div style={{ marginBottom: '14px' }}>
+          <label style={S.label}>N° de artículo *</label>
+          <input style={{ ...S.input, fontFamily: 'monospace' }} value={nro}
+            onChange={e => setNro(e.target.value)}
+            placeholder="ej: 13.a.1, 27, 31.c" autoFocus />
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={S.label}>Descripción del artículo *</label>
+          <textarea style={{ ...S.textarea, minHeight: '120px' }} value={descripcion}
+            onChange={e => setDescripcion(e.target.value)}
+            placeholder="Texto completo del artículo según normativa..." />
+        </div>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button style={S.btnOutline} onClick={onClose}>Cancelar</button>
+          <button style={S.btn('blue')} onClick={guardar} disabled={guardando}>
+            {guardando ? 'Guardando...' : item ? 'Guardar cambios' : 'Agregar artículo'}
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  const eliminarItem = async (itemId) => {
+    if (!confirm('¿Eliminar este artículo?')) return;
+    try {
+      await informesTemplatesAPI.eliminarItem(itemId);
+      await cargarDetalle(seleccionada.id);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al eliminar artículo' });
+    }
+  };
+
+  if (loading) return <p style={{ color: '#6b7280', fontSize: '13px' }}>Cargando...</p>;
+
+  return (
+    <>
+      {msg && <div style={S.alert(msg.type)}>{msg.text}</div>}
+
+      {modalTipologia && (
+        <Modal title="Nueva tipología de informe" onClose={() => setModalTipologia(false)}>
+          <FormNuevaTipologia onClose={() => setModalTipologia(false)} />
+        </Modal>
+      )}
+      {modalItem && seleccionada && (
+        <Modal title="Nuevo artículo" onClose={() => setModalItem(false)}>
+          <FormItem tipologiaId={seleccionada.id} onClose={() => setModalItem(false)} />
+        </Modal>
+      )}
+      {editandoItem && (
+        <Modal title="Editar artículo" onClose={() => setEditandoItem(null)}>
+          <FormItem item={editandoItem} tipologiaId={seleccionada?.id} onClose={() => setEditandoItem(null)} />
+        </Modal>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '16px' }}>
+
+        {/* Lista de tipologías */}
+        <div style={S.card}>
+          <div style={S.cardHeader}>
+            <span style={S.cardTitle}>Tipologías</span>
+            <button style={S.btn('blue')} onClick={() => setModalTipologia(true)}>+ Nueva</button>
+          </div>
+          <div>
+            {tipologias.length === 0 && (
+              <p style={{ padding: '16px', fontSize: '13px', color: '#6b7280' }}>
+                No hay tipologías. Creá una para empezar.
+              </p>
+            )}
+            {tipologias.map(tip => (
+              <div key={tip.id} style={S.tipologiaItem(seleccionada?.id === tip.id)}
+                onClick={() => seleccionar(tip)}>
+                <span>{tip.nombre}</span>
+                <span style={{ fontSize: '11px', color: tip.activo ? '#16a34a' : '#dc2626' }}>
+                  {tip.activo ? 'activa' : 'inactiva'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Detalle: lista de artículos */}
+        <div>
+          {!seleccionada ? (
+            <div style={{ ...S.card, padding: '40px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>
+              Seleccioná una tipología para ver y editar sus artículos
+            </div>
+          ) : (
+            <>
+              <div style={{ ...S.cardHeader, ...S.card, marginBottom: '16px' }}>
+                <div>
+                  <div style={S.cardTitle}>{seleccionada.nombre}</div>
+                  {seleccionada.descripcion && (
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>{seleccionada.descripcion}</div>
+                  )}
+                  <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+                    {(seleccionada.items || []).length} artículo{(seleccionada.items || []).length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button style={S.btn('blue')} onClick={() => setModalItem(true)}>+ Agregar artículo</button>
+                  <button style={S.btnOutline} onClick={() => {
+                    if (!confirm(`¿${seleccionada.activo ? 'Desactivar' : 'Activar'} esta tipología?`)) return;
+                    informesTemplatesAPI.actualizarTipologia(seleccionada.id, { activo: !seleccionada.activo })
+                      .then(() => cargarTipologias());
+                  }}>
+                    {seleccionada.activo ? 'Desactivar' : 'Activar'}
+                  </button>
+                </div>
+              </div>
+
+              {(seleccionada.items || []).length === 0 && (
+                <div style={{ ...S.card, padding: '32px', textAlign: 'center', color: '#6b7280', fontSize: '13px' }}>
+                  Esta tipología no tiene artículos. Agregá uno con el botón de arriba.
+                </div>
+              )}
+
+              {(seleccionada.items || []).map((item, idx) => (
+                <div key={item.id} style={{ ...S.seccionBox, marginBottom: '8px' }}>
+                  <div style={S.campoRow}>
+                    <span style={{ fontSize: '11px', color: '#9ca3af', minWidth: '24px' }}>{idx + 1}</span>
+                    <span style={{
+                      fontFamily: 'monospace', fontWeight: 700, fontSize: '12px',
+                      color: '#2563eb', background: '#eff6ff',
+                      padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap',
+                    }}>
+                      Art. {item.nro}
+                    </span>
+                    <span style={{ flex: 1, fontSize: '12px', color: '#374151', lineHeight: 1.5 }}>
+                      {item.descripcion}
+                    </span>
+                    <button style={{ ...S.btnOutline, padding: '3px 8px', fontSize: '11px', flexShrink: 0 }}
+                      onClick={() => setEditandoItem(item)}>
+                      Editar
+                    </button>
+                    <button style={{
+                      ...S.btnOutline, padding: '3px 8px', fontSize: '11px',
+                      color: '#dc2626', borderColor: '#fecaca', flexShrink: 0,
+                    }} onClick={() => eliminarItem(item.id)}>
+                      ×
+                    </button>
+                  </div>
                 </div>
               ))}
             </>
