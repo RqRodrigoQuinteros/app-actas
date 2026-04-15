@@ -71,3 +71,31 @@ export const informesAPI = {
 };
 
 export default api;
+
+export const templatesAPI = {
+  // Encabezado
+  getEncabezado: () => api.get('/templates/encabezado'),
+  updateEncabezado: (data) => api.put('/templates/encabezado', data),
+
+  // Tipologías
+  getTipologias: (todas = false) => api.get('/templates/tipologias', { params: todas ? { todas: true } : {} }),
+  getTipologia: (id) => api.get(`/templates/tipologias/${id}`),
+  getTipologiaPorNombre: (nombre) => api.get(`/templates/tipologias/por-nombre/${encodeURIComponent(nombre)}`),
+  crearTipologia: (data) => api.post('/templates/tipologias', data),
+  actualizarTipologia: (id, data) => api.put(`/templates/tipologias/${id}`, data),
+  desactivarTipologia: (id) => api.delete(`/templates/tipologias/${id}`),
+
+  // Secciones
+  crearSeccion: (tipologiaId, data) => api.post(`/templates/tipologias/${tipologiaId}/secciones`, data),
+  actualizarSeccion: (id, data) => api.put(`/templates/secciones/${id}`, data),
+  eliminarSeccion: (id) => api.delete(`/templates/secciones/${id}`),
+
+  // Campos
+  crearCampo: (seccionId, data) => api.post(`/templates/secciones/${seccionId}/campos`, data),
+  actualizarCampo: (id, data) => api.put(`/templates/campos/${id}`, data),
+  eliminarCampo: (id) => api.delete(`/templates/campos/${id}`),
+
+  // Respuestas
+  getRespuestas: (actaId) => api.get(`/templates/actas/${actaId}/respuestas`),
+  guardarRespuestas: (actaId, respuestas) => api.post(`/templates/actas/${actaId}/respuestas`, { respuestas }),
+};

@@ -8,6 +8,7 @@ import SupervisorDash from './components/SupervisorDash';
 import SupervisorLogin from './components/SupervisorLogin';
 import InformeArquitecto from './components/InformeArquitecto';
 import InformeArqGeriatricos from './components/InformeArqGeriatricos';
+import AdminTemplates from './components/AdminTemplates';
 
 function ProtectedRoute({ children, roles }) {
   const { usuario, loading } = useAuth();
@@ -82,6 +83,11 @@ function AppRoutes() {
       <Route path="/informe/geriatricos/:id" element={
         <ProtectedRoute roles={['arquitecto', 'supervisor']}>
           <InformeArqGeriatricos />
+        </ProtectedRoute>
+      } />
+          <Route path="/admin/templates" element={
+        <ProtectedRoute roles={['supervisor']}>
+          <AdminTemplates />
         </ProtectedRoute>
       } />
     </Routes>
