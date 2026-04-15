@@ -1012,10 +1012,14 @@ export default function AdminTemplates() {
           <button style={S.tab(tab === 'encabezado')} onClick={() => setTab('encabezado')}>
             Encabezado y emplazamiento
           </button>
+          <button style={S.tab(tab === 'informes')} onClick={() => setTab('informes')}>
+            Informes de Arquitecto
+          </button>
         </div>
 
         {tab === 'tipologias' && <TabTipologias />}
         {tab === 'encabezado' && <TabEncabezado />}
+        {tab === 'informes' && <TabInformes />}
       </div>
     </div>
   );
