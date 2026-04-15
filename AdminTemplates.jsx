@@ -727,9 +727,13 @@ export default function AdminTemplates() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('tipologias');
 
-  if (usuario?.rol !== 'supervisor' && usuario?.rol !== 'admin') {
-  return <div>Acceso denegado</div>
-}
+  if (usuario?.rol !== 'supervisor') {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: '#dc2626' }}>
+        Acceso denegado
+      </div>
+    );
+  }
 
   return (
     <div style={S.page}>

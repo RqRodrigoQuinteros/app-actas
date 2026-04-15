@@ -1,90 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { actasAPI, pdfAPI } from '../utils/api';
-import { TIPOLOGIAS, SECCIONES_POR_TIPOLOGIA, SECCION_LABELS } from '../utils/constants';
+import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
 import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';
-
-// Tipologías que tienen secciones opcionales seleccionables
-const TIPOLOGIAS_CON_SELECTOR = ['clinica'];
-
-// Secciones base (siempre presentes) por tipología
-const SECCIONES_BASE = {
-  clinica: ['conclusion_inspeccion', 'registros', 'datos_generales'],
-  quirurgicos: ['conclusion_inspeccion', 'registros', 'datos_generales', 'quirurgicos_inscripcion', 'quirurgicos_direccion_funcionamiento'],
-  hemodialisis: ['conclusion_inspeccion', 'registros', 'datos_generales'],
-  estetica: ['conclusion_inspeccion', 'registros', 'datos_generales'],
-  opticas: ['conclusion_inspeccion', 'registros'],
-  centambulatorios: ['conclusion_inspeccion', 'registros', 'datos_generales'],
-};
-
-// Secciones opcionales con label para el selector
-const SECCIONES_OPCIONALES = {
-  clinica: [
-    { key: 'consultorios_externos', label: 'Consultorios Externos' },
-    { key: 'consultorios_salud_mental', label: 'Consultorios Salud Mental' },
-    { key: 'la_institucion_posee', label: 'La Institución Posee' },
-    { key: 'radiofisica', label: 'Radiofísica' },
-    { key: 'sector_internacion', label: 'Sector de Internación' },
-    { key: 'enfermeria', label: 'Enfermería' },
-    { key: 'area_quirurgica', label: 'Área Quirúrgica' },
-    { key: 'obstetricia', label: 'Obstetricia' },
-    { key: 'laboratorio', label: 'Laboratorio' },
-    { key: 'guardia', label: 'Guardia' },
-    { key: 'uco', label: 'UCO — Unidad Coronaria' },
-    { key: 'uti', label: 'UTI — Unidad de Terapia Intensiva' },
-    { key: 'utin', label: 'UTIN — UTI Neonatal' },
-    { key: 'hemodinamia', label: 'Hemodinamia' },
-    { key: 'hospital_dia', label: 'Hospital de Día' },
-  ],
-  quirurgicos: [
-    { key: 'consultorios_externos', label: 'Consultorios Externos' },
-    { key: 'consultorios_salud_mental', label: 'Consultorios Salud Mental' },
-    { key: 'la_institucion_posee', label: 'La Institución Posee' },
-    { key: 'sector_internacion', label: 'Sector de Internación' },
-    { key: 'enfermeria', label: 'Enfermería' },
-    { key: 'quirurgicos_enfermeria', label: 'Enfermería Quirúrgica' },
-    { key: 'area_quirurgica', label: 'Área Quirúrgica' },
-    { key: 'quirurgicos_area_internacion', label: 'Área Internación Quirúrgica' },
-    { key: 'quirurgicos_equipamiento', label: 'Equipamiento' },
-    { key: 'quirurgicos_esterilizacion', label: 'Esterilización' },
-    { key: 'obstetricia', label: 'Obstetricia' },
-    { key: 'laboratorio', label: 'Laboratorio' },
-    { key: 'guardia', label: 'Guardia' },
-    { key: 'uco', label: 'UCO — Unidad Coronaria' },
-    { key: 'uti', label: 'UTI — Unidad de Terapia Intensiva' },
-    { key: 'utin', label: 'UTIN — UTI Neonatal' },
-    { key: 'hemodinamia', label: 'Hemodinamia' },
-    { key: 'hospital_dia', label: 'Hospital de Día' },
-  ],
-  hemodialisis: [
-    { key: 'sector_internacion', label: 'Sector de Internación' },
-    { key: 'enfermeria', label: 'Enfermería' },
-    { key: 'hemodialisis_direccion_funcionamiento', label: 'Dirección y Funcionamiento - Hemodiálisis' },
-    { key: 'hemodialisis_analisis_agua', label: 'Análisis de Agua' },
-    { key: 'hemodialisis_serologia', label: 'Serología' },
-  ],
-  estetica: [
-    { key: 'estetica_inscripcion', label: 'Inscripción y Habilitación' },
-    { key: 'estetica_direccion_funcionamiento', label: 'Dirección y Funcionamiento' },
-    { key: 'estetica_consultorios', label: 'Consultorios' },
-  ],
-  opticas: [
-    { key: 'opticas_local', label: 'Local' },
-    { key: 'opticas_taller', label: 'Taller' },
-    { key: 'opticas_gabinete_contactologia', label: 'Gabinete de Contactología' },
-  ],
-  centambulatorios: [
-    { key: 'consultorios_externos', label: 'Consultorios Externos' },
-    { key: 'sector_internacion', label: 'Sector de Internación' },
-    { key: 'enfermeria', label: 'Enfermería' },
-    { key: 'centamb_inscripcion', label: 'Inscripción y Habilitación' },
-    { key: 'centamb_direccion_funcionamiento', label: 'Dirección y Funcionamiento' },
-    { key: 'centamb_esterilizacion', label: 'Esterilización' },
-  ],
-};
 
 const PASOS = [
   { id: 1, label: 'Establecimiento' },
@@ -103,7 +23,17 @@ export default function NuevaActa() {
   const [loading, setLoading] = useState(false);
   const [actaId, setActaId] = useState(null);
   const [errorModal, setErrorModal] = useState(null);
-  const [seccionesSeleccionadas, setSeccionesSeleccionadas] = useState([]);
+
+  // Template dinámico
+  const [tipologias, setTipologias] = useState([]);
+  const [template, setTemplate] = useState(null);   // { secciones: [...] }
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
+
+  // Secciones opcionales seleccionadas (ids de secciones)
+  const [seccionesActivas, setSeccionesActivas] = useState([]);
+
+  // Respuestas: { campo_id: valor }
+  const [respuestas, setRespuestas] = useState({});
 
   const [datos, setDatos] = useState({
     expediente: '',
@@ -122,16 +52,51 @@ export default function NuevaActa() {
     observaciones: '',
     emplazamiento_valor: 48,
     emplazamiento_tipo: 'HORAS',
-    datos_formulario: {},
     fotos_urls: [],
     firma_inspector_base64: '',
     firma_responsable_base64: '',
   });
 
-  const crearActa = async () => {
-    try {
-      setLoading(true);
+  // Cargar tipologías al montar
+  useEffect(() => {
+    templatesAPI.getTipologias()
+      .then(r => setTipologias(r.data || []))
+      .catch(() => setTipologias([]));
+  }, []);
 
+  // Cargar template al elegir tipología
+  useEffect(() => {
+    if (!datos.tipologia) {
+      setTemplate(null);
+      setSeccionesActivas([]);
+      return;
+    }
+    setLoadingTemplate(true);
+    templatesAPI.getTipologiaPorNombre(datos.tipologia)
+      .then(r => {
+        setTemplate(r.data);
+        // Por defecto activar todas las secciones
+        setSeccionesActivas((r.data.secciones || []).map(s => s.id));
+      })
+      .catch(() => {
+        setTemplate(null);
+        setSeccionesActivas([]);
+      })
+      .finally(() => setLoadingTemplate(false));
+  }, [datos.tipologia]);
+
+  const handleRespuesta = (campoId, valor) => {
+    setRespuestas(prev => ({ ...prev, [campoId]: valor }));
+  };
+
+  // Secciones a mostrar en el formulario (filtradas por las activas)
+  const seccionesFiltradas = (template?.secciones || []).filter(s =>
+    seccionesActivas.includes(s.id)
+  );
+
+  const crearActa = async () => {
+    setLoading(true);
+    try {
       const payload = {
         inspector_id: usuario.id,
         establecimiento_nombre: datos.establecimiento_nombre,
@@ -150,15 +115,8 @@ export default function NuevaActa() {
         observaciones: datos.observaciones,
         emplazamiento_valor: datos.emplazamiento_valor,
         emplazamiento_tipo: datos.emplazamiento_tipo,
-        datos_formulario: datos.datos_formulario,
       };
-
-      if (seccionesSeleccionadas.length > 0) {
-        payload.secciones_seleccionadas = seccionesSeleccionadas;
-      }
-
       const response = await actasAPI.create(payload);
-
       setActaId(response.data.id);
       return response.data.id;
     } catch (err) {
@@ -167,21 +125,6 @@ export default function NuevaActa() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const guardarFotos = async (urls) => {
-    setDatos(prev => ({ ...prev, fotos_urls: urls }));
-    if (actaId) {
-      await actasAPI.update(actaId, { fotos_urls: urls });
-    }
-  };
-
-  const handleFirmaInspector = (firma) => {
-    setDatos(prev => ({ ...prev, firma_inspector_base64: firma }));
-  };
-
-  const handleFirmaResponsable = (firma) => {
-    setDatos(prev => ({ ...prev, firma_responsable_base64: firma }));
   };
 
   const guardarBorrador = async () => {
@@ -210,55 +153,56 @@ export default function NuevaActa() {
       } else {
         const response = await actasAPI.create(payload);
         setActaId(response.data.id);
+        return response.data.id;
       }
+      return actaId;
     } catch (err) {
       console.error('Error guardando borrador:', err);
     }
   };
 
+  const guardarRespuestas = async (idActa) => {
+    const listaRespuestas = Object.entries(respuestas)
+      .filter(([, v]) => v !== '' && v !== null && v !== undefined)
+      .map(([campo_id, valor]) => ({ campo_id: parseInt(campo_id), valor: String(valor) }));
+
+    if (listaRespuestas.length > 0) {
+      await templatesAPI.guardarRespuestas(idActa, listaRespuestas);
+    }
+  };
+
+  const guardarFotos = async (urls) => {
+    setDatos(prev => ({ ...prev, fotos_urls: urls }));
+    if (actaId) {
+      await actasAPI.update(actaId, { fotos_urls: urls });
+    }
+  };
+
   const validarActa = () => {
     const errores = [];
-
-    if (!datos.establecimiento_nombre?.trim()) {
-      errores.push('Nombre del establecimiento');
-    }
-    if (!datos.responsable_nombre?.trim()) {
-      errores.push('Responsable del establecimiento');
-    }
-    if (!datos.firma_inspector_base64) {
-      errores.push('Firma del inspector');
-    }
-    if (!datos.firma_responsable_base64) {
-      errores.push('Firma del responsable');
-    }
-    if (!datos.emplazamiento_valor || datos.emplazamiento_valor <= 0) {
-      errores.push('Plazo de emplazamiento');
-    }
-    if (!datos.emplazamiento_tipo) {
-      errores.push('Tipo de plazo (días u horas)');
-    }
-
+    if (!datos.establecimiento_nombre?.trim()) errores.push('Nombre del establecimiento');
+    if (!datos.responsable_nombre?.trim()) errores.push('Responsable del establecimiento');
+    if (!datos.firma_inspector_base64) errores.push('Firma del inspector');
+    if (!datos.firma_responsable_base64) errores.push('Firma del responsable');
+    if (!datos.emplazamiento_valor || datos.emplazamiento_valor <= 0) errores.push('Plazo de emplazamiento');
+    if (!datos.emplazamiento_tipo) errores.push('Tipo de plazo (días u horas)');
     return errores;
   };
 
   const generarPDF = async () => {
     const errores = validarActa();
-    if (errores.length > 0) {
-      setErrorModal(errores);
-      return;
-    }
+    if (errores.length > 0) { setErrorModal(errores); return; }
 
     try {
       setLoading(true);
       setErrorModal(null);
 
-      // actaId puede ser null si el acta nunca se guardó como borrador antes de llegar acá.
-      // crearActa() actualiza el estado pero React no lo refleja en el mismo ciclo,
-      // por eso capturamos el ID del retorno directamente.
       const idParaUsar = actaId || (await crearActa());
 
-      const updatePayload = {
-        datos_formulario: datos.datos_formulario,
+      // Guardar respuestas dinámicas
+      await guardarRespuestas(idParaUsar);
+
+      await actasAPI.update(idParaUsar, {
         observaciones: datos.observaciones,
         emplazamiento_valor: datos.emplazamiento_valor,
         emplazamiento_tipo: datos.emplazamiento_tipo,
@@ -273,22 +217,13 @@ export default function NuevaActa() {
         firma_inspector_base64: datos.firma_inspector_base64,
         firma_responsable_base64: datos.firma_responsable_base64,
         fotos_urls: datos.fotos_urls,
-      };
+      });
 
-      if (seccionesSeleccionadas.length > 0) {
-        updatePayload.secciones_seleccionadas = seccionesSeleccionadas;
-      }
-
-      await actasAPI.update(idParaUsar, updatePayload);
-
-      const esNotificacion = datos.tipologia === 'notificacion';
       let blob;
       let pdfFilenameFromServer = null;
 
       try {
-        const responseBase64 = esNotificacion
-          ? await pdfAPI.generarNotificacion(idParaUsar) // Notificacion no tiene base64 aún
-          : await pdfAPI.generarActaBase64(idParaUsar);
+        const responseBase64 = await pdfAPI.generarActaBase64(idParaUsar);
         if (responseBase64.data?.pdfBuffer) {
           pdfFilenameFromServer = responseBase64.data?.filename || null;
           const base64 = responseBase64.data.pdfBuffer;
@@ -296,32 +231,25 @@ export default function NuevaActa() {
           try {
             const binaryString = atob(base64);
             bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i);
-            }
-          } catch (atobErr) {
+            for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+          } catch {
             const binary = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
             bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-              bytes[i] = binary.charCodeAt(i);
-            }
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
           }
           blob = new Blob([bytes], { type: 'application/pdf' });
         } else {
           throw new Error('No se recibió pdfBuffer');
         }
-      } catch (base64Err) {
-        console.warn('Base64 falló, usando blob:', base64Err.message);
-        const pdfResponse = esNotificacion
-          ? await pdfAPI.generarNotificacion(idParaUsar)
-          : await pdfAPI.generarActa(idParaUsar);
+      } catch {
+        const pdfResponse = await pdfAPI.generarActa(idParaUsar);
         blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
       }
+
       const url = window.URL.createObjectURL(blob);
       const safeName = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').slice(0, 40);
-      const pdfFilename = pdfFilenameFromServer || `acta_${safeName(datos.expediente)}_${safeName(datos.establecimiento_nombre)}_${datos.fecha || ''}.pdf`;
+      const pdfFilename = pdfFilenameFromServer || `acta_${safeName(datos.expediente)}_${safeName(datos.establecimiento_nombre)}_${datos.fecha}.pdf`;
 
-      // Abrir en nueva pestaña (más confiable en Android que a.click())
       const a = document.createElement('a');
       a.href = url;
       a.download = pdfFilename;
@@ -329,7 +257,6 @@ export default function NuevaActa() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      // No revocar inmediatamente para que el browser pueda usarlo
       setTimeout(() => window.URL.revokeObjectURL(url), 60000);
 
       navigate(`/acta/${idParaUsar}`);
@@ -337,34 +264,17 @@ export default function NuevaActa() {
       console.error('Error generando PDF:', err);
       if (err.response?.data instanceof Blob) {
         const text = await err.response.data.text();
-        try {
-          const json = JSON.parse(text);
-          alert(`Error del servidor: ${json.error || text}`);
-        } catch {
-          alert(`Error del servidor: ${text}`);
-        }
-      } else if (err.response?.data?.error) {
-        alert(`Error del servidor: ${err.response.data.error}`);
+        try { alert(`Error del servidor: ${JSON.parse(text).error || text}`); }
+        catch { alert(`Error del servidor: ${text}`); }
       } else {
-        alert(`Error al generar el PDF: ${err.message || ''}`);
+        alert(`Error al generar el PDF: ${err.response?.data?.error || err.message || ''}`);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Si la tipología tiene selector de secciones y ya hay seleccionadas, usarlas.
-  // Si no hay seleccionadas aún, mostrar solo las secciones base de esa tipología.
-  const secciones = (() => {
-    if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) {
-      if (seccionesSeleccionadas.length > 0) {
-        return seccionesSeleccionadas;
-      }
-      return SECCIONES_BASE[datos.tipologia] || ['conclusion_inspeccion'];
-    }
-    return SECCIONES_POR_TIPOLOGIA[datos.tipologia] || ['conclusion_inspeccion'];
-  })();
-
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-100">
       {errorModal && (
@@ -378,17 +288,14 @@ export default function NuevaActa() {
             </div>
             <p className="text-gray-600 mb-4">Faltan los siguientes datos obligatorios:</p>
             <ul className="space-y-2 mb-6">
-              {errorModal.map((error, index) => (
-                <li key={index} className="flex items-center gap-2 text-red-600">
-                  <span>•</span>
-                  <span>{error}</span>
+              {errorModal.map((e, i) => (
+                <li key={i} className="flex items-center gap-2 text-red-600">
+                  <span>•</span><span>{e}</span>
                 </li>
               ))}
             </ul>
-            <button
-              onClick={() => setErrorModal(null)}
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-            >
+            <button onClick={() => setErrorModal(null)}
+              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
               Entendido
             </button>
           </div>
@@ -397,97 +304,88 @@ export default function NuevaActa() {
 
       <header className="bg-blue-800 text-white p-4">
         <div className="max-w-2xl mx-auto">
-          <button onClick={() => navigate('/')} className="text-blue-200 hover:text-white mb-2">
-            ← Volver
-          </button>
+          <button onClick={() => navigate('/')} className="text-blue-200 hover:text-white mb-2">← Volver</button>
           <h1 className="text-xl font-bold">Nueva Acta de Inspección</h1>
         </div>
       </header>
 
       <div className="max-w-2xl mx-auto p-4">
+        {/* Barra de pasos */}
         <div className="flex justify-between mb-6 overflow-x-auto pb-2">
-          {PASOS.filter(p => {
-              // Para notificación, ocultar pasos 4 (secciones) y 5 (formulario)
-              if (datos.tipologia === 'notificacion' && (p.id === 4 || p.id === 5)) return false;
-              return true;
-            }).map((p) => (
-            <button
-              key={p.id}
+          {PASOS.map((p) => (
+            <button key={p.id}
               onClick={() => p.id <= paso && setPaso(p.id)}
               className={`px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${
-                p.id === paso
-                  ? 'bg-blue-600 text-white'
-                  : p.id < paso
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-300 text-gray-600'
-              }`}
-            >
+                p.id === paso ? 'bg-blue-600 text-white'
+                : p.id < paso ? 'bg-green-500 text-white'
+                : 'bg-gray-300 text-gray-600'
+              }`}>
               {p.id}. {p.label}
             </button>
           ))}
         </div>
 
         <div className="card">
+
+          {/* PASO 1 — Establecimiento */}
           {paso === 1 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Datos del Establecimiento</h2>
-              
+
               <div className="mb-4">
                 <label className="label-field">Tipología</label>
-                <select
-                  value={datos.tipologia}
-                  onChange={(e) => setDatos(prev => ({ ...prev, tipologia: e.target.value }))}
-                  className="input-field"
-                  required
-                >
-                  <option value="">Seleccionar tipología</option>
-                  {TIPOLOGIAS.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
+                {tipologias.length === 0 ? (
+                  <p className="text-sm text-gray-500 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    No hay tipologías configuradas. Creá una desde el panel de administración en <strong>/admin</strong>.
+                  </p>
+                ) : (
+                  <select
+                    value={datos.tipologia}
+                    onChange={e => setDatos(prev => ({ ...prev, tipologia: e.target.value }))}
+                    className="input-field"
+                  >
+                    <option value="">Seleccionar tipología</option>
+                    {tipologias.map(t => (
+                      <option key={t.id} value={t.nombre}>{t.nombre}</option>
+                    ))}
+                  </select>
+                )}
+                {loadingTemplate && (
+                  <p className="text-xs text-blue-500 mt-1">Cargando template...</p>
+                )}
+                {datos.tipologia && !loadingTemplate && !template && (
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Esta tipología no tiene template configurado aún. El formulario estará vacío.
+                  </p>
+                )}
               </div>
 
               <div className="mb-4">
                 <label className="label-field">Expediente</label>
-                <input
-                  type="text"
-                  value={datos.expediente}
-                  onChange={(e) => setDatos(prev => ({ ...prev, expediente: e.target.value }))}
-                  className="input-field"
-                  placeholder="0425-xxxxxx/20xx"
-                />
+                <input type="text" value={datos.expediente}
+                  onChange={e => setDatos(prev => ({ ...prev, expediente: e.target.value }))}
+                  className="input-field" placeholder="0425-xxxxxx/20xx" />
               </div>
-
 
               <div className="mb-4">
                 <label className="label-field">Nombre del Establecimiento *</label>
-                <input
-                  type="text"
-                  value={datos.establecimiento_nombre}
-                  onChange={(e) => setDatos(prev => ({ ...prev, establecimiento_nombre: e.target.value }))}
-                  className="input-field"
-                  required
-                />
+                <input type="text" value={datos.establecimiento_nombre}
+                  onChange={e => setDatos(prev => ({ ...prev, establecimiento_nombre: e.target.value }))}
+                  className="input-field" required />
               </div>
 
               <div className="mb-4">
                 <label className="label-field">Dirección</label>
-                <input
-                  type="text"
-                  value={datos.establecimiento_direccion}
-                  onChange={(e) => setDatos(prev => ({ ...prev, establecimiento_direccion: e.target.value }))}
-                  className="input-field"
-                />
+                <input type="text" value={datos.establecimiento_direccion}
+                  onChange={e => setDatos(prev => ({ ...prev, establecimiento_direccion: e.target.value }))}
+                  className="input-field" />
               </div>
 
               <div className="mb-4">
                 <label className="label-field">Localidad</label>
-                <input
-                  type="text"
-                  value={datos.establecimiento_localidad}
-                  onChange={(e) => setDatos(prev => ({ ...prev, establecimiento_localidad: e.target.value }))}
-                  className="input-field"
-                />
+                <input type="text" value={datos.establecimiento_localidad}
+                  onChange={e => setDatos(prev => ({ ...prev, establecimiento_localidad: e.target.value }))}
+                  className="input-field" />
               </div>
 
               <button
@@ -498,125 +396,91 @@ export default function NuevaActa() {
                   }
                 }}
                 disabled={!datos.tipologia || !datos.establecimiento_nombre}
-                className="btn-primary disabled:opacity-50"
-              >
+                className="btn-primary disabled:opacity-50">
                 Siguiente →
               </button>
             </div>
           )}
 
+          {/* PASO 2 — Responsable */}
           {paso === 2 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Datos del Responsable</h2>
-              
+
               <div className="mb-4">
                 <label className="label-field">Nombre y Apellido *</label>
-                <input
-                  type="text"
-                  value={datos.responsable_nombre}
-                  onChange={(e) => setDatos(prev => ({ ...prev, responsable_nombre: e.target.value }))}
-                  className="input-field"
-                  required
-                />
+                <input type="text" value={datos.responsable_nombre}
+                  onChange={e => setDatos(prev => ({ ...prev, responsable_nombre: e.target.value }))}
+                  className="input-field" required />
               </div>
 
               <div className="mb-4">
                 <label className="label-field">DNI</label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={datos.responsable_dni}
-                  onChange={(e) => setDatos(prev => ({ ...prev, responsable_dni: e.target.value }))}
-                  className="input-field"
-                />
+                <input type="number" inputMode="numeric" value={datos.responsable_dni}
+                  onChange={e => setDatos(prev => ({ ...prev, responsable_dni: e.target.value }))}
+                  className="input-field" />
               </div>
 
               <div className="mb-4">
                 <label className="label-field">Carácter</label>
-                <input
-                  type="text"
-                  value={datos.responsable_caracter}
-                  onChange={(e) => setDatos(prev => ({ ...prev, responsable_caracter: e.target.value }))}
-                  className="input-field"
-                  placeholder="Ej: Director Técnico, Propietario, etc."
-                />
+                <input type="text" value={datos.responsable_caracter}
+                  onChange={e => setDatos(prev => ({ ...prev, responsable_caracter: e.target.value }))}
+                  className="input-field" placeholder="Ej: Director Técnico, Propietario..." />
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setPaso(1)} className="btn-secondary">
-                  ← Anterior
-                </button>
-                <button
-                  onClick={async () => {
-                    if (datos.responsable_nombre) {
-                      await guardarBorrador();
-                      setPaso(3);
-                    }
-                  }}
-                  disabled={!datos.responsable_nombre}
-                  className="btn-primary disabled:opacity-50"
-                >
+                <button onClick={() => setPaso(1)} className="btn-secondary">← Anterior</button>
+                <button onClick={async () => {
+                  if (datos.responsable_nombre) { await guardarBorrador(); setPaso(3); }
+                }} disabled={!datos.responsable_nombre} className="btn-primary disabled:opacity-50">
                   Siguiente →
                 </button>
               </div>
             </div>
           )}
 
+          {/* PASO 3 — Tipo de inspección */}
           {paso === 3 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Tipo de Inspección</h2>
-              
+
               <div className="mb-4">
                 <label className="label-field">Fecha</label>
-                <input
-                  type="date"
-                  value={datos.fecha}
-                  onChange={(e) => setDatos(prev => ({ ...prev, fecha: e.target.value }))}
-                  className="input-field"
-                />
+                <input type="date" value={datos.fecha}
+                  onChange={e => setDatos(prev => ({ ...prev, fecha: e.target.value }))}
+                  className="input-field" />
               </div>
 
               <div className="mb-4">
                 <label className="label-field">Hora</label>
-                <input
-                  type="time"
-                  value={datos.hora}
-                  onChange={(e) => setDatos(prev => ({ ...prev, hora: e.target.value }))}
-                  className="input-field"
-                />
+                <input type="time" value={datos.hora}
+                  onChange={e => setDatos(prev => ({ ...prev, hora: e.target.value }))}
+                  className="input-field" />
               </div>
 
               <div className="mb-4">
-                <label className="label-field">Tipo de Inspección</label>
+                <label className="label-field">Modalidad</label>
                 <div className="flex gap-4">
-                  <button
-                    type="button"
+                  <button type="button"
                     onClick={() => setDatos(prev => ({ ...prev, presencial: true, virtual: false }))}
-                    className={`flex-1 py-4 rounded-lg font-semibold transition-colors ${datos.presencial ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-                  >
+                    className={`flex-1 py-4 rounded-lg font-semibold transition-colors ${datos.presencial ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
                     Presencial
                   </button>
-                  <button
-                    type="button"
+                  <button type="button"
                     onClick={() => setDatos(prev => ({ ...prev, presencial: false, virtual: true }))}
-                    className={`flex-1 py-4 rounded-lg font-semibold transition-colors ${datos.virtual ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-                  >
+                    className={`flex-1 py-4 rounded-lg font-semibold transition-colors ${datos.virtual ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
                     Virtual
                   </button>
                 </div>
               </div>
 
               <div className="mb-4">
-                <label className="label-field">Motivo de la Inspección</label>
+                <label className="label-field">Motivo</label>
                 <div className="grid grid-cols-3 gap-3">
-                  {['HABILITACION', 'RUTINA', 'DENUNCIA'].map((tipo) => (
-                    <button
-                      key={tipo}
-                      type="button"
+                  {['HABILITACION', 'RUTINA', 'DENUNCIA'].map(tipo => (
+                    <button key={tipo} type="button"
                       onClick={() => setDatos(prev => ({ ...prev, tipo_inspeccion: tipo }))}
-                      className={`py-4 rounded-lg font-semibold transition-colors ${datos.tipo_inspeccion === tipo ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-                    >
+                      className={`py-4 rounded-lg font-semibold transition-colors ${datos.tipo_inspeccion === tipo ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
                       {tipo}
                     </button>
                   ))}
@@ -624,17 +488,10 @@ export default function NuevaActa() {
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setPaso(2)} className="btn-secondary">
-                  ← Anterior
-                </button>
+                <button onClick={() => setPaso(2)} className="btn-secondary">← Anterior</button>
                 <button onClick={() => {
-                  if (datos.tipologia === 'notificacion') {
-                    // Notificación: sin secciones, ir a paso 5 para observaciones/emplazamiento
-                    setPaso(5);
-                  } else if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) {
-                    if (seccionesSeleccionadas.length === 0) {
-                      setSeccionesSeleccionadas(SECCIONES_BASE[datos.tipologia] || []);
-                    }
+                  // Si hay template con secciones, mostrar selector; si no, saltar al formulario
+                  if (template && template.secciones?.length > 0) {
                     setPaso(4);
                   } else {
                     setPaso(5);
@@ -646,56 +503,32 @@ export default function NuevaActa() {
             </div>
           )}
 
+          {/* PASO 4 — Selector de secciones */}
           {paso === 4 && (
             <div>
               <h2 className="text-xl font-bold mb-2">Secciones a Inspeccionar</h2>
               <p className="text-gray-500 text-sm mb-4">
                 Seleccioná las áreas que vas a inspeccionar en esta visita.
-                Las secciones base siempre están incluidas.
               </p>
 
-              {/* Secciones base — siempre presentes */}
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-semibold text-blue-700 mb-2">Siempre incluidas:</p>
-                <div className="flex flex-wrap gap-2">
-                  {(SECCIONES_BASE[datos.tipologia] || []).map(s => (
-                    <span key={s} className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                      {SECCION_LABELS[s] || s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Secciones opcionales */}
               <div className="space-y-2">
-                {(SECCIONES_OPCIONALES[datos.tipologia] || []).map(({ key, label }) => {
-                  const seleccionada = seccionesSeleccionadas.includes(key);
+                {(template?.secciones || []).map(sec => {
+                  const activa = seccionesActivas.includes(sec.id);
                   return (
-                    <button
-                      key={key}
-                      type="button"
+                    <button key={sec.id} type="button"
                       onClick={() => {
-                        if (seleccionada) {
-                          setSeccionesSeleccionadas(prev => prev.filter(s => s !== key));
-                        } else {
-                          // Insertar en el orden correcto (base primero, luego opcionales en orden)
-                          const base = SECCIONES_BASE[datos.tipologia] || [];
-                          const opcionales = (SECCIONES_OPCIONALES[datos.tipologia] || []).map(o => o.key);
-                          const nuevas = [...base, ...opcionales.filter(k =>
-                            k === key || (seccionesSeleccionadas.includes(k) && !base.includes(k))
-                          )];
-                          setSeccionesSeleccionadas(nuevas);
-                        }
+                        setSeccionesActivas(prev =>
+                          activa ? prev.filter(id => id !== sec.id) : [...prev, sec.id]
+                        );
                       }}
                       className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-colors text-left ${
-                        seleccionada
+                        activa
                           ? 'bg-green-50 border-green-500 text-green-800'
                           : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
-                      }`}
-                    >
-                      <span className="font-medium">{label}</span>
-                      <span className={`text-2xl font-bold ${seleccionada ? 'text-green-500' : 'text-gray-300'}`}>
-                        {seleccionada ? '✓' : '+'}
+                      }`}>
+                      <span className="font-medium">{sec.titulo}</span>
+                      <span className={`text-2xl font-bold ${activa ? 'text-green-500' : 'text-gray-300'}`}>
+                        {activa ? '✓' : '+'}
                       </span>
                     </button>
                   );
@@ -703,165 +536,107 @@ export default function NuevaActa() {
               </div>
 
               <div className="flex gap-4 mt-6">
-                <button onClick={() => setPaso(3)} className="btn-secondary">
-                  ← Anterior
-                </button>
-                <button onClick={() => setPaso(5)} className="btn-primary">
-                  Siguiente →
-                </button>
+                <button onClick={() => setPaso(3)} className="btn-secondary">← Anterior</button>
+                <button onClick={() => setPaso(5)} className="btn-primary">Siguiente →</button>
               </div>
             </div>
           )}
 
+          {/* PASO 5 — Formulario */}
           {paso === 5 && (
             <div>
-              <h2 className="text-xl font-bold mb-4">
-                {datos.tipologia === 'notificacion' ? 'Observaciones y Emplazamiento' : 'Formulario de Inspección'}
-              </h2>
+              <h2 className="text-xl font-bold mb-4">Formulario de Inspección</h2>
 
-              {datos.tipologia !== 'notificacion' && secciones.map((seccion) => (
-                <SeccionDinamica
-                  key={seccion}
-                  tipo={seccion}
-                  datos={datos.datos_formulario}
-                  onChange={(seccionDatos) => {
-                    setDatos(prev => ({
-                      ...prev,
-                      datos_formulario: { ...prev.datos_formulario, ...seccionDatos }
-                    }));
-                  }}
-                />
-              ))}
+              <SeccionDinamica
+                secciones={seccionesFiltradas}
+                respuestas={respuestas}
+                onChange={handleRespuesta}
+              />
 
               <div className="mb-4 mt-6">
                 <label className="label-field">Observaciones</label>
-                <textarea
-                  value={datos.observaciones}
-                  onChange={(e) => setDatos(prev => ({ ...prev, observaciones: e.target.value }))}
-                  className="input-field h-32"
-                  placeholder="Ingrese sus observaciones..."
-                />
+                <textarea value={datos.observaciones}
+                  onChange={e => setDatos(prev => ({ ...prev, observaciones: e.target.value }))}
+                  className="input-field h-32" placeholder="Ingrese sus observaciones..." />
               </div>
 
               <div className="mb-4">
                 <label className="label-field font-semibold">Plazo de Emplazamiento *</label>
                 <div className="flex gap-3 mt-2">
-                  <input
-                    type="number"
-                    value={datos.emplazamiento_valor}
-                    onChange={(e) => setDatos(prev => ({ ...prev, emplazamiento_valor: parseInt(e.target.value) || 0 }))}
-                    className="input-field w-24"
-                    min="1"
-                    required
-                  />
+                  <input type="number" value={datos.emplazamiento_valor}
+                    onChange={e => setDatos(prev => ({ ...prev, emplazamiento_valor: parseInt(e.target.value) || 0 }))}
+                    className="input-field w-24" min="1" required />
                   <div className="flex gap-2 flex-1">
-                    <button
-                      type="button"
-                      onClick={() => setDatos(prev => ({ ...prev, emplazamiento_tipo: 'HORAS' }))}
-                      className={`flex-1 py-3 px-4 rounded-lg font-semibold text-lg transition-colors ${
-                        datos.emplazamiento_tipo === 'HORAS'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 text-gray-700'
-                      }`}
-                    >
-                      HORAS
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDatos(prev => ({ ...prev, emplazamiento_tipo: 'DÍAS' }))}
-                      className={`flex-1 py-3 px-4 rounded-lg font-semibold text-lg transition-colors ${
-                        datos.emplazamiento_tipo === 'DÍAS'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 text-gray-700'
-                      }`}
-                    >
-                      DÍAS
-                    </button>
+                    {['HORAS', 'DÍAS'].map(tipo => (
+                      <button key={tipo} type="button"
+                        onClick={() => setDatos(prev => ({ ...prev, emplazamiento_tipo: tipo }))}
+                        className={`flex-1 py-3 px-4 rounded-lg font-semibold text-lg transition-colors ${
+                          datos.emplazamiento_tipo === tipo ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                        }`}>
+                        {tipo}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                {datos.emplazamiento_valor > 0 && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    Ejemplo: {datos.emplazamiento_valor} {datos.emplazamiento_tipo}
-                  </p>
-                )}
               </div>
 
               <div className="flex gap-4">
                 <button onClick={() => {
-                  if (TIPOLOGIAS_CON_SELECTOR.includes(datos.tipologia)) setPaso(4);
+                  if (template && template.secciones?.length > 0) setPaso(4);
                   else setPaso(3);
-                }} className="btn-secondary">
-                  ← Anterior
-                </button>
-                <button onClick={() => setPaso(6)} className="btn-primary">
-                  Siguiente →
-                </button>
+                }} className="btn-secondary">← Anterior</button>
+                <button onClick={() => setPaso(6)} className="btn-primary">Siguiente →</button>
               </div>
             </div>
           )}
 
+          {/* PASO 6 — Fotos */}
           {paso === 6 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Fotos de la Inspección</h2>
-              
               <SubidaFotos onFotosChange={guardarFotos} />
-
               <div className="flex gap-4 mt-6">
-                <button onClick={() => setPaso(5)} className="btn-secondary">
-                  ← Anterior
-                </button>
-                <button onClick={() => setPaso(7)} className="btn-primary">
-                  Siguiente →
-                </button>
+                <button onClick={() => setPaso(5)} className="btn-secondary">← Anterior</button>
+                <button onClick={() => setPaso(7)} className="btn-primary">Siguiente →</button>
               </div>
             </div>
           )}
 
+          {/* PASO 7 — Firmas */}
           {paso === 7 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Firmas</h2>
-              
+
               <div className="mb-8">
-                <FirmaCanvas
-                  onFirma={handleFirmaInspector}
-                  label="Firma del Inspector *"
-                />
+                <FirmaCanvas onFirma={f => setDatos(prev => ({ ...prev, firma_inspector_base64: f }))}
+                  label="Firma del Inspector *" />
                 {datos.firma_inspector_base64 && (
                   <span className="text-green-600 text-sm mt-1 inline-block">✓ Firmado</span>
                 )}
               </div>
 
               <div className="mb-8">
-                <FirmaCanvas
-                  onFirma={handleFirmaResponsable}
-                  label="Firma del Responsable *"
-                />
+                <FirmaCanvas onFirma={f => setDatos(prev => ({ ...prev, firma_responsable_base64: f }))}
+                  label="Firma del Responsable *" />
                 {datos.firma_responsable_base64 && (
                   <span className="text-green-600 text-sm mt-1 inline-block">✓ Firmado</span>
                 )}
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setPaso(6)} className="btn-secondary">
-                  ← Anterior
-                </button>
-                <button
-                  onClick={generarPDF}
-                  disabled={loading}
-                  className="btn-primary bg-green-600 hover:bg-green-700 disabled:opacity-50 px-8 py-4 text-lg"
-                >
+                <button onClick={() => setPaso(6)} className="btn-secondary">← Anterior</button>
+                <button onClick={generarPDF} disabled={loading}
+                  className="btn-primary bg-green-600 hover:bg-green-700 disabled:opacity-50 px-8 py-4 text-lg">
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <span className="animate-spin">⏳</span>
-                      Generando...
+                      <span className="animate-spin">⏳</span> Generando...
                     </span>
-                  ) : (
-                    'Generar Acta PDF'
-                  )}
+                  ) : 'Generar Acta PDF'}
                 </button>
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>

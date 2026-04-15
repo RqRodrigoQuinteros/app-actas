@@ -1,53 +1,41 @@
-{{#seccionWrapper}}
+{{#seccion}}
   <h3>CONCLUSIÓN DE LA INSPECCIÓN</h3>
   <table>
-    {{#if (hasValue observado)}}
     <tr>
       <td style="width: 70%;"><strong>Observado</strong></td>
       <td style="width: 30%; text-align: center;">
-        <strong class="{{valorClass observado}}">{{valorSiNo observado}}</strong>
+        <strong class="{{#if observado}}valor-si{{else}}valor-no{{/if}}">{{#if observado}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-    {{/if}}
-    {{#if (hasValue director_tecnico)}}
     <tr>
       <td><strong>Director Técnico</strong></td>
       <td style="text-align: center;">
-        <strong class="{{valorClass director_tecnico}}">{{valorSiNo director_tecnico}}</strong>
+        <strong class="{{#if director_tecnico}}valor-si{{else}}valor-no{{/if}}">{{#if director_tecnico}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-    {{/if}}
-    {{#if (hasValue laboratorio)}}
     <tr>
       <td><strong>Laboratorio</strong></td>
       <td style="text-align: center;">
-        <strong class="{{valorClass laboratorio}}">{{valorSiNo laboratorio}}</strong>
+        <strong class="{{#if laboratorio}}valor-si{{else}}valor-no{{/if}}">{{#if laboratorio}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-    {{/if}}
-    {{#if (hasValue hemoterapia)}}
     <tr>
       <td><strong>Hemoterapia</strong></td>
       <td style="text-align: center;">
-        <strong class="{{valorClass hemoterapia}}">{{valorSiNo hemoterapia}}</strong>
+        <strong class="{{#if hemoterapia}}valor-si{{else}}valor-no{{/if}}">{{#if hemoterapia}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-    {{/if}}
-    {{#if (hasValue radiofisica)}}
     <tr>
       <td><strong>Radiofísica</strong></td>
       <td style="text-align: center;">
-        <strong class="{{valorClass radiofisica}}">{{valorSiNo radiofisica}}</strong>
+        <strong class="{{#if radiofisica}}valor-si{{else}}valor-no{{/if}}">{{#if radiofisica}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-    {{/if}}
-    {{#if (hasValue hemodialisis)}}
     <tr>
       <td><strong>Hemodiálisis</strong></td>
       <td style="text-align: center;">
-        <strong class="{{valorClass hemodialisis}}">{{valorSiNo hemodialisis}}</strong>
+        <strong class="{{#if hemodialisis}}valor-si{{else}}valor-no{{/if}}">{{#if hemodialisis}}SI{{else}}NO{{/if}}</strong>
       </td>
     </tr>
-    {{/if}}
   </table>
-{{/seccionWrapper}}
+{{/seccion}}
