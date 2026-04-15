@@ -337,6 +337,7 @@ export default function InformeArqGeriatricos() {
   const [obsArt, setObsArt]   = useState({});
   const [articulos, setArticulos]     = useState([]);
   const [tipologiaId, setTipologiaId] = useState(location.state?.tipologia_id || null);
+  const [tipologiaNombre, setTipologiaNombre] = useState(location.state?.tipologia_nombre || null);
   const [loadingArticulos, setLoadingArticulos] = useState(true);
 
   const [guardando, setGuardando]       = useState(false);
@@ -356,6 +357,7 @@ export default function InformeArqGeriatricos() {
         } else {
           const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
           setTipologiaId(r.data.id);
+          if (!tipologiaNombre) setTipologiaNombre(r.data.nombre);
           arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion }));
         }
         const lista = arts.length > 0 ? arts : ARTICULOS_FALLBACK;
@@ -381,6 +383,7 @@ export default function InformeArqGeriatricos() {
           const df = res.data.datos_formulario || {};
           setGenerales({ ...GENERALES_VACÍO, ...(df.generales || {}) });
           if (df.tipologia_id) setTipologiaId(df.tipologia_id);
+          if (df.tipologia_nombre) setTipologiaNombre(df.tipologia_nombre);
           if (df.checks) setChecks(prev => ({ ...prev, ...df.checks }));
           if (df.observaciones) setObsArt(prev => ({ ...prev, ...df.observaciones }));
         })
@@ -404,7 +407,7 @@ export default function InformeArqGeriatricos() {
       establecimiento_localidad: generales.barrio || "",
       expediente: generales.expDigital || generales.expPapel || "",
       fecha: generales.fecha || null,
-      datos_formulario: { generales, checks, observaciones: obsArt, tipo: "geriatrico", tipologia_id: tipologiaId },
+      datos_formulario: { generales, checks, observaciones: obsArt, tipo: "geriatrico", tipologia_id: tipologiaId, tipologia_nombre: tipologiaNombre },
       observaciones: generales.observaciones || "",
       tipo: "geriatrico",
     };
@@ -425,11 +428,20 @@ export default function InformeArqGeriatricos() {
   const handleGenerarPDF = async () => {
     setGenerandoPDF(true); setErrorMsg("");
     try {
-      const response = await api.post("/pdf/geriatrico", { ...generales, articulosObservados }, { responseType: "blob" });
+      const response = await api.post("/pdf/geriatrico", {
+        ...generales,
+        articulosObservados,
+        tipologia_nombre: tipologiaNombre || 'Geriátricos',
+      }, { responseType: "blob" });
       const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `geriatrico_${(generales.expDigital || generales.nombreEst || "informe").replace(/[^a-zA-Z0-9_.\-]/g, "_")}.pdf`);
+      const partes = [
+        'Evaluación técnica Arquitectura',
+        generales.nombreEst || '',
+        generales.expDigital || generales.expPapel || '',
+      ].filter(Boolean).join(' - ');
+      link.setAttribute("download", `${partes}.pdf`);
       document.body.appendChild(link); link.click(); link.remove();
       window.URL.revokeObjectURL(url);
     } catch { setErrorMsg("Error al generar el PDF."); }
@@ -463,7 +475,7 @@ export default function InformeArqGeriatricos() {
             </button>
             <span style={{ color: "#d1d5db" }}>/</span>
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", background: "#f3e8ff", padding: "2px 9px", borderRadius: "20px", letterSpacing: "0.05em" }}>
-              GERIÁTRICOS
+              {(tipologiaNombre || 'GERIÁTRICOS').toUpperCase()}
             </span>
           </div>
           <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>
@@ -563,7 +575,7 @@ export default function InformeArqGeriatricos() {
         <div>
           {/* Cabecera del informe */}
           <div style={S.card}>
-            <p style={{ ...S.sectionTitle, marginBottom: "16px" }}>Evaluación Técnica Geriátricos — Fiscalización Edilicia</p>
+            <p style={{ ...S.sectionTitle, marginBottom: "16px" }}>Evaluación Técnica {tipologiaNombre || 'Geriátricos'} — Fiscalización Edilicia</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 32px", fontSize: "13px" }}>
               {[
                 ["Auditor Arquitectura", generales.arquitecto],

@@ -33,7 +33,7 @@ export default function InformeArquitecto() {
 
   const crearNuevo = (tipologia) => {
     setModalNuevo(false);
-    navigate('/informe/geriatricos/nuevo', { state: { tipologia_id: tipologia.id } });
+    navigate('/informe/geriatricos/nuevo', { state: { tipologia_id: tipologia.id, tipologia_nombre: tipologia.nombre } });
   };
 
   // Detecta el tipo del informe mirando tipo, datos_formulario.tipo, o el nombre del establecimiento

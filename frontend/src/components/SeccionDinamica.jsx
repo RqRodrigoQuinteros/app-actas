@@ -1,7 +1,13 @@
 // SeccionDinamica — renderiza campos dinámicos desde la BD
 // Recibe: secciones[] con campos[] adentro, respuestas {campo_id: valor}, onChange(campo_id, valor)
 
+import { useState } from 'react';
+
 export default function SeccionDinamica({ secciones = [], respuestas = {}, onChange }) {
+  const [openSections, setOpenSections] = useState(
+    () => Object.fromEntries(secciones.map((s, i) => [s.id, i === 0]))
+  );
+  const toggle = (id) => setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
 
   const renderCampo = (campo) => {
     const valor = respuestas[campo.id] ?? '';
@@ -135,23 +141,49 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
 
   return (
     <>
-      {secciones.map(seccion => (
-        <div key={seccion.id} className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="font-bold text-lg mb-3 text-gray-800 uppercase">{seccion.titulo}</h3>
+      {secciones.map((seccion, idx) => {
+        const isOpen = !!openSections[seccion.id];
+        return (
+          <div key={seccion.id} className="mb-4 rounded-lg border border-gray-200 overflow-hidden">
+            {/* Header colapsable */}
+            <div
+              onClick={() => toggle(seccion.id)}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                minHeight: '56px', cursor: 'pointer', padding: '0 16px',
+                background: isOpen ? '#f9fafb' : '#e5e7eb',
+                userSelect: 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  fontSize: '11px', fontWeight: 700, color: '#fff',
+                  background: '#6b7280', padding: '2px 7px', borderRadius: '4px',
+                }}>
+                  {idx + 1}
+                </span>
+                <span className="font-bold text-base text-gray-800 uppercase">{seccion.titulo}</span>
+              </div>
+              <span style={{ fontSize: '18px', color: '#6b7280', lineHeight: 1 }}>
+                {isOpen ? '▲' : '▼'}
+              </span>
+            </div>
 
-          {seccion.texto_previo && (
-            <p className="text-sm text-gray-500 italic mb-3">{seccion.texto_previo}</p>
-          )}
-
-          <div className="space-y-3">
-            {(seccion.campos || []).map(campo => renderCampo(campo))}
+            {/* Body condicional */}
+            {isOpen && (
+              <div className="p-4 bg-gray-50 space-y-3">
+                {seccion.texto_previo && (
+                  <p className="text-sm text-gray-500 italic">{seccion.texto_previo}</p>
+                )}
+                {(seccion.campos || []).map(campo => renderCampo(campo))}
+                {seccion.texto_posterior && (
+                  <p className="text-sm text-gray-500 italic mt-2">{seccion.texto_posterior}</p>
+                )}
+              </div>
+            )}
           </div>
-
-          {seccion.texto_posterior && (
-            <p className="text-sm text-gray-500 italic mt-3">{seccion.texto_posterior}</p>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </>
   );
 }

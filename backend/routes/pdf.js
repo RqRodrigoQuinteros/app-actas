@@ -288,10 +288,25 @@ router.post('/geriatrico', authenticateToken, async (req, res) => {
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba    = cargarLogoBase64('logo_cordoba.png');
 
-    const buffer = toBuffer(await generarInformeGeriatricoPDF(datos, logoMinisterio, logoCordoba, logoMembrete));
+    // Títulos dinámicos según tipología
+    const TITULOS_TIPOLOGIA = {
+      'Geriátricos': { tituloInforme: 'Evaluación Técnica Geriátricos', subtituloInforme: 'Fiscalización Edilicia' },
+    };
+    const tipNombre = datos.tipologia_nombre || 'Geriátricos';
+    const titulos = TITULOS_TIPOLOGIA[tipNombre] || {
+      tituloInforme: `Evaluación Técnica — ${tipNombre}`,
+      subtituloInforme: 'Fiscalización Edilicia',
+    };
+    const datosConTitulos = { ...datos, ...titulos };
 
-    const nombreArchivo = `geriatrico_${datos.expDigital || datos.nombreEst || 'informe'}.pdf`
-      .replace(/[^a-zA-Z0-9_.\-]/g, '_');
+    const buffer = toBuffer(await generarInformeGeriatricoPDF(datosConTitulos, logoMinisterio, logoCordoba, logoMembrete));
+
+    const partes = [
+      'Evaluación técnica Arquitectura',
+      datos.nombreEst || '',
+      datos.expDigital || datos.expPapel || '',
+    ].filter(Boolean).join(' - ');
+    const nombreArchivo = `${partes}.pdf`.replace(/[^a-zA-Z0-9_.\-\s]/g, '_');
 
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
