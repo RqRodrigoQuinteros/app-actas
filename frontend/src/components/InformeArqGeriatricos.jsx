@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { informesAPI } from "../utils/api";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { informesAPI, informesTemplatesAPI } from "../utils/api";
 import api from "../utils/api";
 
 // ─── ESTILOS BASE ─────────────────────────────────────────────────────────────
@@ -74,6 +74,34 @@ const SECCIONES = [
     ]
   },
   {
+    titulo: "Radiofísica",
+    campos: [
+      { id: "rad_convencional",  label: "Radiología Convencional Simple y Contrastada (Rayos X)", tipo: "sino" },
+      { id: "rad_acelerador",    label: "Acelerador Lineal de Electrones",                        tipo: "sino" },
+      { id: "rad_ortopanto",     label: "Ortopantomografía",                                      tipo: "sino" },
+      { id: "rad_tomografia",    label: "Tomografía Computada",                                   tipo: "sino" },
+      { id: "rad_litotricia",    label: "Litotricia",                                             tipo: "sino" },
+      { id: "rad_laser",         label: "Láser",                                                  tipo: "sino" },
+      { id: "rad_hemodinamia",   label: "Radiología Intervencionista - Hemodinamia",               tipo: "sino" },
+      { id: "rad_pet",           label: "PET / SPECT / Tomografía por emisión de positrones",     tipo: "sino" },
+      { id: "rad_ultravioleta",  label: "Ultra Violeta",                                          tipo: "sino" },
+      { id: "rad_arco_c",        label: "Radiología Intervencionista - Arco en C",                tipo: "sino" },
+      { id: "rad_conebeam",      label: "Tomografía Computada - Dental / Cone Beam",              tipo: "sino" },
+      { id: "rad_resonancia",    label: "Resonancia Magnética",                                   tipo: "sino" },
+      { id: "rad_densitometria", label: "Densitometría Ósea",                                    tipo: "sino" },
+      { id: "rad_dental",        label: "Radiología Dental / Rayos X Dental",                    tipo: "sino" },
+    ]
+  },
+  {
+    titulo: "Otros",
+    campos: [
+      { id: "otro_laboratorio",  label: "Laboratorio",  tipo: "sino" },
+      { id: "otro_hemodialisis", label: "Hemodiálisis", tipo: "sino" },
+      { id: "otro_oncologicos",  label: "Oncológicos",  tipo: "sino" },
+      { id: "otro_pileta",       label: "Pileta",       tipo: "sino" },
+    ]
+  },
+  {
     titulo: "Observaciones y Conclusión",
     campos: [
       { id: "verificarInsp", label: "Verificar en Inspección", placeholder: "-", fullWidth: true },
@@ -89,7 +117,8 @@ const CONCLUSIONES = [
   "EN ESPERA DE ACLARACION Y/O DOCUMENTACION",
 ];
 
-const ARTICULOS = [
+// ARTICULOS ya no es hardcodeado — se carga desde la BD en useEffect
+const ARTICULOS_FALLBACK = [
   { nro: "2.a",    desc: "Documentación. Al momento de solicitar la habilitación se deberá presentar la siguiente documentación, en original o fotocopia debidamente autenticada, sin perjuicio de la documentación anexa específica para algunos tipos de establecimientos: a) Cuadernillo habilitante – categorizante." },
   { nro: "8",      desc: "Establecimientos con internación. Excepto los Hogares de Residencia, tendrán como mínimo las siguientes dependencias: habitaciones; baños; comedor, sala de estar-usos múltiples; consultorio interno y office de enfermería; cocina; despensa; lavadero con tendedero; patio o jardín. Todas las circulaciones y conexiones entre las distintas dependencias deberán ser cubiertas y cerradas." },
   { nro: "9",      desc: "Establecimientos sin internación. Dispondrán de espacios de uso común (estar, comedor – usos múltiples) con sanitarios en proporción y dimensiones conforme a lo establecido por el Código de Edificación de la localidad. Dispondrán de espacios separados de los de uso común, destinados al descanso y recreación de los usuarios." },
@@ -139,6 +168,13 @@ const GENERALES_VACÍO = {
   pileta: "", habMunicipal: "", circ: "", seccion: "",
   manzana: "", parcela: "", loteOficial: "",
   verificarInsp: "", observaciones: "", conclusion: "",
+  // Radiofísica
+  rad_convencional: "", rad_acelerador: "", rad_ortopanto: "", rad_tomografia: "",
+  rad_litotricia: "", rad_laser: "", rad_hemodinamia: "", rad_pet: "",
+  rad_ultravioleta: "", rad_arco_c: "", rad_conebeam: "", rad_resonancia: "",
+  rad_densitometria: "", rad_dental: "",
+  // Otros
+  otro_laboratorio: "", otro_hemodialisis: "", otro_oncologicos: "", otro_pileta: "",
 };
 
 // ─── CAMPO INDIVIDUAL ─────────────────────────────────────────────────────────
@@ -323,16 +359,111 @@ function BtnNav({ onClick, children, primary, disabled }) {
   );
 }
 
+// ─── ARTÍCULOS CON SECCIONES COLAPSABLES ─────────────────────────────────────
+function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalChecked, setCheck, setObs, onBack, onNext }) {
+  // Agrupar artículos por grupo
+  const articulosPorGrupo = articulos.reduce((acc, art) => {
+    const g = art.grupo || '__sin_grupo__';
+    if (!acc[g]) acc[g] = [];
+    acc[g].push(art);
+    return acc;
+  }, {});
+  const grupos = Object.entries(articulosPorGrupo);
+  const tieneGrupos = grupos.some(([g]) => g !== '__sin_grupo__');
+
+  const [openGrupos, setOpenGrupos] = useState(
+    () => Object.fromEntries(grupos.map(([g], i) => [g, i === 0]))
+  );
+  const toggleGrupo = (g) => setOpenGrupos(prev => ({ ...prev, [g]: !prev[g] }));
+
+  // Contar seleccionados por grupo
+  const countGrupo = (arts) => arts.filter(a => checks[a.nro]).length;
+
+  return (
+    <div>
+      <div style={{ ...S.card, background: "#f0f9ff", border: "1px solid #bae6fd", marginBottom: "16px" }}>
+        <p style={{ margin: 0, fontSize: "13px", color: "#0369a1", lineHeight: 1.5 }}>
+          Marcá los artículos que presentan observaciones. Al tildar se despliega el campo para ingresarlas.
+          {totalChecked > 0 && <strong> — {totalChecked} artículo{totalChecked !== 1 ? "s" : ""} seleccionado{totalChecked !== 1 ? "s" : ""}.</strong>}
+        </p>
+      </div>
+
+      {loadingArticulos ? (
+        <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontSize: "14px" }}>
+          Cargando artículos...
+        </div>
+      ) : tieneGrupos ? (
+        // Renderizado con acordeón por grupo
+        grupos.map(([grupoNombre, arts]) => {
+          const isOpen = !!openGrupos[grupoNombre];
+          const seleccionados = countGrupo(arts);
+          const label = grupoNombre === '__sin_grupo__' ? 'Sin sección' : grupoNombre;
+          return (
+            <div key={grupoNombre} style={{ marginBottom: "8px", borderRadius: "10px", border: "1.5px solid #e5e7eb", overflow: "hidden" }}>
+              <div
+                onClick={() => toggleGrupo(grupoNombre)}
+                style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  minHeight: "52px", cursor: "pointer", padding: "0 16px",
+                  background: isOpen ? "#f9fafb" : "#e5e7eb", userSelect: "none",
+                }}
+              >
+                <span style={{ fontWeight: 700, fontSize: "14px", color: "#111827", textTransform: "uppercase" }}>
+                  {label}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  {seleccionados > 0 && (
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", background: "#eff6ff", padding: "2px 8px", borderRadius: "12px" }}>
+                      {seleccionados} seleccionado{seleccionados !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                  <span style={{ fontSize: "18px", color: "#6b7280" }}>{isOpen ? "▲" : "▼"}</span>
+                </div>
+              </div>
+              {isOpen && (
+                <div style={{ padding: "12px" }}>
+                  {arts.map(art => (
+                    <ArticuloItem key={art.nro} art={art}
+                      checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+                      onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        // Lista plana (sin grupos, ej: geriátricos)
+        articulos.map(art => (
+          <ArticuloItem key={art.nro} art={art}
+            checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+            onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+        ))
+      )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
+        <BtnNav onClick={onBack}>← Datos Generales</BtnNav>
+        <BtnNav primary onClick={onNext}>Ver Informe →</BtnNav>
+      </div>
+    </div>
+  );
+}
+
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 export default function InformeArqGeriatricos() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const esNuevo = !id;
 
   const [step, setStep] = useState(0);
   const [generales, setGenerales] = useState(GENERALES_VACÍO);
-  const [checks, setChecks]       = useState(Object.fromEntries(ARTICULOS.map(a => [a.nro, false])));
-  const [obsArt, setObsArt]       = useState(Object.fromEntries(ARTICULOS.map(a => [a.nro, ""])));
+  const [checks, setChecks]   = useState({});
+  const [obsArt, setObsArt]   = useState({});
+  const [articulos, setArticulos]     = useState([]);
+  const [tipologiaId, setTipologiaId] = useState(location.state?.tipologia_id || null);
+  const [tipologiaNombre, setTipologiaNombre] = useState(location.state?.tipologia_nombre || null);
+  const [loadingArticulos, setLoadingArticulos] = useState(true);
 
   const [guardando, setGuardando]       = useState(false);
   const [generandoPDF, setGenerandoPDF] = useState(false);
@@ -340,21 +471,53 @@ export default function InformeArqGeriatricos() {
   const [errorMsg, setErrorMsg]         = useState("");
   const [cargando, setCargando]         = useState(!esNuevo);
 
+  // Cargar items de tipología desde la BD (por id o por nombre "Geriátricos")
+  useEffect(() => {
+    const cargarItems = async () => {
+      try {
+        let arts;
+        if (tipologiaId) {
+          const r = await informesTemplatesAPI.getItems(tipologiaId);
+          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null }));
+        } else {
+          const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
+          setTipologiaId(r.data.id);
+          if (!tipologiaNombre) setTipologiaNombre(r.data.nombre);
+          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null }));
+        }
+        const lista = arts.length > 0 ? arts : ARTICULOS_FALLBACK;
+        setArticulos(lista);
+        setChecks(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, false])), ...prev }));
+        setObsArt(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, ""])), ...prev }));
+      } catch {
+        setArticulos(ARTICULOS_FALLBACK);
+        setChecks(prev => ({ ...Object.fromEntries(ARTICULOS_FALLBACK.map(a => [a.nro, false])), ...prev }));
+        setObsArt(prev => ({ ...Object.fromEntries(ARTICULOS_FALLBACK.map(a => [a.nro, ""])), ...prev }));
+      } finally {
+        setLoadingArticulos(false);
+      }
+    };
+    cargarItems();
+  }, [tipologiaId]);
+
+  // Cargar informe existente
   useEffect(() => {
     if (!esNuevo) {
       informesAPI.getById(id)
         .then(res => {
           const df = res.data.datos_formulario || {};
           setGenerales({ ...GENERALES_VACÍO, ...(df.generales || {}) });
-          setChecks({ ...Object.fromEntries(ARTICULOS.map(a => [a.nro, false])), ...(df.checks || {}) });
-          setObsArt({ ...Object.fromEntries(ARTICULOS.map(a => [a.nro, ""])), ...(df.observaciones || {}) });
+          if (df.tipologia_id) setTipologiaId(df.tipologia_id);
+          if (df.tipologia_nombre) setTipologiaNombre(df.tipologia_nombre);
+          if (df.checks) setChecks(prev => ({ ...prev, ...df.checks }));
+          if (df.observaciones) setObsArt(prev => ({ ...prev, ...df.observaciones }));
         })
         .catch(() => setErrorMsg("No se pudo cargar el informe."))
         .finally(() => setCargando(false));
     }
   }, [id]);
 
-  const articulosObservados = ARTICULOS.filter(a => checks[a.nro]).map(a => ({ ...a, obs: obsArt[a.nro] || "" }));
+  const articulosObservados = articulos.filter(a => checks[a.nro]).map(a => ({ ...a, obs: obsArt[a.nro] || "" }));
   const totalChecked = articulosObservados.length;
 
   const setGen   = (fid, val) => setGenerales(g => ({ ...g, [fid]: val }));
@@ -369,7 +532,7 @@ export default function InformeArqGeriatricos() {
       establecimiento_localidad: generales.barrio || "",
       expediente: generales.expDigital || generales.expPapel || "",
       fecha: generales.fecha || null,
-      datos_formulario: { generales, checks, observaciones: obsArt },
+      datos_formulario: { generales, checks, observaciones: obsArt, tipo: "geriatrico", tipologia_id: tipologiaId, tipologia_nombre: tipologiaNombre },
       observaciones: generales.observaciones || "",
       tipo: "geriatrico",
     };
@@ -390,11 +553,20 @@ export default function InformeArqGeriatricos() {
   const handleGenerarPDF = async () => {
     setGenerandoPDF(true); setErrorMsg("");
     try {
-      const response = await api.post("/pdf/geriatrico", { ...generales, articulosObservados }, { responseType: "blob" });
+      const response = await api.post("/pdf/geriatrico", {
+        ...generales,
+        articulosObservados,
+        tipologia_nombre: tipologiaNombre || 'Geriátricos',
+      }, { responseType: "blob" });
       const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `geriatrico_${(generales.expDigital || generales.nombreEst || "informe").replace(/[^a-zA-Z0-9_.\-]/g, "_")}.pdf`);
+      const partes = [
+        'Evaluación técnica Arquitectura',
+        generales.nombreEst || '',
+        generales.expDigital || generales.expPapel || '',
+      ].filter(Boolean).join(' - ');
+      link.setAttribute("download", `${partes}.pdf`);
       document.body.appendChild(link); link.click(); link.remove();
       window.URL.revokeObjectURL(url);
     } catch { setErrorMsg("Error al generar el PDF."); }
@@ -428,7 +600,7 @@ export default function InformeArqGeriatricos() {
             </button>
             <span style={{ color: "#d1d5db" }}>/</span>
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", background: "#f3e8ff", padding: "2px 9px", borderRadius: "20px", letterSpacing: "0.05em" }}>
-              GERIÁTRICOS
+              {(tipologiaNombre || 'GERIÁTRICOS').toUpperCase()}
             </span>
           </div>
           <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>
@@ -500,23 +672,14 @@ export default function InformeArqGeriatricos() {
 
       {/* ── PASO 1: ARTÍCULOS ── */}
       {step === 1 && (
-        <div>
-          <div style={{ ...S.card, background: "#f0f9ff", border: "1px solid #bae6fd", marginBottom: "16px" }}>
-            <p style={{ margin: 0, fontSize: "13px", color: "#0369a1", lineHeight: 1.5 }}>
-              Marcá los artículos que presentan observaciones. Al tildar se despliega el campo para ingresarlas.
-              {totalChecked > 0 && <strong> — {totalChecked} artículo{totalChecked !== 1 ? "s" : ""} seleccionado{totalChecked !== 1 ? "s" : ""}.</strong>}
-            </p>
-          </div>
-          {ARTICULOS.map(art => (
-            <ArticuloItem key={art.nro} art={art}
-              checked={checks[art.nro]} obsValue={obsArt[art.nro]}
-              onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
-          ))}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
-            <BtnNav onClick={() => setStep(0)}>← Datos Generales</BtnNav>
-            <BtnNav primary onClick={() => setStep(2)}>Ver Informe →</BtnNav>
-          </div>
-        </div>
+        <ArticulosStep
+          articulos={articulos}
+          loadingArticulos={loadingArticulos}
+          checks={checks} obsArt={obsArt}
+          totalChecked={totalChecked}
+          setCheck={setCheck} setObs={setObs}
+          onBack={() => setStep(0)} onNext={() => setStep(2)}
+        />
       )}
 
       {/* ── PASO 2: VISTA PREVIA ── */}
@@ -524,7 +687,7 @@ export default function InformeArqGeriatricos() {
         <div>
           {/* Cabecera del informe */}
           <div style={S.card}>
-            <p style={{ ...S.sectionTitle, marginBottom: "16px" }}>Evaluación Técnica Geriátricos — Fiscalización Edilicia</p>
+            <p style={{ ...S.sectionTitle, marginBottom: "16px" }}>Evaluación Técnica {tipologiaNombre || 'Geriátricos'} — Fiscalización Edilicia</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 32px", fontSize: "13px" }}>
               {[
                 ["Auditor Arquitectura", generales.arquitecto],

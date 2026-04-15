@@ -21,6 +21,106 @@ function cargarLogoBase64(filename) {
   return '';
 }
 
+function toBuffer(pdfBuffer) {
+  if (Buffer.isBuffer(pdfBuffer)) return pdfBuffer;
+  if (pdfBuffer instanceof Uint8Array) return Buffer.from(pdfBuffer);
+  if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
+    return Buffer.from(pdfBuffer.data);
+  }
+  throw new Error('PDF generation returned invalid buffer');
+}
+
+// Enriquecer acta con respuestas dinámicas desde actas_respuestas
+async function enriquecerConRespuestas(acta) {
+  console.log('[PDF] enriquecerConRespuestas - acta.id:', acta.id);
+
+  // Paso 1: obtener respuestas con info del campo (incluyendo seccion_id)
+  const { data: respuestas, error } = await supabase
+    .from('actas_respuestas')
+    .select('valor, campo:template_campos(id, token, tipo, etiqueta, orden, seccion_id)')
+    .eq('acta_id', acta.id);
+
+  console.log('[PDF] respuestas count:', respuestas?.length ?? 0);
+  console.log('[PDF] respuestas error:', error?.message ?? 'ninguno');
+  if (respuestas?.length > 0) {
+    console.log('[PDF] primera respuesta raw:', JSON.stringify(respuestas[0], null, 2));
+  }
+
+  if (error) {
+    console.log('[PDF] ERROR en query respuestas:', error.message);
+  }
+
+  if (!respuestas || respuestas.length === 0) {
+    console.log('[PDF] sin respuestas, devolviendo acta sin enriquecer');
+    return acta;
+  }
+
+  // Construir { token: valor } para Handlebars
+  const datosFormulario = {};
+  for (const r of respuestas) {
+    if (!r.campo?.token) continue;
+    datosFormulario[r.campo.token] = r.campo.tipo === 'si_no'
+      ? (r.valor === 'SI' || r.valor === 'true')
+      : r.valor;
+  }
+  console.log('[PDF] datosFormulario keys:', Object.keys(datosFormulario));
+
+  // Paso 2: obtener secciones por sus IDs (query separada, más robusta)
+  const seccionIds = [...new Set(
+    respuestas.map(r => r.campo?.seccion_id).filter(Boolean)
+  )];
+  console.log('[PDF] seccionIds:', seccionIds);
+
+  let seccionLookup = {};
+  if (seccionIds.length > 0) {
+    const { data: secciones, error: errSec } = await supabase
+      .from('template_secciones')
+      .select('id, titulo, orden, texto_previo, texto_posterior')
+      .in('id', seccionIds);
+    if (errSec) console.log('[PDF] ERROR en query secciones:', errSec.message);
+    if (secciones) {
+      seccionLookup = Object.fromEntries(secciones.map(s => [s.id, s]));
+    }
+  }
+  console.log('[PDF] seccionLookup keys:', Object.keys(seccionLookup));
+
+  // Construir estructura de secciones agrupando campos por seccion
+  const seccionesMap = {};
+  for (const r of respuestas) {
+    if (!r.campo?.token) continue;
+    const seccionId = r.campo.seccion_id;
+    if (!seccionId || !seccionLookup[seccionId]) {
+      console.log('[PDF] WARN: campo sin seccion en lookup:', r.campo.token, 'seccion_id:', seccionId);
+      continue;
+    }
+    const sec = seccionLookup[seccionId];
+    if (!seccionesMap[seccionId]) {
+      seccionesMap[seccionId] = {
+        id: seccionId,
+        titulo: sec.titulo,
+        orden: sec.orden,
+        texto_previo: sec.texto_previo,
+        texto_posterior: sec.texto_posterior,
+        campos: [],
+      };
+    }
+    seccionesMap[seccionId].campos.push({
+      token: r.campo.token,
+      etiqueta: r.campo.etiqueta,
+      tipo: r.campo.tipo,
+      orden: r.campo.orden,
+    });
+  }
+
+  const secciones_render = Object.values(seccionesMap)
+    .sort((a, b) => a.orden - b.orden)
+    .map(s => ({ ...s, campos: s.campos.sort((a, b) => a.orden - b.orden) }));
+
+  console.log('[PDF] secciones_render count:', secciones_render.length);
+
+  return { ...acta, datos_formulario: datosFormulario, secciones_render };
+}
+
 router.post('/generar/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -32,16 +132,14 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
       .eq('id', id)
       .single();
 
-    if (error || !acta) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
-
+    if (error || !acta) return res.status(404).json({ error: 'Acta no encontrada' });
     if (rol === 'inspector' && acta.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
 
+    const actaEnriquecida = await enriquecerConRespuestas(acta);
     const actaCompleta = {
-      ...acta,
+      ...actaEnriquecida,
       inspector_nombre: acta.inspector?.nombre || '',
       inspector_dni: acta.inspector?.dni || '',
     };
@@ -50,24 +148,8 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
-    
-    // Convertir Uint8Array o Buffer serializado a Buffer real
-    let buffer = pdfBuffer;
-    if (!Buffer.isBuffer(pdfBuffer)) {
-      if (pdfBuffer instanceof Uint8Array) {
-        console.log(`[PDF] Convirtiendo Uint8Array a Buffer`);
-        buffer = Buffer.from(pdfBuffer);
-      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
-        console.log(`[PDF] Convirtiendo Buffer serializado`);
-        buffer = Buffer.from(pdfBuffer.data);
-      } else {
-        console.log(`[PDF] ERROR: pdfBuffer tipo ${typeof pdfBuffer}, constructor: ${pdfBuffer?.constructor?.name}`);
-        throw new Error('PDF generation returned invalid buffer');
-      }
-    }
-    
-    console.log(`[PDF] Tamaño final: ${buffer.length} bytes`);
+    const buffer = toBuffer(await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete));
+
     const safeName = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').slice(0, 40);
     const pdfFilename = `acta_${safeName(acta.expediente)}_${safeName(acta.establecimiento_nombre)}_${acta.fecha || ''}.pdf`;
     res.set('Content-Type', 'application/pdf');
@@ -81,6 +163,7 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
 
 router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
   try {
+    console.log('[PDF] REQUEST RECIBIDO generar-base64, id:', req.params.id);
     const { id } = req.params;
     const { rol, id: userId } = req.user;
 
@@ -90,16 +173,14 @@ router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
       .eq('id', id)
       .single();
 
-    if (error || !acta) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
-
+    if (error || !acta) return res.status(404).json({ error: 'Acta no encontrada' });
     if (rol === 'inspector' && acta.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
 
+    const actaEnriquecida = await enriquecerConRespuestas(acta);
     const actaCompleta = {
-      ...acta,
+      ...actaEnriquecida,
       inspector_nombre: acta.inspector?.nombre || '',
       inspector_dni: acta.inspector?.dni || '',
     };
@@ -108,18 +189,7 @@ router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
-    
-    // Convertir Uint8Array a Buffer si es necesario
-    let buffer = pdfBuffer;
-    if (!Buffer.isBuffer(pdfBuffer)) {
-      if (pdfBuffer instanceof Uint8Array) {
-        buffer = Buffer.from(pdfBuffer);
-      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
-        buffer = Buffer.from(pdfBuffer.data);
-      }
-    }
-    
+    const buffer = toBuffer(await generarActaPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete));
     const base64 = buffer.toString('base64');
     const safeName = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').slice(0, 40);
     const pdfFilename = `acta_${safeName(acta.expediente)}_${safeName(acta.establecimiento_nombre)}_${acta.fecha || ''}.pdf`;
@@ -140,9 +210,7 @@ router.post('/informe/:id', authenticateToken, async (req, res) => {
       .eq('id', id)
       .single();
 
-    if (error || !informe) {
-      return res.status(404).json({ error: 'Informe no encontrado' });
-    }
+    if (error || !informe) return res.status(404).json({ error: 'Informe no encontrado' });
 
     const informeCompleto = {
       ...informe,
@@ -154,20 +222,8 @@ router.post('/informe/:id', authenticateToken, async (req, res) => {
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarInformePDF(informeCompleto, logoMinisterio, logoCordoba, logoMembrete);
-    
-    // Convertir Uint8Array o Buffer serializado a Buffer real
-    let buffer = pdfBuffer;
-    if (!Buffer.isBuffer(pdfBuffer)) {
-      if (pdfBuffer instanceof Uint8Array) {
-        buffer = Buffer.from(pdfBuffer);
-      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
-        buffer = Buffer.from(pdfBuffer.data);
-      } else {
-        throw new Error('PDF generation returned invalid buffer');
-      }
-    }
-    
+    const buffer = toBuffer(await generarInformePDF(informeCompleto, logoMinisterio, logoCordoba, logoMembrete));
+
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="informe_${id}.pdf"`);
     res.send(buffer);
@@ -188,10 +244,7 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
       .eq('id', id)
       .single();
 
-    if (error || !acta) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
-
+    if (error || !acta) return res.status(404).json({ error: 'Acta no encontrada' });
     if (rol === 'inspector' && acta.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
@@ -206,20 +259,8 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarNotificacionPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete);
-    
-    // Convertir Uint8Array o Buffer serializado a Buffer real
-    let buffer = pdfBuffer;
-    if (!Buffer.isBuffer(pdfBuffer)) {
-      if (pdfBuffer instanceof Uint8Array) {
-        buffer = Buffer.from(pdfBuffer);
-      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
-        buffer = Buffer.from(pdfBuffer.data);
-      } else {
-        throw new Error('PDF generation returned invalid buffer');
-      }
-    }
-    
+    const buffer = toBuffer(await generarNotificacionPDF(actaCompleta, logoMinisterio, logoCordoba, logoMembrete));
+
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="notificacion_${id}.pdf"`);
     res.send(buffer);
@@ -229,7 +270,6 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
   }
 });
 
-// ─── PDF INFORME GERIÁTRICO ───────────────────────────────────────────────────
 router.post('/geriatrico', authenticateToken, async (req, res) => {
   try {
     const { rol } = req.user;
@@ -248,23 +288,40 @@ router.post('/geriatrico', authenticateToken, async (req, res) => {
     const logoMinisterio = cargarLogoBase64('logo_ministerio.png');
     const logoCordoba    = cargarLogoBase64('logo_cordoba.png');
 
-    const pdfBuffer = await generarInformeGeriatricoPDF(
-      datos, logoMinisterio, logoCordoba, logoMembrete
-    );
+    // Títulos dinámicos según tipología
+    const TITULOS_TIPOLOGIA = {
+      'Geriátricos': { tituloInforme: 'Evaluación Técnica Geriátricos', subtituloInforme: 'Fiscalización Edilicia' },
+    };
+    const tipNombre = datos.tipologia_nombre || 'Geriátricos';
+    const titulos = TITULOS_TIPOLOGIA[tipNombre] || {
+      tituloInforme: `Evaluación Técnica — ${tipNombre}`,
+      subtituloInforme: 'Fiscalización Edilicia',
+    };
+    const datosConTitulos = { ...datos, ...titulos };
 
-    let buffer = pdfBuffer;
-    if (!Buffer.isBuffer(pdfBuffer)) {
-      if (pdfBuffer instanceof Uint8Array) {
-        buffer = Buffer.from(pdfBuffer);
-      } else if (typeof pdfBuffer === 'object' && pdfBuffer.type === 'Buffer' && Array.isArray(pdfBuffer.data)) {
-        buffer = Buffer.from(pdfBuffer.data);
-      } else {
-        throw new Error('PDF generation returned invalid buffer');
-      }
+    const esGeriatrico = tipNombre === 'Geriátricos';
+    let buffer;
+    if (esGeriatrico) {
+      buffer = toBuffer(await generarInformeGeriatricoPDF(datosConTitulos, logoMinisterio, logoCordoba, logoMembrete));
+    } else {
+      const { generarInformeArqPDF } = require('../services/pdfService');
+      // Agrupar artículos observados por grupo
+      const gruposMap = {};
+      (datos.articulosObservados || []).forEach(art => {
+        const g = art.grupo || 'General';
+        if (!gruposMap[g]) gruposMap[g] = { nombre: g, articulos: [] };
+        gruposMap[g].articulos.push(art);
+      });
+      const datosArq = { ...datosConTitulos, gruposArticulos: Object.values(gruposMap) };
+      buffer = toBuffer(await generarInformeArqPDF(datosArq, logoMinisterio, logoCordoba, logoMembrete));
     }
 
-    const nombreArchivo = `geriatrico_${datos.expDigital || datos.nombreEst || 'informe'}.pdf`
-      .replace(/[^a-zA-Z0-9_.\-]/g, '_');
+    const partes = [
+      'Evaluación técnica Arquitectura',
+      datos.nombreEst || '',
+      datos.expDigital || datos.expPapel || '',
+    ].filter(Boolean).join(' - ');
+    const nombreArchivo = `${partes}.pdf`.replace(/[^a-zA-Z0-9_.\-\s]/g, '_');
 
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="${nombreArchivo}"`);

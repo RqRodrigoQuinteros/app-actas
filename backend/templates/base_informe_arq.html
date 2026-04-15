@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #000; }
+
+    h1.titulo {
+      text-align: center;
+      text-decoration: underline;
+      font-size: 13pt;
+      font-weight: bold;
+      margin: 10px 0 4px;
+      text-transform: uppercase;
+    }
+    h2.subtitulo {
+      text-align: center;
+      font-size: 11pt;
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+
+    .datos-cabecera { margin-bottom: 14px; }
+    .datos-cabecera p { margin-bottom: 4px; font-size: 10.5pt; }
+    .datos-cabecera strong { font-weight: bold; }
+
+    .catastral { margin: 6px 0 10px; font-size: 10.5pt; }
+
+    .intro { text-align: justify; margin-bottom: 14px; font-size: 10.5pt; }
+
+    /* Tabla de campos (radiofísica, otros) */
+    .tabla-campos {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 14px;
+      font-size: 10pt;
+    }
+    .tabla-campos td {
+      border: 1px solid #000;
+      padding: 4px 8px;
+      width: 33.33%;
+    }
+    .tabla-campos td:nth-child(odd) {
+      font-weight: bold;
+      background: #f5f5f5;
+      width: 25%;
+    }
+    .tabla-campos td:nth-child(even) {
+      width: 8%;
+      text-align: center;
+    }
+
+    h3.seccion-titulo {
+      font-size: 10.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-align: center;
+      background: #e8e8e8;
+      border: 1px solid #999;
+      padding: 4px 8px;
+      margin: 12px 0 6px;
+    }
+
+    /* Artículos observados */
+    .grupo-titulo {
+      font-weight: bold;
+      font-size: 10.5pt;
+      text-transform: uppercase;
+      border-bottom: 1.5px solid #333;
+      margin: 18px 0 8px;
+      padding-bottom: 3px;
+    }
+    .articulo {
+      margin-bottom: 14px;
+      page-break-inside: avoid;
+    }
+    .articulo-header {
+      font-weight: bold;
+      font-size: 10.5pt;
+      margin-bottom: 4px;
+    }
+    .articulo-desc {
+      text-align: justify;
+      font-size: 10pt;
+      margin-bottom: 5px;
+      color: #222;
+    }
+    .articulo-obs {
+      font-size: 10.5pt;
+      font-style: italic;
+      color: #000;
+      padding-left: 8px;
+      border-left: 2px solid #555;
+      margin-top: 4px;
+    }
+    .articulo-sin-obs {
+      font-size: 10pt;
+      font-style: italic;
+      color: #555;
+      padding-left: 8px;
+    }
+
+    .conclusion-box {
+      border: 1.5px solid #000;
+      padding: 8px 12px;
+      margin: 20px 0 14px;
+      font-size: 10.5pt;
+    }
+
+    .nota-legal {
+      font-size: 9pt;
+      text-align: justify;
+      margin-top: 14px;
+      color: #333;
+    }
+
+    .firma-bloque {
+      margin-top: 50px;
+      text-align: center;
+    }
+
+    hr.separador { border: none; border-top: 1px solid #aaa; margin: 12px 0; }
+  </style>
+</head>
+<body>
+
+  <h1 class="titulo">{{tituloInforme}}</h1>
+  <h2 class="subtitulo">{{subtituloInforme}}</h2>
+
+  <div class="datos-cabecera">
+    {{#if arquitecto}}<p><strong>Auditor Arquitectura:</strong> {{arquitecto}}</p>{{/if}}
+    {{#if nombreEst}}<p><strong>Establecimiento:</strong> {{nombreEst}}</p>{{/if}}
+    {{#if direccion}}<p><strong>Ubicación:</strong> {{direccion}}</p>{{/if}}
+    {{#if expPapel}}<p><strong>Expte. Papel N°:</strong> {{expPapel}}</p>{{/if}}
+    {{#if expDigital}}<p><strong>Expte. Digital N°:</strong> {{expDigital}}</p>{{/if}}
+    {{#if metros2}}<p><strong>Metros cuadrados:</strong> {{metros2}} m²</p>{{/if}}
+    {{#if cantCamas}}<p><strong>Cantidad de camas:</strong> {{cantCamas}}</p>{{/if}}
+    {{#if circ}}
+    <p class="catastral">
+      <strong>Nomenclatura Catastral:</strong><br>
+      {{#if circ}}CIRC:{{circ}}{{/if}}
+      {{#if seccion}} - SECCION:{{seccion}}{{/if}}
+      {{#if manzana}} - MANZANA:{{manzana}}{{/if}}<br>
+      {{#if parcela}}PARCELA:{{parcela}}{{/if}}
+      {{#if loteOficial}} - LOTE OFICIAL: {{loteOficial}}{{/if}}
+    </p>
+    {{/if}}
+    {{#if habMunicipal}}<p><strong>Habilitación Municipal:</strong> {{habMunicipal}}</p>{{/if}}
+    {{#if verificarInsp}}<p><strong>Verificar en Inspección:</strong> {{verificarInsp}}</p>{{/if}}
+    {{#if observaciones}}<p><strong>Observaciones:</strong> {{observaciones}}</p>{{/if}}
+  </div>
+
+  {{#if tieneRadiofisica}}
+  <h3 class="seccion-titulo">Radiofísica</h3>
+  <table class="tabla-campos">
+    {{#if rad_convencional}}<tr><td>Radiología Convencional Simple y Contrastada (Rayos X)</td><td>{{rad_convencional}}</td></tr>{{/if}}
+    {{#if rad_acelerador}}<tr><td>Acelerador Lineal de Electrones</td><td>{{rad_acelerador}}</td></tr>{{/if}}
+    {{#if rad_ortopanto}}<tr><td>Ortopantomografía</td><td>{{rad_ortopanto}}</td></tr>{{/if}}
+    {{#if rad_tomografia}}<tr><td>Tomografía Computada</td><td>{{rad_tomografia}}</td></tr>{{/if}}
+    {{#if rad_litotricia}}<tr><td>Litotricia</td><td>{{rad_litotricia}}</td></tr>{{/if}}
+    {{#if rad_laser}}<tr><td>Láser</td><td>{{rad_laser}}</td></tr>{{/if}}
+    {{#if rad_hemodinamia}}<tr><td>Radiología Intervencionista - Hemodinamia</td><td>{{rad_hemodinamia}}</td></tr>{{/if}}
+    {{#if rad_pet}}<tr><td>PET / SPECT / Tomografía por emisión de positrones</td><td>{{rad_pet}}</td></tr>{{/if}}
+    {{#if rad_ultravioleta}}<tr><td>Ultra Violeta</td><td>{{rad_ultravioleta}}</td></tr>{{/if}}
+    {{#if rad_arco_c}}<tr><td>Radiología Intervencionista - Arco en C</td><td>{{rad_arco_c}}</td></tr>{{/if}}
+    {{#if rad_conebeam}}<tr><td>Tomografía Computada - Dental / Cone Beam</td><td>{{rad_conebeam}}</td></tr>{{/if}}
+    {{#if rad_resonancia}}<tr><td>Resonancia Magnética</td><td>{{rad_resonancia}}</td></tr>{{/if}}
+    {{#if rad_densitometria}}<tr><td>Densitometría Ósea</td><td>{{rad_densitometria}}</td></tr>{{/if}}
+    {{#if rad_dental}}<tr><td>Radiología Dental / Rayos X Dental</td><td>{{rad_dental}}</td></tr>{{/if}}
+  </table>
+  {{/if}}
+
+  {{#if tieneOtros}}
+  <h3 class="seccion-titulo">Otros</h3>
+  <table class="tabla-campos">
+    {{#if otro_laboratorio}}<tr><td>Laboratorio</td><td>{{otro_laboratorio}}</td></tr>{{/if}}
+    {{#if otro_hemodialisis}}<tr><td>Hemodiálisis</td><td>{{otro_hemodialisis}}</td></tr>{{/if}}
+    {{#if otro_oncologicos}}<tr><td>Oncológicos</td><td>{{otro_oncologicos}}</td></tr>{{/if}}
+    {{#if otro_pileta}}<tr><td>Pileta</td><td>{{otro_pileta}}</td></tr>{{/if}}
+  </table>
+  {{/if}}
+
+  <hr class="separador">
+
+  <p class="intro">
+    Vista documentación técnica obrante a <strong>{{fojasOrdenes}}</strong> de acuerdo a lo que puede
+    visualizarse en la misma, se informa que:
+  </p>
+
+  {{#if gruposArticulos.length}}
+    {{#each gruposArticulos}}
+    <div class="grupo-titulo">{{this.nombre}}</div>
+    {{#each this.articulos}}
+    <div class="articulo">
+      <p class="articulo-header">N° {{nro}}</p>
+      <p class="articulo-desc">{{desc}}</p>
+      {{#if obs}}
+        <p class="articulo-obs">{{obs}}</p>
+      {{else}}
+        <p class="articulo-sin-obs">(sin observaciones adicionales)</p>
+      {{/if}}
+    </div>
+    {{/each}}
+    {{/each}}
+  {{else}}
+    <p style="font-style: italic; color: #555; margin-bottom: 16px;">Sin artículos observados.</p>
+  {{/if}}
+
+  <div class="conclusion-box">
+    <strong>Conclusión:</strong> {{conclusion}}
+  </div>
+
+  <p class="nota-legal">
+    [*] Nota: el presente informe técnico incluye la evaluación de requisitos mínimos relacionados
+    con normativas propias del Ministerio de Salud de la Pcia. de Córdoba. Toda otra habilitación
+    (nacional, municipal, bomberos, Colegios Profesionales, etc.) deberá ser tramitada ante el
+    organismo correspondiente.
+  </p>
+
+  <div style="margin-top: 14px; text-align: right; font-size: 10.5pt;">
+    <strong>Córdoba,</strong> {{fecha}}
+  </div>
+
+  <div class="firma-bloque">
+    <p><strong>{{arquitecto}}</strong></p>
+    {{#if matricula}}<p>Mat. {{matricula}}</p>{{/if}}
+    <p>Arquitecto/a — Dirección General de Regulación Sanitaria</p>
+  </div>
+
+</body>
+</html>

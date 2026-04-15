@@ -98,8 +98,8 @@
 </head>
 <body>
 
-  <h1 class="titulo">Evaluación Técnica Geriátricos</h1>
-  <h2 class="subtitulo">Fiscalización Edilicia</h2>
+  <h1 class="titulo">{{tituloInforme}}</h1>
+  <h2 class="subtitulo">{{subtituloInforme}}</h2>
 
   <div class="datos-cabecera">
     <p><strong>Auditor Arquitectura:</strong> {{arquitecto}}</p>
@@ -162,10 +162,6 @@
   </div>
 
   <div class="firma-bloque">
-    {{#if firmaBase64}}
-      <img src="{{firmaBase64}}" class="firma-img" alt="Firma" />
-    {{/if}}
-    <div class="linea-firma"></div>
     <p><strong>{{arquitecto}}</strong></p>
     {{#if matricula}}<p>Mat. {{matricula}}</p>{{/if}}
     <p>Arquitecto/a — Dirección General de Regulación Sanitaria</p>
