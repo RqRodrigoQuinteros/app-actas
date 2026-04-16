@@ -155,6 +155,14 @@ export default function VerActa() {
               {acta.virtual && 'Virtual'}{acta.virtual && acta.presencial && ' / '}{acta.presencial && 'Presencial'}
             </span></div>
             <div><span className="text-gray-500">Tipo:</span> <span className="font-semibold">{acta.tipo_inspeccion}</span></div>
+            {acta.datos_formulario?.en_funcionamiento && (
+              <div className="col-span-2">
+                <span className="text-gray-500">En Funcionamiento:</span>{' '}
+                <span className={`font-bold ${acta.datos_formulario.en_funcionamiento === 'SI' ? 'text-green-600' : 'text-red-600'}`}>
+                  {acta.datos_formulario.en_funcionamiento}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -189,6 +197,50 @@ export default function VerActa() {
               Sin respuestas registradas para esta acta.
             </div>
           )
+        )}
+
+        {/* Testigos (geriátrico no en funcionamiento) */}
+        {(acta.datos_formulario?.testigos || []).length > 0 && (
+          <div className="card mb-4">
+            <h3 className="font-bold text-lg mb-3 uppercase bg-red-50 p-2 -mx-4 -mt-4 rounded-t-lg text-red-800">
+              Testigos
+            </h3>
+            {acta.datos_formulario.testigos.map((t, i) => (
+              <div key={i} className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                <p className="font-semibold text-sm mb-1">Testigo #{i + 1}</p>
+                {t.nombre && <p className="text-sm"><strong>Nombre:</strong> {t.nombre}</p>}
+                {t.dni && <p className="text-sm"><strong>DNI:</strong> {t.dni}</p>}
+                {t.domicilio && <p className="text-sm"><strong>Domicilio:</strong> {t.domicilio}</p>}
+                {t.testimonio && <p className="text-sm mt-1 italic text-gray-600">"{t.testimonio}"</p>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Residentes */}
+        {(acta.datos_formulario?.residentes || []).length > 0 && (
+          <div className="card mb-4">
+            <h3 className="font-bold text-lg mb-3 uppercase bg-purple-50 p-2 -mx-4 -mt-4 rounded-t-lg text-purple-800">
+              Residentes
+            </h3>
+            {acta.datos_formulario.residentes.map((r, i) => (
+              <div key={i} className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                <p className="font-semibold text-sm mb-1">Residente #{i + 1}</p>
+                {r.nombre && <p className="text-sm"><strong>Nombre:</strong> {r.nombre}</p>}
+                {r.dni && <p className="text-sm"><strong>DNI:</strong> {r.dni}</p>}
+                {r.domicilio && <p className="text-sm"><strong>Domicilio:</strong> {r.domicilio}</p>}
+                {(r.familiar_nombre || r.familiar_dni || r.familiar_telefono) && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 mb-1">Familiar Responsable</p>
+                    {r.familiar_nombre && <p className="text-sm"><strong>Nombre:</strong> {r.familiar_nombre}</p>}
+                    {r.familiar_dni && <p className="text-sm"><strong>DNI:</strong> {r.familiar_dni}</p>}
+                    {r.familiar_telefono && <p className="text-sm"><strong>Tel:</strong> {r.familiar_telefono}</p>}
+                    {r.vinculo && <p className="text-sm"><strong>Vínculo:</strong> {r.vinculo}</p>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Observaciones */}

@@ -6,16 +6,281 @@ import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';
 
-const PASOS = [
-  { id: 1, label: 'Establecimiento' },
-  { id: 2, label: 'Responsable' },
-  { id: 3, label: 'Tipo Inspección' },
-  { id: 4, label: 'Secciones' },
-  { id: 5, label: 'Formulario' },
-  { id: 6, label: 'Fotos' },
-  { id: 7, label: 'Firmas' },
-];
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
+const RESIDENTE_VACIO = () => ({
+  nombre: '', dni: '', domicilio: '',
+  familiar_nombre: '', familiar_dni: '', familiar_telefono: '', vinculo: '',
+});
+
+const TESTIGO_VACIO = () => ({
+  nombre: '', dni: '', domicilio: '', testimonio: '',
+});
+
+const esGeriatricoNombre = (nombre) =>
+  /geriatric/i.test(nombre) || /geriátric/i.test(nombre);
+
+// ── Componente formulario de residentes ──────────────────────────────────────
+function FormResidentes({ residentes, onChange }) {
+  const agregar = () => onChange([...residentes, RESIDENTE_VACIO()]);
+  const eliminar = (i) => onChange(residentes.filter((_, idx) => idx !== i));
+  const actualizar = (i, campo, valor) => {
+    const copia = residentes.map((r, idx) => idx === i ? { ...r, [campo]: valor } : r);
+    onChange(copia);
+  };
+
+  return (
+    <div>
+      {residentes.map((r, i) => (
+        <div key={i} style={{
+          border: '1px solid #d1d5db', borderRadius: '10px',
+          padding: '14px', marginBottom: '12px', background: '#f9fafb',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontWeight: 700, fontSize: '13px', color: '#374151' }}>
+              Residente #{i + 1}
+            </span>
+            <button type="button" onClick={() => eliminar(i)}
+              style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '18px', cursor: 'pointer', lineHeight: 1 }}>
+              ×
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="label-field">Nombre y Apellido</label>
+              <input className="input-field" value={r.nombre}
+                onChange={e => actualizar(i, 'nombre', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">DNI</label>
+              <input className="input-field" type="number" inputMode="numeric" value={r.dni}
+                onChange={e => actualizar(i, 'dni', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">Domicilio</label>
+              <input className="input-field" value={r.domicilio}
+                onChange={e => actualizar(i, 'domicilio', e.target.value)} />
+            </div>
+            <p style={{ fontWeight: 600, fontSize: '13px', color: '#374151', marginTop: '6px' }}>Familiar Responsable</p>
+            <div>
+              <label className="label-field">Nombre y Apellido</label>
+              <input className="input-field" value={r.familiar_nombre}
+                onChange={e => actualizar(i, 'familiar_nombre', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">DNI</label>
+              <input className="input-field" type="number" inputMode="numeric" value={r.familiar_dni}
+                onChange={e => actualizar(i, 'familiar_dni', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">Teléfono</label>
+              <input className="input-field" type="tel" inputMode="tel" value={r.familiar_telefono}
+                onChange={e => actualizar(i, 'familiar_telefono', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">Vínculo</label>
+              <input className="input-field" value={r.vinculo} placeholder="ej: Hijo/a, Cónyuge..."
+                onChange={e => actualizar(i, 'vinculo', e.target.value)} />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button type="button" onClick={agregar}
+        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 font-medium hover:border-blue-400 hover:text-blue-600 transition-colors">
+        + Agregar residente
+      </button>
+    </div>
+  );
+}
+
+// ── Componente formulario de testigos ────────────────────────────────────────
+function FormTestigos({ testigos, onChange }) {
+  const agregar = () => onChange([...testigos, TESTIGO_VACIO()]);
+  const eliminar = (i) => onChange(testigos.filter((_, idx) => idx !== i));
+  const actualizar = (i, campo, valor) => {
+    const copia = testigos.map((t, idx) => idx === i ? { ...t, [campo]: valor } : t);
+    onChange(copia);
+  };
+
+  return (
+    <div>
+      {testigos.length === 0 && (
+        <p className="text-sm text-gray-500 mb-3">
+          Agregá los testigos presentes al momento de la inspección.
+        </p>
+      )}
+      {testigos.map((t, i) => (
+        <div key={i} style={{
+          border: '1px solid #d1d5db', borderRadius: '10px',
+          padding: '14px', marginBottom: '12px', background: '#f9fafb',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontWeight: 700, fontSize: '13px', color: '#374151' }}>
+              Testigo #{i + 1}
+            </span>
+            <button type="button" onClick={() => eliminar(i)}
+              style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '18px', cursor: 'pointer', lineHeight: 1 }}>
+              ×
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="label-field">Nombre y Apellido</label>
+              <input className="input-field" value={t.nombre}
+                onChange={e => actualizar(i, 'nombre', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">DNI</label>
+              <input className="input-field" type="number" inputMode="numeric" value={t.dni}
+                onChange={e => actualizar(i, 'dni', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">Domicilio</label>
+              <input className="input-field" value={t.domicilio}
+                onChange={e => actualizar(i, 'domicilio', e.target.value)} />
+            </div>
+            <div>
+              <label className="label-field">Testimonio</label>
+              <textarea className="input-field h-24" value={t.testimonio}
+                onChange={e => actualizar(i, 'testimonio', e.target.value)}
+                placeholder="Declaración del testigo..." />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button type="button" onClick={agregar}
+        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 font-medium hover:border-blue-400 hover:text-blue-600 transition-colors">
+        + Agregar testigo
+      </button>
+    </div>
+  );
+}
+
+// ── Componente sección repetible ─────────────────────────────────────────────
+function SeccionRepetible({ seccion, instancias, onInstanciasChange }) {
+  const [openIdx, setOpenIdx] = useState([0]);
+  const toggleOpen = (i) => setOpenIdx(prev =>
+    prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+  );
+
+  const agregar = () => {
+    const nuevas = [...instancias, {}];
+    setOpenIdx(prev => [...prev, nuevas.length - 1]);
+    onInstanciasChange(nuevas);
+  };
+
+  const eliminar = (i) => {
+    onInstanciasChange(instancias.filter((_, idx) => idx !== i));
+    setOpenIdx(prev => prev.filter(x => x !== i).map(x => x > i ? x - 1 : x));
+  };
+
+  const handleCampo = (instIdx, campoId, valor) => {
+    const nuevas = instancias.map((inst, i) =>
+      i === instIdx ? { ...inst, [campoId]: valor } : inst
+    );
+    onInstanciasChange(nuevas);
+  };
+
+  return (
+    <div className="mb-4 rounded-lg border border-blue-200 overflow-hidden">
+      {/* Header */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        minHeight: '56px', padding: '0 16px',
+        background: '#eff6ff', borderBottom: '1px solid #bfdbfe',
+      }}>
+        <span className="font-bold text-base text-blue-800 uppercase">{seccion.titulo}</span>
+        <button type="button" onClick={agregar}
+          style={{
+            background: '#2563eb', color: '#fff', border: 'none',
+            borderRadius: '6px', padding: '6px 14px', cursor: 'pointer',
+            fontWeight: 700, fontSize: '13px',
+          }}>
+          + Agregar
+        </button>
+      </div>
+
+      {instancias.length === 0 && (
+        <div className="p-4 text-sm text-gray-500 italic bg-gray-50">
+          Tocá "+ Agregar" para registrar una instancia de esta sección.
+        </div>
+      )}
+
+      {instancias.map((inst, i) => {
+        const isOpen = openIdx.includes(i);
+        return (
+          <div key={i} style={{ borderTop: i > 0 ? '1px solid #bfdbfe' : 'none' }}>
+            {/* Sub-header */}
+            <div
+              onClick={() => toggleOpen(i)}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                minHeight: '48px', cursor: 'pointer', padding: '0 16px',
+                background: isOpen ? '#dbeafe' : '#eff6ff',
+                userSelect: 'none',
+              }}
+            >
+              <span style={{ fontWeight: 600, fontSize: '14px', color: '#1e40af' }}>
+                {seccion.titulo} #{i + 1}
+              </span>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button type="button"
+                  onClick={e => { e.stopPropagation(); eliminar(i); }}
+                  style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>
+                  ×
+                </button>
+                <span style={{ fontSize: '16px', color: '#3b82f6' }}>{isOpen ? '▲' : '▼'}</span>
+              </div>
+            </div>
+            {isOpen && (
+              <div className="p-4 bg-white space-y-3">
+                {(seccion.campos || []).map(campo => {
+                  const valor = inst[campo.id] ?? '';
+                  if (campo.tipo === 'si_no') {
+                    return (
+                      <div key={campo.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                        <span className="text-base">{campo.etiqueta}</span>
+                        <div className="flex gap-2">
+                          <button type="button"
+                            onClick={() => handleCampo(i, campo.id, valor === 'SI' ? '' : 'SI')}
+                            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'SI' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                            SI
+                          </button>
+                          <button type="button"
+                            onClick={() => handleCampo(i, campo.id, valor === 'NO' ? '' : 'NO')}
+                            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                            NO
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={campo.id} className="flex flex-col">
+                      <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+                      <input className="p-3 border border-gray-300 rounded-lg" type="text"
+                        value={valor} onChange={e => handleCampo(i, campo.id, e.target.value)} />
+                    </div>
+                  );
+                })}
+                {/* Observación de la instancia */}
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-600 mb-1">Observación</label>
+                  <textarea className="p-3 border border-gray-300 rounded-lg" rows={2}
+                    value={inst.__obs ?? ''}
+                    onChange={e => handleCampo(i, '__obs', e.target.value)}
+                    placeholder="Observación para esta instancia..." />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Componente principal ──────────────────────────────────────────────────────
 export default function NuevaActa() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
@@ -26,14 +291,27 @@ export default function NuevaActa() {
 
   // Template dinámico
   const [tipologias, setTipologias] = useState([]);
-  const [template, setTemplate] = useState(null);   // { secciones: [...] }
+  const [template, setTemplate] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
 
-  // Secciones opcionales seleccionadas (ids de secciones)
+  // Secciones opcionales seleccionadas
   const [seccionesActivas, setSeccionesActivas] = useState([]);
 
-  // Respuestas: { campo_id: valor }
+  // Respuestas campos normales: { campo_id: valor }
   const [respuestas, setRespuestas] = useState({});
+
+  // Geriátrico — en funcionamiento
+  const [enFuncionamiento, setEnFuncionamiento] = useState('');
+
+  // Testigos (geriátrico NO)
+  const [testigos, setTestigos] = useState([]);
+
+  // Residentes (geriátrico SI, con checkbox)
+  const [hayResidentes, setHayResidentes] = useState(false);
+  const [residentes, setResidentes] = useState([]);
+
+  // Secciones repetibles: { [seccion_id]: [instancia1, instancia2, ...] }
+  const [seccionesExtra, setSeccionesExtra] = useState({});
 
   const [datos, setDatos] = useState({
     expediente: '',
@@ -57,31 +335,63 @@ export default function NuevaActa() {
     firma_responsable_base64: '',
   });
 
-  // Cargar tipologías al montar
+  const esGeriatrico = esGeriatricoNombre(datos.tipologia);
+
+  // Flujo de pasos según tipología y en_funcionamiento
+  // paso 8 = testigos (geriátrico NO)
+  const PASOS_NORMAL = [
+    { id: 1, label: 'Establecimiento' },
+    { id: 2, label: 'Responsable' },
+    { id: 3, label: 'Tipo Insp.' },
+    { id: 4, label: 'Secciones' },
+    { id: 5, label: 'Formulario' },
+    { id: 6, label: 'Fotos' },
+    { id: 7, label: 'Firmas' },
+  ];
+  const PASOS_NO_FUNC = [
+    { id: 1, label: 'Establecimiento' },
+    { id: 2, label: 'Responsable' },
+    { id: 3, label: 'Tipo Insp.' },
+    { id: 8, label: 'Testigos' },
+    { id: 6, label: 'Fotos' },
+    { id: 7, label: 'Firmas' },
+  ];
+
+  const pasosActuales = (esGeriatrico && enFuncionamiento === 'NO')
+    ? PASOS_NO_FUNC
+    : PASOS_NORMAL;
+
+  const pasoIdx = pasosActuales.findIndex(p => p.id === paso);
+  const irSiguiente = () => {
+    const next = pasosActuales[pasoIdx + 1];
+    if (next) setPaso(next.id);
+  };
+  const irAnterior = () => {
+    const prev = pasosActuales[pasoIdx - 1];
+    if (prev) setPaso(prev.id);
+  };
+
+  // Cuando cambia en_funcionamiento y el paso actual no existe en el nuevo flujo, volver a 3
+  useEffect(() => {
+    const ids = pasosActuales.map(p => p.id);
+    if (!ids.includes(paso) && paso > 3) setPaso(3);
+  }, [enFuncionamiento]);
+
   useEffect(() => {
     templatesAPI.getTipologias()
       .then(r => setTipologias(r.data || []))
       .catch(() => setTipologias([]));
   }, []);
 
-  // Cargar template al elegir tipología
   useEffect(() => {
-    if (!datos.tipologia) {
-      setTemplate(null);
-      setSeccionesActivas([]);
-      return;
-    }
+    if (!datos.tipologia) { setTemplate(null); setSeccionesActivas([]); return; }
     setLoadingTemplate(true);
     templatesAPI.getTipologiaPorNombre(datos.tipologia)
       .then(r => {
         setTemplate(r.data);
-        // Por defecto activar todas las secciones
         setSeccionesActivas((r.data.secciones || []).map(s => s.id));
       })
-      .catch(() => {
-        setTemplate(null);
-        setSeccionesActivas([]);
-      })
+      .catch(() => { setTemplate(null); setSeccionesActivas([]); })
       .finally(() => setLoadingTemplate(false));
   }, [datos.tipologia]);
 
@@ -89,39 +399,53 @@ export default function NuevaActa() {
     setRespuestas(prev => ({ ...prev, [campoId]: valor }));
   };
 
-  // Secciones a mostrar en el formulario (filtradas por las activas)
+  const handleInstancias = (seccionId, nuevas) => {
+    setSeccionesExtra(prev => ({ ...prev, [seccionId]: nuevas }));
+  };
+
+  // Secciones filtradas por las activas
   const seccionesFiltradas = (template?.secciones || []).filter(s =>
     seccionesActivas.includes(s.id)
   );
 
+  // Separar por tipo
+  const seccionesNormales = seccionesFiltradas.filter(s => s.tipo !== 'residentes' && !s.repetible);
+  const seccionResidentes = seccionesFiltradas.find(s => s.tipo === 'residentes');
+  const seccionesRepetibles = seccionesFiltradas.filter(s => s.repetible);
+
+  // ── Guardar acta ─────────────────────────────────────────────────────────
+  const buildPayload = () => ({
+    inspector_id: usuario.id,
+    establecimiento_nombre: datos.establecimiento_nombre,
+    establecimiento_direccion: datos.establecimiento_direccion,
+    establecimiento_localidad: datos.establecimiento_localidad,
+    establecimiento_tipologia: datos.tipologia,
+    expediente: datos.expediente,
+    fecha: datos.fecha,
+    hora: datos.hora,
+    virtual: datos.virtual,
+    presencial: datos.presencial,
+    tipo_inspeccion: datos.tipo_inspeccion,
+    responsable_nombre: datos.responsable_nombre,
+    responsable_dni: datos.responsable_dni,
+    responsable_caracter: datos.responsable_caracter,
+    observaciones: datos.observaciones,
+    emplazamiento_valor: datos.emplazamiento_valor,
+    emplazamiento_tipo: datos.emplazamiento_tipo,
+    datos_formulario: {
+      en_funcionamiento: enFuncionamiento || null,
+      residentes: hayResidentes ? residentes : [],
+      testigos,
+      secciones_extra: seccionesExtra,
+    },
+  });
+
   const crearActa = async () => {
     setLoading(true);
     try {
-      const payload = {
-        inspector_id: usuario.id,
-        establecimiento_nombre: datos.establecimiento_nombre,
-        establecimiento_direccion: datos.establecimiento_direccion,
-        establecimiento_localidad: datos.establecimiento_localidad,
-        establecimiento_tipologia: datos.tipologia,
-        expediente: datos.expediente,
-        fecha: datos.fecha,
-        hora: datos.hora,
-        virtual: datos.virtual,
-        presencial: datos.presencial,
-        tipo_inspeccion: datos.tipo_inspeccion,
-        responsable_nombre: datos.responsable_nombre,
-        responsable_dni: datos.responsable_dni,
-        responsable_caracter: datos.responsable_caracter,
-        observaciones: datos.observaciones,
-        emplazamiento_valor: datos.emplazamiento_valor,
-        emplazamiento_tipo: datos.emplazamiento_tipo,
-      };
-      const response = await actasAPI.create(payload);
+      const response = await actasAPI.create(buildPayload());
       setActaId(response.data.id);
       return response.data.id;
-    } catch (err) {
-      console.error('Error creando acta:', err);
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -129,33 +453,15 @@ export default function NuevaActa() {
 
   const guardarBorrador = async () => {
     try {
-      const payload = {
-        inspector_id: usuario.id,
-        establecimiento_nombre: datos.establecimiento_nombre,
-        establecimiento_direccion: datos.establecimiento_direccion,
-        establecimiento_localidad: datos.establecimiento_localidad,
-        establecimiento_tipologia: datos.tipologia,
-        expediente: datos.expediente,
-        fecha: datos.fecha,
-        hora: datos.hora,
-        virtual: datos.virtual,
-        presencial: datos.presencial,
-        tipo_inspeccion: datos.tipo_inspeccion,
-        responsable_nombre: datos.responsable_nombre,
-        responsable_dni: datos.responsable_dni,
-        responsable_caracter: datos.responsable_caracter,
-        observaciones: datos.observaciones,
-        emplazamiento_valor: datos.emplazamiento_valor,
-        emplazamiento_tipo: datos.emplazamiento_tipo,
-      };
+      const payload = buildPayload();
       if (actaId) {
         await actasAPI.update(actaId, payload);
+        return actaId;
       } else {
         const response = await actasAPI.create(payload);
         setActaId(response.data.id);
         return response.data.id;
       }
-      return actaId;
     } catch (err) {
       console.error('Error guardando borrador:', err);
     }
@@ -165,7 +471,6 @@ export default function NuevaActa() {
     const listaRespuestas = Object.entries(respuestas)
       .filter(([, v]) => v !== '' && v !== null && v !== undefined)
       .map(([campo_id, valor]) => ({ campo_id: parseInt(campo_id), valor: String(valor) }));
-
     if (listaRespuestas.length > 0) {
       await templatesAPI.guardarRespuestas(idActa, listaRespuestas);
     }
@@ -173,9 +478,7 @@ export default function NuevaActa() {
 
   const guardarFotos = async (urls) => {
     setDatos(prev => ({ ...prev, fotos_urls: urls }));
-    if (actaId) {
-      await actasAPI.update(actaId, { fotos_urls: urls });
-    }
+    if (actaId) await actasAPI.update(actaId, { fotos_urls: urls });
   };
 
   const validarActa = () => {
@@ -198,22 +501,10 @@ export default function NuevaActa() {
       setErrorModal(null);
 
       const idParaUsar = actaId || (await crearActa());
-
-      // Guardar respuestas dinámicas
       await guardarRespuestas(idParaUsar);
 
       await actasAPI.update(idParaUsar, {
-        observaciones: datos.observaciones,
-        emplazamiento_valor: datos.emplazamiento_valor,
-        emplazamiento_tipo: datos.emplazamiento_tipo,
-        tipo_inspeccion: datos.tipo_inspeccion,
-        responsable_nombre: datos.responsable_nombre,
-        responsable_dni: datos.responsable_dni,
-        responsable_caracter: datos.responsable_caracter,
-        fecha: datos.fecha,
-        hora: datos.hora,
-        virtual: datos.virtual,
-        presencial: datos.presencial,
+        ...buildPayload(),
         firma_inspector_base64: datos.firma_inspector_base64,
         firma_responsable_base64: datos.firma_responsable_base64,
         fotos_urls: datos.fotos_urls,
@@ -274,7 +565,7 @@ export default function NuevaActa() {
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-100">
       {errorModal && (
@@ -312,15 +603,15 @@ export default function NuevaActa() {
       <div className="max-w-2xl mx-auto p-4">
         {/* Barra de pasos */}
         <div className="flex justify-between mb-6 overflow-x-auto pb-2">
-          {PASOS.map((p) => (
+          {pasosActuales.map((p, idx) => (
             <button key={p.id}
-              onClick={() => p.id <= paso && setPaso(p.id)}
+              onClick={() => idx <= pasoIdx && setPaso(p.id)}
               className={`px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 ${
                 p.id === paso ? 'bg-blue-600 text-white'
-                : p.id < paso ? 'bg-green-500 text-white'
+                : idx < pasoIdx ? 'bg-green-500 text-white'
                 : 'bg-gray-300 text-gray-600'
               }`}>
-              {p.id}. {p.label}
+              {idx + 1}. {p.label}
             </button>
           ))}
         </div>
@@ -342,22 +633,14 @@ export default function NuevaActa() {
                   <select
                     value={datos.tipologia}
                     onChange={e => setDatos(prev => ({ ...prev, tipologia: e.target.value }))}
-                    className="input-field"
-                  >
+                    className="input-field">
                     <option value="">Seleccionar tipología</option>
                     {tipologias.map(t => (
                       <option key={t.id} value={t.nombre}>{t.nombre}</option>
                     ))}
                   </select>
                 )}
-                {loadingTemplate && (
-                  <p className="text-xs text-blue-500 mt-1">Cargando template...</p>
-                )}
-                {datos.tipologia && !loadingTemplate && !template && (
-                  <p className="text-xs text-yellow-600 mt-1">
-                    Esta tipología no tiene template configurado aún. El formulario estará vacío.
-                  </p>
-                )}
+                {loadingTemplate && <p className="text-xs text-blue-500 mt-1">Cargando template...</p>}
               </div>
 
               <div className="mb-4">
@@ -429,9 +712,9 @@ export default function NuevaActa() {
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setPaso(1)} className="btn-secondary">← Anterior</button>
+                <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={async () => {
-                  if (datos.responsable_nombre) { await guardarBorrador(); setPaso(3); }
+                  if (datos.responsable_nombre) { await guardarBorrador(); irSiguiente(); }
                 }} disabled={!datos.responsable_nombre} className="btn-primary disabled:opacity-50">
                   Siguiente →
                 </button>
@@ -487,11 +770,36 @@ export default function NuevaActa() {
                 </div>
               </div>
 
+              {/* ── En Funcionamiento (solo Geriátrico) ── */}
+              {esGeriatrico && (
+                <div className="mb-4">
+                  <label className="label-field">En Funcionamiento</label>
+                  <div className="flex gap-4">
+                    <button type="button"
+                      onClick={() => setEnFuncionamiento(enFuncionamiento === 'SI' ? '' : 'SI')}
+                      className={`flex-1 py-4 rounded-lg font-semibold text-lg transition-colors ${enFuncionamiento === 'SI' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                      SI
+                    </button>
+                    <button type="button"
+                      onClick={() => setEnFuncionamiento(enFuncionamiento === 'NO' ? '' : 'NO')}
+                      className={`flex-1 py-4 rounded-lg font-semibold text-lg transition-colors ${enFuncionamiento === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                      NO
+                    </button>
+                  </div>
+                  {enFuncionamiento === 'NO' && (
+                    <p className="text-sm text-red-600 mt-2">
+                      El establecimiento no está en funcionamiento. Se registrarán testigos en el siguiente paso.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-4">
-                <button onClick={() => setPaso(2)} className="btn-secondary">← Anterior</button>
+                <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={() => {
-                  // Si hay template con secciones, mostrar selector; si no, saltar al formulario
-                  if (template && template.secciones?.length > 0) {
+                  if (esGeriatrico && enFuncionamiento === 'NO') {
+                    setPaso(8);
+                  } else if (template && template.secciones?.length > 0) {
                     setPaso(4);
                   } else {
                     setPaso(5);
@@ -526,7 +834,19 @@ export default function NuevaActa() {
                           ? 'bg-green-50 border-green-500 text-green-800'
                           : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
                       }`}>
-                      <span className="font-medium">{sec.titulo}</span>
+                      <div>
+                        <span className="font-medium">{sec.titulo}</span>
+                        {sec.tipo === 'residentes' && (
+                          <span style={{ fontSize: '11px', marginLeft: '8px', background: '#ede9fe', color: '#7c3aed', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            Residentes
+                          </span>
+                        )}
+                        {sec.repetible && (
+                          <span style={{ fontSize: '11px', marginLeft: '8px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            Repetible
+                          </span>
+                        )}
+                      </div>
                       <span className={`text-2xl font-bold ${activa ? 'text-green-500' : 'text-gray-300'}`}>
                         {activa ? '✓' : '+'}
                       </span>
@@ -536,7 +856,7 @@ export default function NuevaActa() {
               </div>
 
               <div className="flex gap-4 mt-6">
-                <button onClick={() => setPaso(3)} className="btn-secondary">← Anterior</button>
+                <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={() => setPaso(5)} className="btn-primary">Siguiente →</button>
               </div>
             </div>
@@ -547,12 +867,58 @@ export default function NuevaActa() {
             <div>
               <h2 className="text-xl font-bold mb-4">Formulario de Inspección</h2>
 
+              {/* Secciones normales */}
               <SeccionDinamica
-                secciones={seccionesFiltradas}
+                secciones={seccionesNormales}
                 respuestas={respuestas}
                 onChange={handleRespuesta}
               />
 
+              {/* Secciones repetibles */}
+              {seccionesRepetibles.map(sec => (
+                <SeccionRepetible
+                  key={sec.id}
+                  seccion={sec}
+                  instancias={seccionesExtra[sec.id] || []}
+                  onInstanciasChange={(nuevas) => handleInstancias(sec.id, nuevas)}
+                />
+              ))}
+
+              {/* Sección residentes (solo si está activa en template) */}
+              {seccionResidentes && (
+                <div className="mb-4 rounded-lg border border-purple-200 overflow-hidden">
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    minHeight: '56px', padding: '0 16px',
+                    background: hayResidentes ? '#f5f3ff' : '#e5e7eb',
+                  }}>
+                    <span className="font-bold text-base uppercase text-gray-800">
+                      {seccionResidentes.titulo}
+                    </span>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={hayResidentes}
+                        onChange={e => {
+                          setHayResidentes(e.target.checked);
+                          if (e.target.checked && residentes.length === 0) {
+                            setResidentes([RESIDENTE_VACIO()]);
+                          }
+                        }}
+                        style={{ width: '20px', height: '20px' }}
+                      />
+                      <span className="text-sm font-semibold text-gray-700">Hay residentes a relevar</span>
+                    </label>
+                  </div>
+                  {hayResidentes && (
+                    <div className="p-4 bg-purple-50">
+                      <FormResidentes residentes={residentes} onChange={setResidentes} />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Observaciones y emplazamiento */}
               <div className="mb-4 mt-6">
                 <label className="label-field">Observaciones</label>
                 <textarea value={datos.observaciones}
@@ -590,13 +956,57 @@ export default function NuevaActa() {
             </div>
           )}
 
+          {/* PASO 8 — Testigos (geriátrico NO en funcionamiento) */}
+          {paso === 8 && (
+            <div>
+              <h2 className="text-xl font-bold mb-2">Testigos</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                El establecimiento no está en funcionamiento. Registrá los testigos presentes.
+              </p>
+
+              <FormTestigos testigos={testigos} onChange={setTestigos} />
+
+              <div className="mb-4 mt-6">
+                <label className="label-field">Observaciones</label>
+                <textarea value={datos.observaciones}
+                  onChange={e => setDatos(prev => ({ ...prev, observaciones: e.target.value }))}
+                  className="input-field h-32" placeholder="Ingrese sus observaciones..." />
+              </div>
+
+              <div className="mb-4">
+                <label className="label-field font-semibold">Plazo de Emplazamiento *</label>
+                <div className="flex gap-3 mt-2">
+                  <input type="number" value={datos.emplazamiento_valor}
+                    onChange={e => setDatos(prev => ({ ...prev, emplazamiento_valor: parseInt(e.target.value) || 0 }))}
+                    className="input-field w-24" min="1" required />
+                  <div className="flex gap-2 flex-1">
+                    {['HORAS', 'DÍAS'].map(tipo => (
+                      <button key={tipo} type="button"
+                        onClick={() => setDatos(prev => ({ ...prev, emplazamiento_tipo: tipo }))}
+                        className={`flex-1 py-3 px-4 rounded-lg font-semibold text-lg transition-colors ${
+                          datos.emplazamiento_tipo === tipo ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                        }`}>
+                        {tipo}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
+                <button onClick={() => setPaso(6)} className="btn-primary">Siguiente →</button>
+              </div>
+            </div>
+          )}
+
           {/* PASO 6 — Fotos */}
           {paso === 6 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Fotos de la Inspección</h2>
               <SubidaFotos onFotosChange={guardarFotos} />
               <div className="flex gap-4 mt-6">
-                <button onClick={() => setPaso(5)} className="btn-secondary">← Anterior</button>
+                <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={() => setPaso(7)} className="btn-primary">Siguiente →</button>
               </div>
             </div>
@@ -624,7 +1034,7 @@ export default function NuevaActa() {
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setPaso(6)} className="btn-secondary">← Anterior</button>
+                <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={generarPDF} disabled={loading}
                   className="btn-primary bg-green-600 hover:bg-green-700 disabled:opacity-50 px-8 py-4 text-lg">
                   {loading ? (

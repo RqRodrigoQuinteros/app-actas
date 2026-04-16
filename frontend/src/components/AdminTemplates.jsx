@@ -325,6 +325,8 @@ function TabTipologias() {
     const [titulo, setTitulo] = useState(seccion?.titulo || '');
     const [textoPrevio, setTextoPrevio] = useState(seccion?.texto_previo || '');
     const [textoPosterior, setTextoPosterior] = useState(seccion?.texto_posterior || '');
+    const [tipo, setTipo] = useState(seccion?.tipo || 'normal');
+    const [repetible, setRepetible] = useState(seccion?.repetible ?? false);
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
 
@@ -332,14 +334,17 @@ function TabTipologias() {
       if (!titulo.trim()) return setError('El título es requerido');
       setGuardando(true);
       try {
+        const payload = {
+          titulo,
+          texto_previo: textoPrevio || null,
+          texto_posterior: textoPosterior || null,
+          tipo,
+          repetible,
+        };
         if (seccion) {
-          await templatesAPI.actualizarSeccion(seccion.id, {
-            titulo, texto_previo: textoPrevio || null, texto_posterior: textoPosterior || null,
-          });
+          await templatesAPI.actualizarSeccion(seccion.id, payload);
         } else {
-          await templatesAPI.crearSeccion(tipologiaId, {
-            titulo, texto_previo: textoPrevio || null, texto_posterior: textoPosterior || null,
-          });
+          await templatesAPI.crearSeccion(tipologiaId, payload);
         }
         await cargarDetalle(tipologiaId || seleccionada.id);
         onClose();
@@ -357,6 +362,25 @@ function TabTipologias() {
           <label style={S.label}>Título de la sección *</label>
           <input style={S.input} value={titulo} onChange={e => setTitulo(e.target.value)}
             placeholder="ej: REGISTROS, DATOS GENERALES" autoFocus />
+        </div>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={S.label}>Tipo de sección</label>
+          <select style={S.input} value={tipo} onChange={e => setTipo(e.target.value)}>
+            <option value="normal">Normal (campos SI/NO, texto, etc.)</option>
+            <option value="residentes">Residentes (formulario con + personas)</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="checkbox"
+            id="chk-repetible"
+            checked={repetible}
+            onChange={e => setRepetible(e.target.checked)}
+            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+          />
+          <label htmlFor="chk-repetible" style={{ ...S.label, marginBottom: 0, cursor: 'pointer' }}>
+            Sección repetible (ej: puede inspeccionarse más de una vez)
+          </label>
         </div>
         <div style={{ marginBottom: '14px' }}>
           <label style={S.label}>Texto previo (opcional)</label>
@@ -631,7 +655,7 @@ function TabTipologias() {
               {(seleccionada.secciones || []).map((sec, idx) => (
                 <div key={sec.id} style={S.seccionBox}>
                   <div style={S.seccionHeader}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                       <span style={{
                         fontSize: '11px', fontWeight: 700,
                         color: '#6b7280', minWidth: '20px',
@@ -639,6 +663,16 @@ function TabTipologias() {
                       <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>
                         {sec.titulo}
                       </span>
+                      {sec.tipo === 'residentes' && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#7c3aed', background: '#ede9fe', padding: '1px 6px', borderRadius: '4px' }}>
+                          Residentes
+                        </span>
+                      )}
+                      {sec.repetible && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#0369a1', background: '#e0f2fe', padding: '1px 6px', borderRadius: '4px' }}>
+                          Repetible
+                        </span>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button style={S.btnOutline} onClick={() => setModalCampo({ seccionId: sec.id })}>

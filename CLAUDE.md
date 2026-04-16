@@ -44,8 +44,10 @@ y bloque de firmas al final.
 ### Arquitecto
 - Inicia sesión con usuario y contraseña
 - Crea Informes de Arquitectura (documento distinto al acta del inspector)
-- Tiene su propia plantilla PDF
+- Selecciona la tipología del informe al crear uno nuevo (carga artículos desde DB)
+- Genera PDF con nombre: "Evaluación técnica Arquitectura - Establecimiento - Expediente.pdf"
 - Los informes se guardan en una carpeta compartida de Drive
+- Usa PC exclusivamente (no hay consideraciones mobile para su interfaz)
 
 ### Supervisor
 - Rol oculto — no aparece en el dropdown de login público
@@ -53,6 +55,14 @@ y bloque de firmas al final.
 - Ve todas las actas de todos los inspectores
 - Puede ver historial, estados, y marcar "Subido a CIDI"
 - Dashboard con listado general y filtros
+- Tiene acceso al panel de Admin Templates
+
+### Admin
+- Accede por URL especial: /admin-login
+- Gestiona templates dinámicos de actas de inspectores
+- Gestiona tipologías e ítems de informes de arquitecto
+- Puede configurar encabezado y texto de emplazamiento del PDF
+- Panel en /admin/templates con tres tabs: "Tipologías y campos", "Encabezado y emplazamiento", "Informes de Arquitecto"
 
 ---
 
@@ -75,21 +85,8 @@ CREATE TABLE usuarios (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nombre TEXT NOT NULL,
   dni TEXT UNIQUE NOT NULL,
-  rol TEXT NOT NULL CHECK (rol IN ('inspector', 'arquitecto', 'supervisor')),
+  rol TEXT NOT NULL CHECK (rol IN ('inspector', 'arquitecto', 'supervisor', 'admin')),
   activo BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT now()
-);
-```
-
-### Tabla: `establecimientos`
-```sql
-CREATE TABLE establecimientos (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nombre TEXT NOT NULL,
-  direccion TEXT,
-  localidad TEXT,
-  tipologia TEXT NOT NULL,
-  expediente TEXT,
   created_at TIMESTAMP DEFAULT now()
 );
 ```
@@ -126,86 +123,199 @@ CREATE TABLE actas (
 CREATE TABLE informes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   arquitecto_id UUID REFERENCES usuarios(id),
-  establecimiento_id UUID REFERENCES establecimientos(id),
-  fecha DATE NOT NULL,
-  datos_formulario JSONB,
+  establecimiento_nombre TEXT,
+  establecimiento_direccion TEXT,
+  establecimiento_localidad TEXT,
+  expediente TEXT,
+  fecha DATE,
+  datos_formulario JSONB,  -- incluye: generales, checks, observaciones, tipo, tipologia_id, tipologia_nombre
   observaciones TEXT,
-  firma_arquitecto_base64 TEXT,
-  fotos_urls TEXT[],
-  pdf_url TEXT,
   estado TEXT DEFAULT 'borrador',
+  tipo TEXT DEFAULT 'geriatrico',
   created_at TIMESTAMP DEFAULT now()
+);
+```
+
+### Tablas del sistema de templates dinámicos (actas de inspector)
+```sql
+-- Tipologías de establecimiento
+CREATE TABLE template_tipologia (
+  id SERIAL PRIMARY KEY,
+  nombre TEXT UNIQUE NOT NULL,
+  descripcion TEXT,
+  activo BOOLEAN DEFAULT true,
+  version INTEGER DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Secciones de cada tipología
+CREATE TABLE template_secciones (
+  id SERIAL PRIMARY KEY,
+  tipologia_id INTEGER REFERENCES template_tipologia(id) ON DELETE CASCADE,
+  titulo TEXT NOT NULL,
+  orden INTEGER DEFAULT 0,
+  texto_previo TEXT,
+  texto_posterior TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Campos de cada sección
+CREATE TABLE template_campos (
+  id SERIAL PRIMARY KEY,
+  seccion_id INTEGER REFERENCES template_secciones(id) ON DELETE CASCADE,
+  etiqueta TEXT NOT NULL,
+  tipo TEXT NOT NULL CHECK (tipo IN ('si_no','texto','textarea','numero','fecha','select','check')),
+  orden INTEGER DEFAULT 0,
+  requerido BOOLEAN DEFAULT false,
+  placeholder TEXT,
+  opciones JSONB,  -- solo para tipo 'select'
+  token TEXT,     -- identificador para el PDF
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Respuestas del inspector por acta
+CREATE TABLE actas_respuestas (
+  id SERIAL PRIMARY KEY,
+  acta_id UUID REFERENCES actas(id) ON DELETE CASCADE,
+  campo_id INTEGER REFERENCES template_campos(id),
+  valor TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Configuración de encabezado y emplazamiento del PDF
+CREATE TABLE encabezado_config (
+  id SERIAL PRIMARY KEY,
+  nombre TEXT DEFAULT 'default',
+  texto_html TEXT,
+  texto_emplazamiento TEXT,
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### Tablas del sistema de informes de arquitecto
+```sql
+-- Tipologías de informe de arquitecto
+CREATE TABLE informe_tipologia (
+  id SERIAL PRIMARY KEY,
+  nombre TEXT UNIQUE NOT NULL,
+  descripcion TEXT,
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Artículos/ítems por tipología
+CREATE TABLE informe_items (
+  id SERIAL PRIMARY KEY,
+  tipologia_id INTEGER REFERENCES informe_tipologia(id) ON DELETE CASCADE,
+  nro TEXT NOT NULL,           -- ej: "13.a.1", "27"
+  descripcion TEXT NOT NULL,
+  grupo TEXT,                  -- sección colapsable, ej: "Circulaciones", "Baños"
+  orden INTEGER DEFAULT 0,
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 ```
 
 ---
 
-## 6. TIPOLOGÍAS Y SECCIONES DINÁMICAS
+## 6. SISTEMA DE TEMPLATES DINÁMICOS (actas de inspector)
 
-Hay 14 tipologías de establecimientos. Cada una activa distintas secciones
-en el formulario y en el PDF. A continuación las conocidas — completar las restantes.
+Las secciones y campos del formulario del inspector se cargan desde la BD, no están hardcodeados.
+El admin configura tipologías → secciones → campos desde el panel `/admin/templates`.
 
-### Configuración de secciones por tipología
+### Flujo de datos:
+1. `template_tipologia` define los tipos de establecimiento disponibles
+2. Cada tipología tiene `template_secciones` con título, orden y textos opcionales
+3. Cada sección tiene `template_campos` con tipo (si_no, texto, textarea, etc.), etiqueta y token
+4. Al guardar el acta, las respuestas se guardan en `actas_respuestas` vinculadas por `campo_id`
+5. Al generar el PDF, se recuperan las respuestas con sus secciones y se renderizan dinámicamente
 
-```js
-const SECCIONES_POR_TIPOLOGIA = {
-  hemodialisis: [
-    'conclusion_inspeccion',
-    'hemodialisis_direccion',
-    'hemodialisis_analisis_agua',
-    'hemodialisis_serologia_personal',
-    'hemodialisis_serologia_pacientes'
-  ],
-  quirurgicos: [
-    'conclusion_inspeccion',
-    'quirurgicos_general',
-    'direccion_funcionamiento'
-  ],
-  obra: [
-    'conclusion_inspeccion'
-    // Solo observaciones de texto libre, sin tablas adicionales
-  ],
-  consultorios: [
-    'conclusion_inspeccion',
-    'consultorios_general',
-    'direccion_funcionamiento'
-  ],
-  // Completar las 14 tipologías reales del Ministerio
-}
-```
+### Tipos de campo soportados:
+- `si_no` — botones SI / NO (NO en rojo)
+- `texto` — input de texto corto
+- `textarea` — texto largo
+- `numero` — input numérico
+- `fecha` — date picker
+- `select` — desplegable con opciones configurables
+- `check` — checkbox
 
-### Sección fija en TODAS las tipologías: `conclusion_inspeccion`
-
-Tabla con los siguientes ítems (valor SI / NO):
-- Observado
-- Director Técnico
-- Laboratorio
-- Hemoterapia
-- Radiofísica
-- Hemodiálisis
-
-Los valores **NO** se muestran en **rojo negrita** tanto en el formulario como en el PDF.
+### Secciones colapsables (inspector en tablet):
+`SeccionDinamica.jsx` renderiza cada sección como acordeón:
+- Primera sección abierta por defecto, resto cerradas
+- Header touch-friendly (56px mínimo), con número de sección y flecha ▲/▼
+- El body con los campos se muestra/oculta al tocar el header
 
 ---
 
-## 7. ESTRUCTURA DEL PROYECTO
+## 7. INFORMES DE ARQUITECTO
+
+### Formulario (`InformeArqGeriatricos.jsx`)
+Tres pasos (tabs):
+1. **Datos Generales** — campos fijos agrupados en secciones:
+   - Expediente (digital, papel, fojas)
+   - Establecimiento (nombre, arquitecto, dirección, barrio, etc.)
+   - Nomenclatura Catastral
+   - Radiofísica (14 campos SI/NO — solo se imprimen si tienen valor)
+   - Otros (Laboratorio, Hemodiálisis, Oncológicos, Pileta)
+   - Observaciones y Conclusión
+2. **Artículos** — lista de artículos cargados desde `informe_items` según `tipologia_id`.
+   Si los artículos tienen `grupo` asignado, se muestran como acordeón colapsable.
+   Al tildar un artículo, aparece textarea para observaciones.
+3. **Vista Previa** — resumen del informe antes de generar PDF.
+
+### Tipologías y artículos dinámicos:
+- Al crear un informe, se selecciona la tipología en un modal
+- Los artículos se cargan desde `informe_items` según `tipologia_id`
+- El campo `grupo` en `informe_items` agrupa artículos en secciones colapsables
+- Fallback: si no hay tipología configurada, usa artículos hardcodeados de geriátricos
+
+### PDFs de arquitecto:
+- **Geriátricos** → `base_geriatrico.html` (via `generarInformeGeriatricoPDF`)
+- **Otras tipologías** → `base_informe_arq.html` (via `generarInformeArqPDF`)
+  - Campos dinámicos: solo imprime los que tienen valor
+  - Artículos agrupados por `grupo`
+  - Secciones Radiofísica y Otros aparecen solo si hay datos
+- Nombre del archivo: `"Evaluación técnica Arquitectura - {nombreEst} - {expediente}.pdf"`
+- Sin firma ni línea de firma — solo nombre, matrícula y cargo del arquitecto
+
+### Panel admin (TabInformes en AdminTemplates):
+- Crear/editar tipologías de informe
+- Crear/editar artículos con campos: N° de artículo, Sección/Grupo (opcional), Descripción
+- El grupo aparece como badge violeta en la lista
+
+---
+
+## 8. ESTRUCTURA DEL PROYECTO
 
 ```
 /
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Login.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── NuevaActa.jsx
-│   │   │   ├── SeccionDinamica.jsx
-│   │   │   ├── FirmaCanvas.jsx
-│   │   │   ├── SubidaFotos.jsx
-│   │   │   ├── SupervisorDash.jsx
-│   │   │   └── InformeArquitecto.jsx
-│   │   ├── hooks/
+│   │   │   ├── Login.jsx                  — login inspectores (dropdown)
+│   │   │   ├── Dashboard.jsx              — actas del inspector
+│   │   │   ├── NuevaActa.jsx              — wizard para crear acta
+│   │   │   ├── VerActa.jsx                — vista detalle de acta con secciones dinámicas
+│   │   │   ├── SeccionDinamica.jsx        — secciones colapsables del formulario (inspector)
+│   │   │   ├── FirmaCanvas.jsx            — firma digital con signature_pad
+│   │   │   ├── SubidaFotos.jsx            — carga múltiple de fotos
+│   │   │   ├── SupervisorDash.jsx         — dashboard supervisor (todas las actas)
+│   │   │   ├── AdminLogin.jsx             — login para rol admin
+│   │   │   ├── AdminTemplates.jsx         — panel admin: templates + informes arq
+│   │   │   ├── InformeArquitecto.jsx      — listado de informes del arquitecto
+│   │   │   └── InformeArqGeriatricos.jsx  — formulario de informe (todas las tipologías)
 │   │   ├── context/
+│   │   │   └── AuthContext.jsx
 │   │   ├── utils/
+│   │   │   └── api.js                     — axios + todos los API clients
 │   │   └── App.jsx
 │   └── package.json
 │
@@ -213,41 +323,41 @@ Los valores **NO** se muestran en **rojo negrita** tanto en el formulario como e
 │   ├── routes/
 │   │   ├── auth.js
 │   │   ├── actas.js
+│   │   ├── establecimientos.js
 │   │   ├── informes.js
-│   │   ├── pdf.js
-│   │   └── drive.js
+│   │   ├── informes-templates.js  — CRUD tipologías e items de arquitecto
+│   │   ├── templates.js           — CRUD templates dinámicos de inspector
+│   │   ├── pdf.js                 — generación de PDFs (actas + informes)
+│   │   └── fotos.js
 │   ├── templates/
-│   │   ├── base_inspector.html
-│   │   ├── base_arquitecto.html
-│   │   └── secciones/
-│   │       ├── conclusion_inspeccion.html
-│   │       ├── hemodialisis_direccion.html
-│   │       ├── hemodialisis_analisis_agua.html
-│   │       ├── hemodialisis_serologia_personal.html
-│   │       ├── hemodialisis_serologia_pacientes.html
-│   │       ├── quirurgicos_general.html
-│   │       ├── direccion_funcionamiento.html
-│   │       └── ... (una por sección de cada tipología)
+│   │   ├── base_inspector.html    — template acta de inspector
+│   │   ├── base_geriatrico.html   — template informe arquitecto geriátricos
+│   │   ├── base_informe_arq.html  — template informe arquitecto otras tipologías
+│   │   ├── base_notificacion.html
+│   │   ├── img6.jpg               — logo membrete
+│   │   ├── logo_ministerio.png
+│   │   └── logo_cordoba.png
 │   ├── services/
-│   │   ├── pdfService.js
+│   │   ├── pdfService.js          — generarActaPDF, generarInformeGeriatricoPDF, generarInformeArqPDF
 │   │   ├── driveService.js
 │   │   └── supabaseClient.js
 │   ├── middleware/
 │   │   └── auth.js
 │   └── index.js
 │
-└── PROMPT_INSPECCIONES.md
+└── CLAUDE.md
 ```
 
 ---
 
-## 8. ENDPOINTS DE LA API
+## 9. ENDPOINTS DE LA API
 
 ### Autenticación
 ```
-POST /api/auth/login          { dni, rol } → { token, usuario }
+POST /api/auth/login                     { dni, rol, password? } → { token, usuario }
 POST /api/auth/logout
 GET  /api/auth/me
+GET  /api/auth/usuarios-login            — lista usuarios activos para dropdown
 ```
 
 ### Actas
@@ -257,441 +367,160 @@ GET    /api/actas/:id
 POST   /api/actas
 PUT    /api/actas/:id
 POST   /api/actas/:id/firmar
-DELETE /api/actas/:id         (solo supervisor)
-PATCH  /api/actas/:id/cidi    (toggle subido a CIDI)
+DELETE /api/actas/:id                    (solo supervisor)
+PATCH  /api/actas/:id/cidi               (toggle subido a CIDI)
 ```
 
 ### PDF
 ```
-POST /api/pdf/generar/:id     → genera PDF, lo sube a Drive, retorna { pdf_url }
-POST /api/pdf/informe/:id     → ídem para informes de arquitecto
+POST /api/pdf/generar/:id                → acta inspector → PDF + Drive
+POST /api/pdf/generar-notificacion/:id   → PDF notificación
+POST /api/pdf/geriatrico                 → informe arquitecto → PDF (bifurca por tipología)
+POST /api/pdf/informe/:id                → informe arquitecto legacy (por id)
 ```
 
-### Fotos
+### Templates dinámicos (inspector)
 ```
-POST /api/fotos/subir         → multipart/form-data, múltiples archivos, retorna URLs
+GET  /api/templates/encabezado
+PUT  /api/templates/encabezado
+GET  /api/templates/tipologias           ?todas=true para incluir inactivas
+GET  /api/templates/tipologias/:id
+GET  /api/templates/tipologias/por-nombre/:nombre
+POST /api/templates/tipologias           (solo admin/supervisor)
+PUT  /api/templates/tipologias/:id       (solo admin/supervisor)
+DELETE /api/templates/tipologias/:id     (desactiva)
+POST /api/templates/tipologias/:id/secciones
+PUT  /api/templates/secciones/:id
+DELETE /api/templates/secciones/:id
+POST /api/templates/secciones/:id/campos
+PUT  /api/templates/campos/:id
+DELETE /api/templates/campos/:id
+GET  /api/templates/actas/:actaId/respuestas
+POST /api/templates/actas/:actaId/respuestas
 ```
 
-### Establecimientos
-```
-GET  /api/establecimientos
-POST /api/establecimientos
-GET  /api/establecimientos/:id
-```
-
-### Informes (arquitecto)
+### Informes de arquitecto
 ```
 GET    /api/informes
+GET    /api/informes/:id
 POST   /api/informes
 PUT    /api/informes/:id
 ```
 
----
+### Templates de informes de arquitecto
+```
+GET  /api/informes-templates/tipologias              ?todas=true
+GET  /api/informes-templates/tipologias/:id/items
+GET  /api/informes-templates/tipologias/por-nombre/:nombre
+POST /api/informes-templates/tipologias              (solo admin/supervisor)
+PUT  /api/informes-templates/tipologias/:id          (solo admin/supervisor)
+POST /api/informes-templates/tipologias/:id/items    (solo admin/supervisor)
+PUT  /api/informes-templates/items/:id               (solo admin/supervisor)
+DELETE /api/informes-templates/items/:id             (solo admin/supervisor)
+```
 
-## 9. FLUJO COMPLETO DEL INSPECTOR
-
-1. Abre la app en tablet Android
-2. Selecciona su nombre del dropdown → se autentica con su DNI
-3. Ve dashboard con actas anteriores y botón "Nueva Acta"
-4. Completa formulario paso a paso (wizard):
-   - Paso 1: Datos del establecimiento (expediente, nombre, dirección, localidad, tipología)
-   - Paso 2: Datos del responsable presente (nombre, DNI, carácter)
-   - Paso 3: Tipo de inspección (virtual/presencial), fecha y hora
-   - Paso 4: Secciones dinámicas según tipología (ítems SI/NO con botones grandes)
-   - Paso 5: Observaciones (texto libre)
-   - Paso 6: Plazo de emplazamiento
-5. Sube fotos: abre galería/cámara, selecciona múltiples a la vez, ve previews
-6. Firma en canvas con el dedo (signature_pad)
-7. El responsable del establecimiento también firma en el canvas
-8. Toca "Generar Acta" → backend genera el PDF con Puppeteer
-9. PDF se guarda en la carpeta Drive del inspector automáticamente
-10. Inspector puede ver, compartir o imprimir el PDF
+### Fotos
+```
+POST /api/fotos/subir                    → multipart/form-data, retorna URLs
+```
 
 ---
 
-## 10. GENERACIÓN DEL PDF — LÓGICA COMPLETA
-
-### `backend/services/pdfService.js`
+## 10. API CLIENT (frontend/src/utils/api.js)
 
 ```js
-const puppeteer = require('puppeteer')
-const handlebars = require('handlebars')
-const fs = require('fs')
-const path = require('path')
-
-const SECCIONES_POR_TIPOLOGIA = {
-  hemodialisis: [
-    'conclusion_inspeccion',
-    'hemodialisis_direccion',
-    'hemodialisis_analisis_agua',
-    'hemodialisis_serologia_personal',
-    'hemodialisis_serologia_pacientes'
-  ],
-  quirurgicos: [
-    'conclusion_inspeccion',
-    'quirurgicos_general',
-    'direccion_funcionamiento'
-  ],
-  obra: ['conclusion_inspeccion'],
-  // completar...
-}
-
-async function generarActaPDF(acta) {
-  const baseTemplate = fs.readFileSync(
-    path.join(__dirname, '../templates/base_inspector.html'), 'utf8'
-  )
-
-  const secciones = SECCIONES_POR_TIPOLOGIA[acta.tipologia] || ['conclusion_inspeccion']
-
-  const seccionesHTML = secciones.map(s => {
-    const filePath = path.join(__dirname, `../templates/secciones/${s}.html`)
-    const sectionTemplate = handlebars.compile(fs.readFileSync(filePath, 'utf8'))
-    return sectionTemplate(acta.datos_formulario || {})
-  }).join('\n')
-
-  const template = handlebars.compile(baseTemplate)
-  const htmlFinal = template({
-    expediente: acta.expediente,
-    fecha: acta.fecha,
-    hora: acta.hora,
-    virtual: acta.virtual ? 'SI' : 'NO',
-    presencial: acta.presencial ? 'SI' : 'NO',
-    inspector_nombre: acta.inspector_nombre,
-    inspector_dni: acta.inspector_dni,
-    establecimiento_nombre: acta.establecimiento_nombre,
-    establecimiento_direccion: acta.establecimiento_direccion,
-    establecimiento_localidad: acta.establecimiento_localidad,
-    responsable_nombre: acta.responsable_nombre,
-    responsable_dni: acta.responsable_dni,
-    responsable_caracter: acta.responsable_caracter,
-    seccionesHTML,
-    observaciones: acta.observaciones,
-    emplazamiento_dias: acta.emplazamiento_dias,
-    firma_inspector: acta.firma_inspector_base64,
-    firma_responsable: acta.firma_responsable_base64,
-    fotos: acta.fotos_urls || []
-  })
-
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  })
-  const page = await browser.newPage()
-  await page.setContent(htmlFinal, { waitUntil: 'networkidle0' })
-  const pdfBuffer = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' }
-  })
-  await browser.close()
-
-  return pdfBuffer
-}
-
-module.exports = { generarActaPDF }
+export const authAPI        // login, logout, me, getUsuariosLogin
+export const actasAPI       // getAll, getById, create, update, firmar, toggleCidi, delete
+export const pdfAPI         // generarActa, generarInforme, generarNotificacion, generarActaBase64
+export const fotosAPI       // subir
+export const informesAPI    // getAll, getById, create, update
+export const templatesAPI   // encabezado, tipologías, secciones, campos, respuestas
+export const informesTemplatesAPI  // getTipologias, getTipologiaPorNombre, getItems,
+                                   // crearTipologia, actualizarTipologia,
+                                   // crearItem, actualizarItem, eliminarItem
+export default api          // instancia axios base
 ```
 
 ---
 
-## 11. PLANTILLA HTML BASE DEL ACTA
+## 11. GENERACIÓN DE PDF — LÓGICA ACTUAL
 
-### Estructura de `base_inspector.html`
+### Actas de inspector (`generarActaPDF`)
+1. Carga respuestas del acta desde `actas_respuestas` con dos queries separadas:
+   - Query 1: respuestas + campos (con `seccion_id`)
+   - Query 2: secciones por sus IDs
+2. Agrupa campos por sección y construye `secciones_render`
+3. Renderiza `base_inspector.html` con Handlebars
+4. Genera PDF con Puppeteer (header con logos, footer con numeración)
 
-Cada página del PDF debe tener el header del Ministerio. Se logra con CSS `@page`
-y un header fijo. La estructura general:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; font-size: 11pt; }
-
-    .header-ministerio {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 10px;
-    }
-
-    h1.titulo-acta {
-      text-align: center;
-      text-decoration: underline;
-      font-size: 14pt;
-    }
-
-    .subtitulo { text-align: center; margin-bottom: 20px; }
-
-    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-    td, th { border: 1px solid black; padding: 6px 10px; }
-    .valor-no { color: red; font-weight: bold; }
-
-    .page-break { page-break-before: always; }
-
-    .foto-pagina {
-      page-break-before: always;
-      display: flex;
-      flex-direction: column;
-    }
-    .foto-pagina img {
-      width: 100%;
-      max-height: 230mm;
-      object-fit: contain;
-    }
-
-    .firmas {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 40px;
-    }
-    .bloque-firma {
-      width: 45%;
-      text-align: center;
-    }
-    .linea-firma {
-      border-top: 1px solid black;
-      margin-bottom: 5px;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- HEADER MINISTERIO -->
-  <div class="header-ministerio">
-    <img src="{{logo_ministerio_base64}}" height="50" />
-    <img src="{{logo_cordoba_base64}}" height="50" />
-  </div>
-
-  <p style="text-align:right">Expte. N°: {{expediente}}</p>
-
-  <h1 class="titulo-acta">ACTA DE INSPECCION</h1>
-  <p class="subtitulo">INSPECCIÓN: VIRTUAL:{{virtual}} - PRESENCIAL:{{presencial}}</p>
-
-  <p>
-    En el dia {{fecha}} siendo las {{hora}} horas, el/la que suscribe inspector/a
-    {{inspector_nombre}} DNI:{{inspector_dni}} comisionado por la Dirección General de
-    Regulación Sanitaria, del Ministerio de Salud de la provincia de Córdoba, a los fines
-    de efectuar inspección al Establecimiento {{establecimiento_nombre}} sito en calle
-    {{establecimiento_direccion}} Localidad: {{establecimiento_localidad}} se constituye
-    en el lugar a fin de cumplir las exigencias de la Ley 6.222 Decreto 033/08 y Resolución
-    Ministerial N° 1226/2025 según el formulario de Inspección provisto por la repartición.
-    Se solicita la presencia del responsable del Establecimiento y se hace presente el
-    Sr./Sra. {{responsable_nombre}} DNI {{responsable_dni}} en su carácter de
-    {{responsable_caracter}} efectuada la inspección, se constata:
-  </p>
-
-  <!-- SECCIONES DINÁMICAS SEGÚN TIPOLOGÍA -->
-  {{{seccionesHTML}}}
-
-  <!-- OBSERVACIONES -->
-  {{#if observaciones}}
-  <p><strong>Observaciones:</strong></p>
-  <p>{{observaciones}}</p>
-  {{/if}}
-
-  <!-- EMPLAZAMIENTO -->
-  <p>
-    SE EMPLAZA POR EL TÉRMINO DE <strong>{{emplazamiento_dias}} HORAS/DÍAS</strong>
-    A CUMPLIMENTAR LAS OBSERVACIONES FORMULADAS BAJO APERCIBIMIENTO DE CLAUSURA,
-    SUMARIO Y DENUNCIA PENAL SI CORRESPONDIERE, EN CASO DE INCUMPLIMIENTO.
-  </p>
-
-  <!-- FIRMAS -->
-  <div class="firmas">
-    <div class="bloque-firma">
-      {{#if firma_inspector}}
-        <img src="{{firma_inspector}}" width="180" />
-      {{/if}}
-      <div class="linea-firma"></div>
-      <p>Firma inspector</p>
-      <p>{{inspector_nombre}} &nbsp;&nbsp; {{inspector_dni}}</p>
-      <p>Aclaración &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DNI</p>
-    </div>
-    <div class="bloque-firma">
-      {{#if firma_responsable}}
-        <img src="{{firma_responsable}}" width="180" />
-      {{/if}}
-      <div class="linea-firma"></div>
-      <p>Firma Responsable</p>
-      <p>{{responsable_nombre}} &nbsp;&nbsp; {{responsable_dni}}</p>
-      <p>Aclaración &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DNI</p>
-    </div>
-  </div>
-
-  <!-- FOTOS: una por página -->
-  {{#each fotos}}
-  <div class="foto-pagina">
-    <div class="header-ministerio">
-      <img src="{{../logo_ministerio_base64}}" height="50" />
-      <img src="{{../logo_cordoba_base64}}" height="50" />
-    </div>
-    <img src="{{this}}" />
-  </div>
-  {{/each}}
-
-</body>
-</html>
+### Informes de arquitecto (`POST /api/pdf/geriatrico`)
 ```
+tipologia_nombre === 'Geriátricos'
+  → generarInformeGeriatricoPDF → base_geriatrico.html
+  
+tipologia_nombre !== 'Geriátricos'
+  → generarInformeArqPDF → base_informe_arq.html
+    - Prepara gruposArticulos: { nombre, articulos[] } por campo 'grupo'
+    - tieneRadiofisica / tieneOtros: flags para imprimir esas secciones
+```
+
+### Templates HTML
+- **`base_inspector.html`**: secciones dinámicas via Handlebars loops
+- **`base_geriatrico.html`**: título/subtítulo dinámicos (`{{tituloInforme}}`, `{{subtituloInforme}}`), artículos flat
+- **`base_informe_arq.html`**: campos con `{{#if}}` (solo imprime si tiene valor), artículos agrupados via `{{#each gruposArticulos}}`
 
 ---
 
-## 12. EJEMPLO DE SECCIÓN MODULAR
+## 12. FLUJO COMPLETO DEL INSPECTOR
 
-### `secciones/hemodialisis_analisis_agua.html`
-
-```html
-<h3>ANÁLISIS DE AGUA</h3>
-<table>
-  <tr>
-    <td>Fisico, Quimico</td>
-    <td class="{{#unless datos.analisis_agua_fisico_quimico}}valor-no{{/unless}}">
-      {{#if datos.analisis_agua_fisico_quimico}}SI{{else}}NO{{/if}}
-    </td>
-  </tr>
-  <tr>
-    <td>Bacteriologico</td>
-    <td class="{{#unless datos.analisis_agua_bacteriologico}}valor-no{{/unless}}">
-      {{#if datos.analisis_agua_bacteriologico}}SI{{else}}NO{{/if}}
-    </td>
-  </tr>
-  <tr>
-    <td>Fecha ultimo fisico-quimico</td>
-    <td>{{datos.fecha_fisico_quimico}}</td>
-  </tr>
-  <tr>
-    <td>Fecha ultimo bacteriologico</td>
-    <td>{{datos.fecha_bacteriologico}}</td>
-  </tr>
-</table>
-```
+1. Abre la app en tablet Android
+2. Selecciona su nombre del dropdown → autentica con DNI
+3. Ve dashboard con actas anteriores y botón "Nueva Acta"
+4. Completa formulario wizard:
+   - Paso 1: Datos del establecimiento + tipología
+   - Paso 2: Datos del responsable presente
+   - Paso 3: Tipo de inspección, fecha y hora
+   - Paso 4: Selección de secciones a completar
+   - Paso 5: Secciones dinámicas con acordeón — cada sección colapsable, primera abierta
+   - Paso 6: Observaciones y emplazamiento
+5. Sube fotos (galería/cámara, múltiples a la vez, previews)
+6. Firma inspector + firma responsable en canvas (signature_pad)
+7. Genera PDF → backend renderiza con Puppeteer → sube a Drive
 
 ---
 
-## 13. COMPONENTE DE FIRMA (Frontend)
+## 13. FLUJO COMPLETO DEL ARQUITECTO
 
-```jsx
-// FirmaCanvas.jsx
-import SignaturePad from 'signature_pad'
-import { useRef, useEffect } from 'react'
-
-export default function FirmaCanvas({ onFirma, label }) {
-  const canvasRef = useRef()
-  const padRef = useRef()
-
-  useEffect(() => {
-    padRef.current = new SignaturePad(canvasRef.current, {
-      backgroundColor: 'rgb(255,255,255)'
-    })
-  }, [])
-
-  const guardar = () => {
-    if (padRef.current.isEmpty()) return
-    onFirma(padRef.current.toDataURL('image/png'))
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="font-semibold">{label}</p>
-      <canvas
-        ref={canvasRef}
-        width={400}
-        height={200}
-        className="border border-gray-400 rounded touch-none"
-      />
-      <div className="flex gap-2">
-        <button onClick={() => padRef.current.clear()}
-          className="px-4 py-2 bg-gray-200 rounded">
-          Limpiar
-        </button>
-        <button onClick={guardar}
-          className="px-4 py-2 bg-blue-600 text-white rounded">
-          Confirmar firma
-        </button>
-      </div>
-    </div>
-  )
-}
-```
+1. Login en /login con usuario y contraseña (rol: arquitecto)
+2. Ve listado de sus informes
+3. "Nuevo Informe" → modal para seleccionar tipología
+4. Formulario de 3 tabs:
+   - Datos Generales (campos fijos + radiofísica/otros universales)
+   - Artículos (cargados desde DB según tipología, con acordeón si tienen grupos)
+   - Vista Previa
+5. Guardar → crea/actualiza registro en `informes`
+6. Descargar PDF → `POST /api/pdf/geriatrico` con tipologia_nombre → PDF descargado
 
 ---
 
-## 14. COMPONENTE DE FOTOS MÚLTIPLES (Frontend)
+## 14. UI/UX
 
-```jsx
-// SubidaFotos.jsx
-import { useState } from 'react'
+### Inspectores (tablet Android)
+- Fuente mínima 16px, botones mínimo 48px de alto
+- Sin hover states — todo pensado para touch
+- Secciones colapsables con headers de 56px (touch-friendly)
+- Los ítems SI/NO se responden con botones toggle grandes
+- Los valores NO se muestran en ROJO (coherencia con el PDF)
+- Sin scroll horizontal
 
-export default function SubidaFotos({ onFotosChange }) {
-  const [previews, setPreviews] = useState([])
-
-  const handleChange = (e) => {
-    const archivos = Array.from(e.target.files)
-    const urls = archivos.map(f => URL.createObjectURL(f))
-    setPreviews(prev => [...prev, ...urls])
-    onFotosChange(archivos)
-  }
-
-  const eliminar = (idx) => {
-    setPreviews(prev => prev.filter((_, i) => i !== idx))
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <label className="flex items-center justify-center w-full h-16
-        border-2 border-dashed border-gray-400 rounded cursor-pointer
-        text-gray-600 text-lg">
-        + Agregar fotos
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          capture="environment"
-          onChange={handleChange}
-          className="hidden"
-        />
-      </label>
-      <div className="flex flex-wrap gap-2">
-        {previews.map((url, i) => (
-          <div key={i} className="relative">
-            <img src={url} className="w-24 h-24 object-cover rounded" />
-            <button
-              onClick={() => eliminar(i)}
-              className="absolute top-0 right-0 bg-red-500 text-white
-                rounded-full w-5 h-5 text-xs flex items-center justify-center">
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-```
+### Arquitectos (PC)
+- No hay consideraciones mobile/responsive para sus componentes
+- Interfaz con inline styles (objeto `S = {...}`) en lugar de Tailwind
+- Formulario en tabs horizontales, grids de 2 columnas
 
 ---
 
-## 15. GOOGLE DRIVE — ESTRUCTURA DE CARPETAS
-
-```
-Drive raíz (cuenta de servicio del Ministerio)
-├── Inspecciones/
-│   ├── FABIAN AVILA/
-│   │   └── (PDFs de actas)
-│   ├── INSPECTOR 2/
-│   │   └── ...
-│   └── ... (una carpeta por inspector)
-└── Informes Arquitectura/
-    └── (PDFs de informes)
-```
-
-Usar **Google Drive API v3** con una **cuenta de servicio** (service account).
-El backend sube los archivos automáticamente sin intervención del usuario.
-
----
-
-## 16. VARIABLES DE ENTORNO
+## 15. VARIABLES DE ENTORNO
 
 ### Backend (`.env`)
 ```env
@@ -708,144 +537,18 @@ DRIVE_ROOT_FOLDER_ID=xxxx
 ### Frontend (`.env`)
 ```env
 VITE_API_URL=https://tu-backend.railway.app
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=xxxx
 ```
 
 ---
 
-## 17. UI/UX — CONSIDERACIONES PARA TABLET ANDROID
+## 16. PENDIENTES / NOTAS IMPORTANTES
 
-- Fuente mínima 16px, botones mínimo 48px de alto
-- Sin hover states — todo pensado para touch
-- Formulario tipo wizard con pasos numerados y barra de progreso
-- Los ítems SI/NO se responden con botones toggle grandes (no radio buttons pequeños)
-- Los valores NO se muestran en ROJO en el formulario (coherencia con el PDF)
-- Sin scroll horizontal en ninguna pantalla
-- Orientación landscape preferida para la pantalla de firma
-- Los previews de fotos deben ser lo suficientemente grandes para verificar en campo
-
----
-
-## 18. FORMATO DEL ACTA PDF — DETALLES VISUALES
-
-Basado en los PDFs reales del Ministerio:
-
-- **Página:** A4, márgenes 20mm todos los lados
-- **Header de cada página:** Logo "DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA /
-  MINISTERIO DE SALUD" a la izquierda + Logo "Córdoba Hacer para crecer /
-  Gobierno de la Provincia" a la derecha
-- **Título:** "ACTA DE INSPECCION" centrado, subrayado, negrita
-- **Subtítulo:** "INSPECCIÓN: VIRTUAL:SI/NO - PRESENCIAL:SI/NO" centrado
-- **Párrafo introductorio:** Texto justificado, fuente 11pt
-- **Tablas:** Borde negro, celda izquierda con la descripción, celda derecha con el valor.
-  SI en negro normal. **NO en rojo negrita.**
-- **Títulos de sección:** Negrita, mayúsculas (ej: "ANÁLISIS DE AGUA")
-- **Fotos:** Una por página, ancho completo del área imprimible, con header del ministerio
-- **Firmas:** Dos bloques lado a lado: [espacio de imagen firma] / línea / nombre / DNI
-- **Numeración de páginas:** Centrada al pie de cada página
-- **Emplazamiento:** Texto en mayúsculas, el plazo en negrita
-
----
-
-## 19. DIFERENCIAS INSPECTOR vs ARQUITECTO
-
-| Característica       | Acta Inspector            | Informe Arquitecto          |
-|----------------------|---------------------------|-----------------------------|
-| Plantilla base       | `base_inspector.html`     | `base_arquitecto.html`      |
-| Secciones            | Dinámicas por tipología   | Estructura propia            |
-| Tabla conclusión     | Sí (fija para todas)      | No (diferente estructura)   |
-| Firmas               | Inspector + Responsable   | Solo arquitecto             |
-| Carpeta Drive        | Carpeta por inspector     | Carpeta compartida           |
-
----
-
-## 20. DEPENDENCIAS
-
-### Backend (`package.json`)
-```json
-{
-  "dependencies": {
-    "express": "^4.18.0",
-    "puppeteer": "^21.0.0",
-    "handlebars": "^4.7.0",
-    "@supabase/supabase-js": "^2.0.0",
-    "googleapis": "^126.0.0",
-    "multer": "^1.4.5",
-    "jsonwebtoken": "^9.0.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.0"
-  }
-}
-```
-
-### Frontend (`package.json`)
-```json
-{
-  "dependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-router-dom": "^6.0.0",
-    "@supabase/supabase-js": "^2.0.0",
-    "signature_pad": "^4.1.0",
-    "axios": "^1.4.0"
-  },
-  "devDependencies": {
-    "vite": "^5.0.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "tailwindcss": "^3.0.0",
-    "autoprefixer": "^10.0.0",
-    "postcss": "^8.0.0"
-  }
-}
-```
-
----
-
-## 21. INSTRUCCIONES PARA CLAUDE CODE
-
-Guardá este archivo como `CLAUDE.md` en la raíz del proyecto para que Claude Code
-lo lea automáticamente. O usalo manualmente con:
-
-```
-lee CLAUDE.md y construí el proyecto completo según la especificación
-```
-
-### Sugerencias de prompts por módulo:
-
-**Todo el proyecto:**
-```
-Lee CLAUDE.md. Crea la estructura de carpetas completa, inicializa
-backend y frontend, implementa toda la lógica según la especificación.
-```
-
-**Solo backend:**
-```
-Lee CLAUDE.md. Implementa solo el backend Node.js + Express:
-estructura de carpetas, index.js, todas las rutas, servicios
-de PDF (Puppeteer + Handlebars), Drive y Supabase.
-```
-
-**Solo frontend:**
-```
-Lee CLAUDE.md. Implementa solo el frontend React: Login con dropdown
-de inspectores, Dashboard, formulario NuevaActa como wizard,
-componente de firma FirmaCanvas, subida de fotos SubidaFotos,
-y dashboard del supervisor.
-```
-
-**Solo generación de PDF:**
-```
-Lee CLAUDE.md. Implementa solo pdfService.js y todas las plantillas
-HTML en /templates. El PDF debe replicar exactamente el formato
-oficial del Ministerio de Salud de Córdoba descripto en el archivo.
-```
-
-**Solo base de datos:**
-```
-Lee CLAUDE.md. Genera el script SQL completo para crear todas las
-tablas en Supabase según la especificación.
-```
+- **Supabase SQL pendiente**: `ALTER TABLE informe_items ADD COLUMN IF NOT EXISTS grupo TEXT;`
+  (necesario para grupos de artículos en informes de arquitecto)
+- Los inspectores reales con sus DNIs deben cargarse en la tabla `usuarios`
+- Las tipologías de inspector deben configurarse desde `/admin/templates`
+- Las tipologías de arquitecto (con sus artículos y grupos) se configuran desde el mismo panel, tab "Informes de Arquitecto"
+- `base_arquitecto.html` existe pero es legacy — no se usa en el flujo actual
 
 ---
 

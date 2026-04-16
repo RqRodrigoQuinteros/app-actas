@@ -274,6 +274,8 @@ router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, re
       ordenFinal = ultima ? ultima.orden + 1 : 0;
     }
 
+    const { tipo, repetible } = req.body;
+
     const { data, error } = await supabase
       .from('template_secciones')
       .insert({
@@ -281,7 +283,9 @@ router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, re
         titulo,
         texto_previo: texto_previo || null,
         texto_posterior: texto_posterior || null,
-        orden: ordenFinal
+        orden: ordenFinal,
+        tipo: tipo || 'normal',
+        repetible: repetible ?? false,
       })
       .select()
       .single();
@@ -299,13 +303,15 @@ router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, re
 router.put('/secciones/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, texto_previo, texto_posterior, orden } = req.body;
+    const { titulo, texto_previo, texto_posterior, orden, tipo, repetible } = req.body;
 
     const updates = {};
     if (titulo !== undefined) updates.titulo = titulo;
     if (texto_previo !== undefined) updates.texto_previo = texto_previo;
     if (texto_posterior !== undefined) updates.texto_posterior = texto_posterior;
     if (orden !== undefined) updates.orden = orden;
+    if (tipo !== undefined) updates.tipo = tipo;
+    if (repetible !== undefined) updates.repetible = repetible;
 
     const { data, error } = await supabase
       .from('template_secciones')
