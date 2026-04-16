@@ -318,9 +318,9 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
           }).filter(Boolean).join('\n');
         }
 
-        // Fallback: tabla genérica con todos los tokens
+        // Fallback: tabla genérica con todos los tokens (solo primitivos)
         const filas = Object.entries(df)
-          .filter(([, v]) => v !== undefined && v !== null && v !== '')
+          .filter(([, v]) => v !== undefined && v !== null && v !== '' && typeof v !== 'object')
           .map(([token, val]) => {
             const esBool = val === true || val === false;
             const texto = esBool ? (val ? 'SI' : 'NO') : String(val);

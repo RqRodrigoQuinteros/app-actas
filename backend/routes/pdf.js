@@ -50,24 +50,21 @@ async function enriquecerConRespuestas(acta) {
     console.log('[PDF] ERROR en query respuestas:', error.message);
   }
 
-  if (!respuestas || respuestas.length === 0) {
-    console.log('[PDF] sin respuestas, devolviendo acta sin enriquecer');
-    return acta;
-  }
-
   // Construir { token: valor } para Handlebars
   const datosFormulario = {};
-  for (const r of respuestas) {
-    if (!r.campo?.token) continue;
-    datosFormulario[r.campo.token] = r.campo.tipo === 'si_no'
-      ? (r.valor === 'SI' || r.valor === 'true')
-      : r.valor;
+  if (respuestas && respuestas.length > 0) {
+    for (const r of respuestas) {
+      if (!r.campo?.token) continue;
+      datosFormulario[r.campo.token] = r.campo.tipo === 'si_no'
+        ? (r.valor === 'SI' || r.valor === 'true')
+        : r.valor;
+    }
   }
   console.log('[PDF] datosFormulario keys:', Object.keys(datosFormulario));
 
   // Paso 2: obtener secciones por sus IDs (query separada, más robusta)
   const seccionIds = [...new Set(
-    respuestas.map(r => r.campo?.seccion_id).filter(Boolean)
+    (respuestas || []).map(r => r.campo?.seccion_id).filter(Boolean)
   )];
   console.log('[PDF] seccionIds:', seccionIds);
 
@@ -86,7 +83,7 @@ async function enriquecerConRespuestas(acta) {
 
   // Construir estructura de secciones agrupando campos por seccion
   const seccionesMap = {};
-  for (const r of respuestas) {
+  for (const r of (respuestas || [])) {
     if (!r.campo?.token) continue;
     const seccionId = r.campo.seccion_id;
     if (!seccionId || !seccionLookup[seccionId]) {
@@ -117,6 +114,91 @@ async function enriquecerConRespuestas(acta) {
     .map(s => ({ ...s, campos: s.campos.sort((a, b) => a.orden - b.orden) }));
 
   console.log('[PDF] secciones_render count:', secciones_render.length);
+
+  // Paso 3: procesar secciones repetibles (ej: UTIs) desde datos_formulario.secciones_extra
+  const seccionesExtraData = acta.datos_formulario?.secciones_extra || {};
+  const extraSeccionIds = Object.keys(seccionesExtraData).map(Number).filter(id => id > 0);
+  console.log('[PDF] extraSeccionIds (repetibles):', extraSeccionIds);
+
+  if (extraSeccionIds.length > 0) {
+    // Fetchear secciones que no están en el lookup todavía
+    const faltantes = extraSeccionIds.filter(id => !seccionLookup[id]);
+    if (faltantes.length > 0) {
+      const { data: extraSecs } = await supabase
+        .from('template_secciones')
+        .select('id, titulo, orden, texto_previo, texto_posterior')
+        .in('id', faltantes);
+      if (extraSecs) extraSecs.forEach(s => { seccionLookup[s.id] = s; });
+    }
+
+    // Recolectar todos los campo IDs usados en las instancias
+    const allCampoIds = new Set();
+    for (const instancias of Object.values(seccionesExtraData)) {
+      for (const inst of (instancias || [])) {
+        Object.keys(inst).filter(k => k !== '__obs').forEach(k => {
+          const n = parseInt(k);
+          if (n > 0) allCampoIds.add(n);
+        });
+      }
+    }
+
+    // Fetchear metadata de campos
+    const campoLookup = {};
+    if (allCampoIds.size > 0) {
+      const { data: campos } = await supabase
+        .from('template_campos')
+        .select('id, etiqueta, tipo, token, orden')
+        .in('id', [...allCampoIds]);
+      if (campos) campos.forEach(c => { campoLookup[c.id] = c; });
+    }
+    console.log('[PDF] campoLookup keys (repetibles):', Object.keys(campoLookup));
+
+    // Construir secciones sintéticas para cada instancia (UTI #1, UTI #2, ...)
+    for (const [secIdStr, instancias] of Object.entries(seccionesExtraData)) {
+      const secId = parseInt(secIdStr);
+      const sec = seccionLookup[secId];
+      if (!sec || !instancias?.length) continue;
+
+      for (let i = 0; i < instancias.length; i++) {
+        const inst = instancias[i];
+        const camposInstancia = [];
+
+        for (const [campoIdStr, valor] of Object.entries(inst)) {
+          if (campoIdStr === '__obs') continue;
+          const campoId = parseInt(campoIdStr);
+          const campo = campoLookup[campoId];
+          if (!campo) continue;
+
+          const syntheticToken = `__rep_${secId}_${i}_${campoId}`;
+          datosFormulario[syntheticToken] = campo.tipo === 'si_no'
+            ? (valor === 'SI' || valor === 'true' || valor === true)
+            : valor;
+
+          camposInstancia.push({
+            token: syntheticToken,
+            etiqueta: campo.etiqueta,
+            tipo: campo.tipo,
+            orden: campo.orden,
+          });
+        }
+
+        if (camposInstancia.length > 0) {
+          secciones_render.push({
+            id: `rep_${secId}_${i}`,
+            titulo: `${sec.titulo} #${i + 1}`,
+            orden: sec.orden + (i * 0.001),
+            texto_previo: null,
+            texto_posterior: inst.__obs || null,
+            campos: camposInstancia.sort((a, b) => a.orden - b.orden),
+          });
+        }
+      }
+    }
+
+    // Re-ordenar todas las secciones (normales + repetibles)
+    secciones_render.sort((a, b) => a.orden - b.orden);
+    console.log('[PDF] secciones_render total (con repetibles):', secciones_render.length);
+  }
 
   return { ...acta, datos_formulario: datosFormulario, secciones_render };
 }
