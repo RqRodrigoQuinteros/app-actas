@@ -38,12 +38,8 @@
 
     /* Artículos observados */
     .articulo {
-      margin-bottom: 10px;
       page-break-inside: avoid;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 10px 14px;
-      background: #f9f9f9;
+      padding: 6px 0;
     }
     .articulo-nro {
       display: inline-block;
@@ -59,6 +55,14 @@
       font-size: 10.5pt;
       line-height: 1.5;
       vertical-align: middle;
+    }
+    .articulo-obs {
+      font-size: 10.5pt;
+      line-height: 1.4;
+      margin-top: 6px;
+      padding-left: 8px;
+      border-left: 2px solid #999;
+      color: #333;
     }
 
     .conclusion-box {
@@ -121,13 +125,16 @@
   </p>
 
     {{#if articulosObservados.length}}
-    {{#each articulosObservados}}
-    <div class="articulo">
-      <span class="articulo-nro">{{nro}}</span>
-      <span class="articulo-texto">{{#if obs}}{{obs}}{{/if}}</span>
+    <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 14px;">
+      {{#each articulosObservados}}
+      <div class="articulo">
+        <span class="articulo-nro">{{nro}}</span>
+        <span class="articulo-texto">No cumple.</span>
+        {{#if obs}}<div class="articulo-obs">{{obs}}</div>{{/if}}
+      </div>
+      {{#unless @last}}<hr style="border: none; border-top: 1px solid #ccc; margin: 8px 0;">{{/unless}}
+      {{/each}}
     </div>
-    {{#unless @last}}<hr style="border: none; border-top: 1px solid #ccc; margin: 8px 0;">{{/unless}}
-    {{/each}}
   {{else}}
     <p style="font-style: italic; color: #555; margin-bottom: 16px;">Sin artículos observados.</p>
   {{/if}}
