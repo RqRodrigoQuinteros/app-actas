@@ -252,6 +252,7 @@ function TabTipologias() {
   const [modalCampo, setModalCampo] = useState(null); // { seccionId }
   const [editandoSeccion, setEditandoSeccion] = useState(null);
   const [editandoCampo, setEditandoCampo] = useState(null);
+  const [modalSubseccion, setModalSubseccion] = useState(null); // parent_seccion_id
 
   const cargarTipologias = async () => {
     try {
@@ -321,7 +322,7 @@ function TabTipologias() {
   }
 
   // ── Nueva / editar sección ───────────────────────────────────────────────
-  function FormSeccion({ seccion, tipologiaId, onClose }) {
+  function FormSeccion({ seccion, tipologiaId, parentSeccionId, onClose }) {
     const [titulo, setTitulo] = useState(seccion?.titulo || '');
     const [textoPrevio, setTextoPrevio] = useState(seccion?.texto_previo || '');
     const [textoPosterior, setTextoPosterior] = useState(seccion?.texto_posterior || '');
@@ -344,6 +345,9 @@ function TabTipologias() {
         if (seccion) {
           await templatesAPI.actualizarSeccion(seccion.id, payload);
         } else {
+          if (parentSeccionId) {
+            payload.parent_seccion_id = parentSeccionId;
+          }
           await templatesAPI.crearSeccion(tipologiaId, payload);
         }
         await cargarDetalle(tipologiaId || seleccionada.id);
@@ -358,6 +362,11 @@ function TabTipologias() {
     return (
       <>
         {error && <div style={S.alert('error')}>{error}</div>}
+        {parentSeccionId && (
+          <div style={{ marginBottom: '12px', padding: '8px 12px', background: '#e0f2fe', borderRadius: '6px', fontSize: '12px', color: '#0369a1' }}>
+            ↳ Subsección de otra sección
+          </div>
+        )}
         <div style={{ marginBottom: '14px' }}>
           <label style={S.label}>Título de la sección *</label>
           <input style={S.input} value={titulo} onChange={e => setTitulo(e.target.value)}
@@ -566,6 +575,11 @@ function TabTipologias() {
           <FormSeccion tipologiaId={seleccionada.id} onClose={() => setModalSeccion(false)} />
         </Modal>
       )}
+      {modalSubseccion && seleccionada && (
+        <Modal title="Nueva subsección" onClose={() => setModalSubseccion(null)}>
+          <FormSeccion tipologiaId={seleccionada.id} parentSeccionId={modalSubseccion} onClose={() => setModalSubseccion(null)} />
+        </Modal>
+      )}
       {editandoSeccion && (
         <Modal title="Editar sección" onClose={() => setEditandoSeccion(null)}>
           <FormSeccion seccion={editandoSeccion} tipologiaId={seleccionada?.id} onClose={() => setEditandoSeccion(null)} />
@@ -629,9 +643,6 @@ function TabTipologias() {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button style={S.btn('blue')} onClick={() => setModalSeccion(true)}>
-                    + Agregar sección
-                  </button>
                   <button style={S.btnOutline} onClick={() => {
                     if (!confirm(`¿${seleccionada.activo ? 'Desactivar' : 'Activar'} esta tipología?`)) return;
                     templatesAPI.actualizarTipologia(seleccionada.id, { activo: !seleccionada.activo })
@@ -639,7 +650,24 @@ function TabTipologias() {
                   }}>
                     {seleccionada.activo ? 'Desactivar' : 'Activar'}
                   </button>
+                  <button style={{ ...S.btnOutline, color: '#dc2626', borderColor: '#fecaca' }}
+                    onClick={() => {
+                      if (!confirm(`¿Eliminar permanentemente la tipología "${seleccionada.nombre}" y TODAS sus secciones y campos? Esta acción no se puede deshacer.`)) return;
+                      templatesAPI.desactivarTipologia(seleccionada.id)
+                        .then(() => {
+                          setSeleccionada(null);
+                          cargarTipologias();
+                        })
+                        .catch(() => setMsg({ type: 'error', text: 'Error al eliminar tipología' }));
+                    }}>
+                    Eliminar
+                  </button>
                 </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <button style={S.btn('blue')} onClick={() => setModalSeccion(true)}>
+                  + Agregar sección
+                </button>
               </div>
 
               {/* Secciones */}
@@ -673,10 +701,18 @@ function TabTipologias() {
                           Repetible
                         </span>
                       )}
+                      {(sec.subsecciones || []).length > 0 && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#059669', background: '#d1fae5', padding: '1px 6px', borderRadius: '4px' }}>
+                          {sec.subsecciones.length} subsección{sec.subsecciones.length !== 1 ? 'es' : ''}
+                        </span>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button style={S.btnOutline} onClick={() => setModalCampo({ seccionId: sec.id })}>
                         + Campo
+                      </button>
+                      <button style={S.btnOutline} onClick={() => setModalSubseccion(sec.id)}>
+                        + Sub
                       </button>
                       <button style={S.btnOutline} onClick={() => setEditandoSeccion(sec)}>
                         Editar
@@ -732,6 +768,49 @@ function TabTipologias() {
                       }} onClick={() => eliminarCampo(campo.id)}>
                         ×
                       </button>
+                    </div>
+                  ))}
+
+                  {/* Subsecciones */}
+                  {(sec.subsecciones || []).map((sub, sidx) => (
+                    <div key={sub.id} style={{ marginLeft: '24px', borderLeft: '3px solid #bfdbfe', paddingLeft: '12px', marginTop: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '8px 0' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#0369a1' }}>
+                          ↳ {sub.titulo}
+                        </span>
+                        {sub.tipo === 'residentes' && (
+                          <span style={{ fontSize: '10px', fontWeight: 600, color: '#7c3aed', background: '#ede9fe', padding: '1px 6px', borderRadius: '4px' }}>
+                            Residentes
+                          </span>
+                        )}
+                        {sub.repetible && (
+                          <span style={{ fontSize: '10px', fontWeight: 600, color: '#0369a1', background: '#e0f2fe', padding: '1px 6px', borderRadius: '4px' }}>
+                            Repetible
+                          </span>
+                        )}
+                        <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }} onClick={() => setModalCampo({ seccionId: sub.id })}>
+                            + Campo
+                          </button>
+                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }} onClick={() => setEditandoSeccion(sub)}>
+                            Editar
+                          </button>
+                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px', color: '#dc2626', borderColor: '#fecaca' }}
+                            onClick={() => eliminarSeccion(sub.id)}>
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                      {(sub.campos || []).map((campo, cidx) => (
+                        <div key={campo.id} style={{ ...S.campoRow, paddingLeft: '8px' }}>
+                          <span style={{ fontSize: '11px', color: '#9ca3af', minWidth: '18px' }}>{cidx + 1}</span>
+                          <span style={{ flex: 1 }}>{campo.etiqueta}</span>
+                          <span style={S.tipoBadge(campo.tipo)}>{TIPOS_CAMPO.find(t => t.value === campo.tipo)?.label || campo.tipo}</span>
+                          {campo.requerido && <span style={{ fontSize: '10px', color: '#dc2626', fontWeight: 700 }}>REQ</span>}
+                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }} onClick={() => setEditandoCampo(campo)}>Editar</button>
+                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px', color: '#dc2626', borderColor: '#fecaca' }} onClick={() => eliminarCampo(campo.id)}>×</button>
+                        </div>
+                      ))}
                     </div>
                   ))}
 
@@ -979,6 +1058,18 @@ function TabInformes() {
                       .then(() => cargarTipologias());
                   }}>
                     {seleccionada.activo ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button style={{ ...S.btnOutline, color: '#dc2626', borderColor: '#fecaca' }}
+                    onClick={() => {
+                      if (!confirm(`¿Eliminar permanentemente la tipología "${seleccionada.nombre}" y TODOS sus artículos? Esta acción no se puede deshacer.`)) return;
+                      informesTemplatesAPI.eliminarTipologia(seleccionada.id)
+                        .then(() => {
+                          setSeleccionada(null);
+                          cargarTipologias();
+                        })
+                        .catch(() => setMsg({ type: 'error', text: 'Error al eliminar tipología' }));
+                    }}>
+                    Eliminar
                   </button>
                 </div>
               </div>

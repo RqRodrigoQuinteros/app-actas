@@ -68,6 +68,7 @@ export const informesAPI = {
   getById: (id) => api.get(`/informes/${id}`),
   create: (data) => api.post('/informes', data),
   update: (id, data) => api.put(`/informes/${id}`, data),
+  toggleCidi: (id) => api.patch(`/informes/${id}/cidi`),
 };
 
 export default api;
@@ -78,7 +79,8 @@ export const informesTemplatesAPI = {
   getTipologiaPorNombre: (nombre) => api.get(`/informes-templates/tipologias/por-nombre/${encodeURIComponent(nombre)}`),
   getItems: (tipologiaId) => api.get(`/informes-templates/tipologias/${tipologiaId}/items`),
   crearTipologia: (data) => api.post('/informes-templates/tipologias', data),
-  actualizarTipologia: (id, data) => api.put(`/informes-templates/tipologias/${id}`, data),
+  actualizarTipologia: (id, data) => api.put('/informes-templates/tipologias/' + id, data),
+  eliminarTipologia: (id) => api.delete('/informes-templates/tipologias/' + id),
 
   // Items
   crearItem: (tipologiaId, data) => api.post(`/informes-templates/tipologias/${tipologiaId}/items`, data),

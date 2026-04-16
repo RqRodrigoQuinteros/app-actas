@@ -153,10 +153,13 @@ CREATE TABLE template_tipologia (
 CREATE TABLE template_secciones (
   id SERIAL PRIMARY KEY,
   tipologia_id INTEGER REFERENCES template_tipologia(id) ON DELETE CASCADE,
+  parent_seccion_id INTEGER REFERENCES template_secciones(id) ON DELETE CASCADE,  -- para subsecciones
   titulo TEXT NOT NULL,
   orden INTEGER DEFAULT 0,
   texto_previo TEXT,
   texto_posterior TEXT,
+  tipo TEXT DEFAULT 'normal',      -- 'normal' o 'residentes'
+  repetible BOOLEAN DEFAULT false, -- puede repetirse múltiples veces
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );

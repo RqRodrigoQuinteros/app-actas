@@ -38,37 +38,27 @@
 
     /* Artículos observados */
     .articulo {
-      margin-bottom: 16px;
+      margin-bottom: 10px;
       page-break-inside: avoid;
-    }
-    .articulo-header {
-      font-weight: bold;
-      font-size: 10.5pt;
-      margin-bottom: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px 14px;
+      background: #f9f9f9;
     }
     .articulo-nro {
       display: inline-block;
       font-weight: bold;
+      font-size: 11pt;
+      background: #e8e8e8;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-right: 8px;
+      vertical-align: middle;
     }
-    .articulo-desc {
-      text-align: justify;
-      font-size: 10pt;
-      margin-bottom: 5px;
-      color: #222;
-    }
-    .articulo-obs {
+    .articulo-texto {
       font-size: 10.5pt;
-      font-style: italic;
-      color: #000;
-      padding-left: 8px;
-      border-left: 2px solid #555;
-      margin-top: 4px;
-    }
-    .articulo-sin-obs {
-      font-size: 10pt;
-      font-style: italic;
-      color: #555;
-      padding-left: 8px;
+      line-height: 1.5;
+      vertical-align: middle;
     }
 
     .conclusion-box {
@@ -130,17 +120,13 @@
     visualizarse en la misma, se informa que:
   </p>
 
-  {{#if articulosObservados.length}}
+    {{#if articulosObservados.length}}
     {{#each articulosObservados}}
     <div class="articulo">
-      <p class="articulo-header">N° {{nro}}&nbsp;&nbsp; {{tituloCorto}}</p>
-      <p class="articulo-desc">{{desc}}</p>
-      {{#if obs}}
-        <p class="articulo-obs">{{obs}}</p>
-      {{else}}
-        <p class="articulo-sin-obs">(sin observaciones adicionales)</p>
-      {{/if}}
+      <span class="articulo-nro">{{nro}}</span>
+      <span class="articulo-texto">{{#if obs}}{{obs}}{{/if}}</span>
     </div>
+    {{#unless @last}}<hr style="border: none; border-top: 1px solid #ccc; margin: 8px 0;">{{/unless}}
     {{/each}}
   {{else}}
     <p style="font-style: italic; color: #555; margin-bottom: 16px;">Sin artículos observados.</p>

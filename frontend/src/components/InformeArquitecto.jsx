@@ -8,10 +8,16 @@ export default function InformeArquitecto() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const [informes, setInformes] = useState([]);
+  const [informesOriginal, setInformesOriginal] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pdfCargando, setPdfCargando] = useState(null);
   const [tipologias, setTipologias] = useState([]);
   const [modalNuevo, setModalNuevo] = useState(false);
+  
+  // Filtros
+  const [filtroCidi, setFiltroCidi] = useState('');
+  const [filtroTipologia, setFiltroTipologia] = useState('');
+  const [busqueda, setBusqueda] = useState('');
 
   useEffect(() => {
     loadInformes();
@@ -23,6 +29,7 @@ export default function InformeArquitecto() {
   const loadInformes = async () => {
     try {
       const response = await informesAPI.getAll();
+      setInformesOriginal(response.data);
       setInformes(response.data);
     } catch (err) {
       console.error('Error cargando informes:', err);
@@ -30,6 +37,34 @@ export default function InformeArquitecto() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let resultado = [...informesOriginal];
+    
+    // Filtro por CIDI
+    if (filtroCidi !== '') {
+      resultado = resultado.filter(i => String(i.subido_cidi) === filtroCidi);
+    }
+    
+    // Filtro por tipología
+    if (filtroTipologia) {
+      resultado = resultado.filter(i => {
+        const tipo = i.tipo || i.datos_formulario?.tipo || '';
+        return tipo === filtroTipologia;
+      });
+    }
+    
+    // Filtro por búsqueda
+    if (busqueda) {
+      const b = busqueda.toLowerCase();
+      resultado = resultado.filter(i => 
+        (i.establecimiento_nombre || '').toLowerCase().includes(b) ||
+        (i.expediente || '').toLowerCase().includes(b)
+      );
+    }
+    
+    setInformes(resultado);
+  }, [filtroCidi, filtroTipologia, busqueda, informesOriginal]);
 
   const crearNuevo = (tipologia) => {
     setModalNuevo(false);
@@ -55,23 +90,35 @@ export default function InformeArquitecto() {
   };
 
   const generarPDF = async (informe) => {
+    const hoy = new Date().toLocaleDateString('es-AR');
+    const fechaInforme = informe.fecha || '';
+    
+    if (!confirm(`¿Confirmás la generación del PDF?\n\nSe generará con fecha: ${hoy}\n\nSi la fecha del informe es diferente, asegurate de actualizarla antes.`)) {
+      return;
+    }
+    
     setPdfCargando(informe.id);
     try {
       const tipo = detectarTipo(informe);
       let response;
 
       if (tipo === 'geriatrico') {
-        // Usar el endpoint de geriátricos con los datos del formulario
         const df = informe.datos_formulario?.generales || {};
         const checks = informe.datos_formulario?.checks || {};
         const obsArt = informe.datos_formulario?.observaciones || {};
         const ARTICULOS_NRO = Object.keys(checks).filter(nro => checks[nro]);
-        // Necesitamos las descripciones — las reconstruimos desde el informe
         const articulosObservados = ARTICULOS_NRO.map(nro => ({
           nro,
-          desc: '', // el template los tiene en el HTML
+          desc: '',
           obs: obsArt[nro] || '',
         }));
+        // Formatear fecha a DD/MM/YYYY
+        if (df.fecha) {
+          if (df.fecha.includes('-')) {
+            const [y, m, d] = df.fecha.split('-');
+            df.fecha = `${d}/${m}/${y}`;
+          }
+        }
         response = await api.post('/pdf/geriatrico', { ...df, articulosObservados }, { responseType: 'blob' });
       } else {
         response = await api.post(`/pdf/informe/${informe.id}`, {}, { responseType: 'blob' });
@@ -90,6 +137,21 @@ export default function InformeArquitecto() {
       alert('Error al generar el PDF. Intentá de nuevo.');
     } finally {
       setPdfCargando(null);
+    }
+  };
+
+  const toggleCidi = async (informeId, actual) => {
+    try {
+      await informesAPI.toggleCidi(informeId);
+      const nuevoValor = !actual;
+      setInformesOriginal(prev => prev.map(inf => 
+        inf.id === informeId ? { ...inf, subido_cidi: nuevoValor } : inf
+      ));
+      setInformes(prev => prev.map(inf => 
+        inf.id === informeId ? { ...inf, subido_cidi: nuevoValor } : inf
+      ));
+    } catch {
+      alert('Error al actualizar CIDI');
     }
   };
 
@@ -175,6 +237,25 @@ export default function InformeArquitecto() {
           </button>
         </div>
 
+        <div className="flex gap-4 mb-4 flex-wrap">
+          <input
+            type="text"
+            placeholder="Buscar por nombre o expediente..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg flex-1 min-w-[200px]"
+          />
+          <select
+            value={filtroCidi}
+            onChange={(e) => setFiltroCidi(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg"
+          >
+            <option value="">CIDI: Todas</option>
+            <option value="true">Subidas a CIDI</option>
+            <option value="false">No subidas a CIDI</option>
+          </select>
+        </div>
+
         {loading ? (
           <div className="text-center py-8">
             <p className="text-gray-500">Cargando...</p>
@@ -202,6 +283,11 @@ export default function InformeArquitecto() {
                         }`}>
                           {informe.estado?.toUpperCase()}
                         </span>
+                        {informe.subido_cidi && (
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: '#059669', background: '#d1fae5', padding: '2px 8px', borderRadius: '4px' }}>
+                            ✓ Subido a CIDI
+                          </span>
+                        )}
                       </div>
                       <h3 className="font-semibold text-lg">
                         {informe.establecimiento_nombre || 'Sin nombre'}
@@ -212,10 +298,32 @@ export default function InformeArquitecto() {
                     </div>
                   </div>
                   <div className="flex justify-between items-center mt-4">
-                    <span className="text-sm text-gray-500">
-                      Expte: {informe.expediente || '-'} | {informe.fecha || '-'}
-                    </span>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="text-sm text-gray-500">
+                      <span>Expte: {informe.expediente || '-'} | {informe.fecha || '-'}</span>
+                      {informe.updated_at && (
+                        <span style={{ marginLeft: '12px', color: '#9ca3af' }}>
+                          Editado: {new Date(informe.updated_at).toLocaleDateString('es-AR')}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button
+                        onClick={() => toggleCidi(informe.id, !!informe.subido_cidi)}
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          borderRadius: '6px',
+                          border: informe.subido_cidi ? '2px solid #059669' : '1.5px solid #d1d5db',
+                          background: informe.subido_cidi ? '#d1fae5' : '#f9fafb',
+                          color: informe.subido_cidi ? '#059669' : '#6b7280',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s',
+                        }}
+                        title={informe.subido_cidi ? 'Marcar como NO subido a CIDI' : 'Marcar como subido a CIDI'}
+                      >
+                        {informe.subido_cidi ? '✓ CIDI' : 'CIDI'}
+                      </button>
                       <button
                         onClick={() => editarInforme(informe)}
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"

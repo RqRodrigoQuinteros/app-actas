@@ -1,7 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { informesAPI, informesTemplatesAPI } from "../utils/api";
+import { informesAPI, informesTemplatesAPI, authAPI } from "../utils/api";
 import api from "../utils/api";
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  // Si ya está en DD/MM/YYYY, devolverlo así
+  if (dateStr.includes('/')) return dateStr;
+  // Si está en YYYY-MM-DD, convertirlo
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+};
 
 // ─── ESTILOS BASE ─────────────────────────────────────────────────────────────
 const S = {
@@ -38,8 +50,14 @@ const S = {
   },
 };
 
-// ─── CAMPOS ───────────────────────────────────────────────────────────────────
+// ─── CAMPOS (sin opciones fijas para arquitecto - se llena dinámicamente) ──────
 const SECCIONES = [
+  {
+    titulo: "Auditor",
+    campos: [
+      { id: "arquitecto", label: "Nombre del Arquitecto", tipo: "select" },
+    ]
+  },
   {
     titulo: "Expediente",
     campos: [
@@ -52,7 +70,6 @@ const SECCIONES = [
     titulo: "Establecimiento",
     campos: [
       { id: "nombreEst",   label: "Nombre del establecimiento", placeholder: "Nombre...", fullWidth: true },
-      { id: "arquitecto",  label: "Nombre del Arquitecto",      placeholder: "Nombre y apellido" },
       { id: "direccion",   label: "Dirección",                  placeholder: "Av. Italia N° 1537" },
       { id: "barrio",      label: "Barrio / Localidad",         placeholder: "Río Cuarto" },
       { id: "departamento",label: "Departamento",               placeholder: "RÍO CUARTO" },
@@ -178,7 +195,7 @@ const GENERALES_VACÍO = {
 };
 
 // ─── CAMPO INDIVIDUAL ─────────────────────────────────────────────────────────
-function Campo({ c, valor, onChange }) {
+function Campo({ c, valor, onChange, opciones }) {
   const focusStyle = {
     borderColor: "#2563eb",
     background: "#fff",
@@ -206,6 +223,24 @@ function Campo({ c, valor, onChange }) {
   );
 }
   
+
+  if (c.tipo === "select") {
+    return (
+      <div style={S.fieldWrap}>
+        <label style={S.label}>{c.label}</label>
+        <select
+          value={valor}
+          onChange={e => onChange(e.target.value)}
+          style={S.inputBase}
+        >
+          <option value="">Seleccionar...</option>
+          {(opciones || []).map(op => (
+            <option key={op} value={op}>{op}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
 
   if (c.tipo === "sino") {
     return (
@@ -464,12 +499,27 @@ export default function InformeArqGeriatricos() {
   const [tipologiaId, setTipologiaId] = useState(location.state?.tipologia_id || null);
   const [tipologiaNombre, setTipologiaNombre] = useState(location.state?.tipologia_nombre || null);
   const [loadingArticulos, setLoadingArticulos] = useState(true);
+  const [arquitectos, setArquitectos] = useState([]);
 
   const [guardando, setGuardando]       = useState(false);
   const [generandoPDF, setGenerandoPDF] = useState(false);
   const [guardadoOk, setGuardadoOk]     = useState(false);
   const [errorMsg, setErrorMsg]         = useState("");
   const [cargando, setCargando]         = useState(!esNuevo);
+
+  // Cargar arquitectos desde la BD
+  useEffect(() => {
+    const cargarArquitectos = async () => {
+      try {
+        const res = await authAPI.getUsuariosLogin();
+        const arqs = (res.data || []).filter(u => u.rol === 'arquitecto');
+        setArquitectos(arqs.map(a => a.nombre));
+      } catch {
+        setArquitectos([]);
+      }
+    };
+    cargarArquitectos();
+  }, []);
 
   // Cargar items de tipología desde la BD (por id o por nombre "Geriátricos")
   useEffect(() => {
@@ -555,6 +605,7 @@ export default function InformeArqGeriatricos() {
     try {
       const response = await api.post("/pdf/geriatrico", {
         ...generales,
+        fecha: formatDate(generales.fecha),
         articulosObservados,
         tipologia_nombre: tipologiaNombre || 'Geriátricos',
       }, { responseType: "blob" });
@@ -607,7 +658,7 @@ export default function InformeArqGeriatricos() {
             {generales.nombreEst || (esNuevo ? "Nuevo Informe" : "Informe")}
           </h1>
           {generales.arquitecto && (
-            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#6b7280" }}>Arq. {generales.arquitecto}</p>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#6b7280" }}>{generales.arquitecto}</p>
           )}
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -652,13 +703,25 @@ export default function InformeArqGeriatricos() {
       {/* ── PASO 0: DATOS GENERALES ── */}
       {step === 0 && (
         <div>
-          {SECCIONES.map(sec => (
+          {SECCIONES
+            .filter(sec => {
+              if ((tipologiaNombre || '').toLowerCase().includes('geriátrico')) {
+                return sec.titulo !== 'Radiofísica' && sec.titulo !== 'Otros';
+              }
+              return true;
+            })
+            .map(sec => (
             <div key={sec.titulo} style={S.card}>
               <p style={S.sectionTitle}>{sec.titulo}</p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 {sec.campos.map(c => (
                   <div key={c.id} style={{ gridColumn: (c.textarea || c.fullWidth || c.tipo === "conclusion") ? "1 / -1" : "auto" }}>
-                    <Campo c={c} valor={generales[c.id]} onChange={v => setGen(c.id, v)} />
+                    <Campo 
+                      c={c} 
+                      valor={generales[c.id]} 
+                      onChange={v => setGen(c.id, v)}
+                      opciones={c.id === "arquitecto" ? arquitectos : c.opciones}
+                    />
                   </div>
                 ))}
               </div>

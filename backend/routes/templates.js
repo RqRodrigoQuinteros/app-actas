@@ -88,8 +88,30 @@ router.get('/tipologias', async (req, res) => {
   }
 });
 
+// Función auxiliar para construir jerarquía de secciones
+async function buildSeccionesJerarquia(secciones) {
+  // Ordenar campos dentro de cada sección
+  const conCampos = (secciones || []).map(s => ({
+    ...s,
+    campos: (s.campos || []).sort((a, b) => a.orden - b.orden)
+  }));
+
+  // Separar principales y subsecciones
+  const principales = conCampos.filter(s => !s.parent_seccion_id);
+  const subsecciones = conCampos.filter(s => s.parent_seccion_id);
+
+  // Agregar subsecciones a sus padres
+  principales.forEach(p => {
+    p.subsecciones = subsecciones
+      .filter(s => s.parent_seccion_id === p.id)
+      .sort((a, b) => a.orden - b.orden);
+  });
+
+  return principales.sort((a, b) => a.orden - b.orden);
+}
+
 // GET /api/templates/tipologias/:id
-// Devuelve una tipología con sus secciones y campos completos
+// Devuelve una tipología con sus secciones, subsecciones y campos completos
 router.get('/tipologias/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -115,13 +137,9 @@ router.get('/tipologias/:id', async (req, res) => {
 
     if (errSec) throw errSec;
 
-    // Ordenar campos dentro de cada sección
-    const seccionesOrdenadas = (secciones || []).map(s => ({
-      ...s,
-      campos: (s.campos || []).sort((a, b) => a.orden - b.orden)
-    }));
+    const seccionesJerarquia = await buildSeccionesJerarquia(secciones);
 
-    res.json({ ...tipologia, secciones: seccionesOrdenadas });
+    res.json({ ...tipologia, secciones: seccionesJerarquia });
   } catch (err) {
     console.error('Error obteniendo tipología:', err);
     res.status(500).json({ error: 'Error al obtener tipología' });
@@ -156,12 +174,9 @@ router.get('/tipologias/por-nombre/:nombre', async (req, res) => {
 
     if (errSec) throw errSec;
 
-    const seccionesOrdenadas = (secciones || []).map(s => ({
-      ...s,
-      campos: (s.campos || []).sort((a, b) => a.orden - b.orden)
-    }));
+    const seccionesJerarquia = await buildSeccionesJerarquia(secciones);
 
-    res.json({ ...tipologia, secciones: seccionesOrdenadas });
+    res.json({ ...tipologia, secciones: seccionesJerarquia });
   } catch (err) {
     console.error('Error obteniendo tipología por nombre:', err);
     res.status(500).json({ error: 'Error al obtener tipología' });
@@ -226,22 +241,43 @@ router.put('/tipologias/:id', soloSupervisor, async (req, res) => {
 });
 
 // DELETE /api/templates/tipologias/:id
-// Desactiva una tipología (no borra, por integridad con actas existentes)
+// Elimina permanentemente una tipología y todas sus secciones y campos
 router.delete('/tipologias/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
+    // Obtener todas las secciones de esta tipología
+    const { data: secciones } = await supabase
+      .from('template_secciones')
+      .select('id')
+      .eq('tipologia_id', id);
+
+    if (secciones && secciones.length > 0) {
+      const seccionIds = secciones.map(s => s.id);
+      
+      // Eliminar campos de esas secciones
+      await supabase
+        .from('template_campos')
+        .delete()
+        .in('seccion_id', seccionIds);
+
+      // Eliminar secciones (y sus subsecciones por CASCADE)
+      await supabase
+        .from('template_secciones')
+        .delete()
+        .eq('tipologia_id', id);
+    }
+
+    // Eliminar la tipología
+    const { error } = await supabase
       .from('template_tipologia')
-      .update({ activo: false })
-      .eq('id', id)
-      .select()
-      .single();
+      .delete()
+      .eq('id', id);
 
     if (error) throw error;
-    res.json({ message: 'Tipología desactivada', data });
+    res.json({ message: 'Tipología eliminada permanentemente' });
   } catch (err) {
-    console.error('Error desactivando tipología:', err);
+    console.error('Error eliminando tipología:', err);
     res.status(500).json({ error: 'Error al desactivar tipología' });
   }
 });
@@ -251,11 +287,11 @@ router.delete('/tipologias/:id', soloSupervisor, async (req, res) => {
 // ============================================================
 
 // POST /api/templates/tipologias/:tipologiaId/secciones
-// Agrega una sección a una tipología
+// Agrega una sección a una tipología (o subsección si se pasa parent_seccion_id)
 router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, res) => {
   try {
     const { tipologiaId } = req.params;
-    const { titulo, texto_previo, texto_posterior, orden } = req.body;
+    const { titulo, texto_previo, texto_posterior, orden, tipo, repetible, parent_seccion_id } = req.body;
 
     if (!titulo) {
       return res.status(400).json({ error: 'titulo es requerido' });
@@ -264,17 +300,23 @@ router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, re
     // Si no se manda orden, la pone al final
     let ordenFinal = orden;
     if (ordenFinal === undefined) {
-      const { data: ultima } = await supabase
+      const query = supabase
         .from('template_secciones')
         .select('orden')
-        .eq('tipologia_id', tipologiaId)
+        .eq('tipologia_id', tipologiaId);
+      
+      if (parent_seccion_id) {
+        query.eq('parent_seccion_id', parent_seccion_id);
+      } else {
+        query.is('parent_seccion_id', null);
+      }
+      
+      const { data: ultima } = await query
         .order('orden', { ascending: false })
         .limit(1)
         .single();
       ordenFinal = ultima ? ultima.orden + 1 : 0;
     }
-
-    const { tipo, repetible } = req.body;
 
     const { data, error } = await supabase
       .from('template_secciones')
@@ -286,6 +328,7 @@ router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, re
         orden: ordenFinal,
         tipo: tipo || 'normal',
         repetible: repetible ?? false,
+        parent_seccion_id: parent_seccion_id || null,
       })
       .select()
       .single();
@@ -299,11 +342,11 @@ router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, re
 });
 
 // PUT /api/templates/secciones/:id
-// Edita título, textos u orden de una sección
+// Edita título, textos, orden, tipo, repetible o parent_seccion_id de una sección
 router.put('/secciones/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, texto_previo, texto_posterior, orden, tipo, repetible } = req.body;
+    const { titulo, texto_previo, texto_posterior, orden, tipo, repetible, parent_seccion_id } = req.body;
 
     const updates = {};
     if (titulo !== undefined) updates.titulo = titulo;
@@ -312,6 +355,7 @@ router.put('/secciones/:id', soloSupervisor, async (req, res) => {
     if (orden !== undefined) updates.orden = orden;
     if (tipo !== undefined) updates.tipo = tipo;
     if (repetible !== undefined) updates.repetible = repetible;
+    if (parent_seccion_id !== undefined) updates.parent_seccion_id = parent_seccion_id || null;
 
     const { data, error } = await supabase
       .from('template_secciones')

@@ -142,4 +142,48 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// PATCH /api/informes/:id/cidi - Toggle subido a CIDI
+router.patch('/:id/cidi', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rol, id: userId } = req.user;
+
+    const { data: existingInforme } = await supabase
+      .from('informes')
+      .select('arquitecto_id')
+      .eq('id', id)
+      .single();
+
+    if (!existingInforme) {
+      return res.status(404).json({ error: 'Informe no encontrado' });
+    }
+
+    if (rol === 'arquitecto' && existingInforme.arquitecto_id !== userId) {
+      return res.status(403).json({ error: 'No tienes acceso a este informe' });
+    }
+
+    // Toggle: invertir el valor actual
+    const { data: current } = await supabase
+      .from('informes')
+      .select('subido_cidi')
+      .eq('id', id)
+      .single();
+
+    const nuevoValor = !(current?.subido_cidi);
+
+    const { data, error } = await supabase
+      .from('informes')
+      .update({ subido_cidi: nuevoValor })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error('Error toggling cidi:', err);
+    res.status(500).json({ error: 'Error al actualizar CIDI' });
+  }
+});
+
 module.exports = router;

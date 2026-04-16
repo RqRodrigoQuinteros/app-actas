@@ -6,18 +6,21 @@ import { actasAPI } from '../utils/api';
 export default function Dashboard() {
   const { usuario, logout } = useAuth();
   const [actas, setActas] = useState([]);
+  const [actasOriginal, setActasOriginal] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroCidi, setFiltroCidi] = useState('');
+  const [filtroTipologia, setFiltroTipologia] = useState('');
+  const [busqueda, setBusqueda] = useState('');
   const [mostrarModal, setMostrarModal] = useState(null);
 
   useEffect(() => {
     loadActas();
-  }, [filtroCidi]);
+  }, []);
 
   const loadActas = async () => {
     try {
-      const params = filtroCidi !== '' ? { subido_cidi: filtroCidi } : {};
-      const response = await actasAPI.getAll(params);
+      const response = await actasAPI.getAll();
+      setActasOriginal(response.data);
       setActas(response.data);
     } catch (err) {
       console.error('Error cargando actas:', err);
@@ -25,6 +28,33 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let resultado = [...actasOriginal];
+    
+    // Filtro por CIDI
+    if (filtroCidi !== '') {
+      resultado = resultado.filter(a => String(a.subido_cidi) === filtroCidi);
+    }
+    
+    // Filtro por tipología
+    if (filtroTipologia) {
+      resultado = resultado.filter(a => 
+        (a.establecimiento_tipologia || a.establecimiento?.tipologia || '') === filtroTipologia
+      );
+    }
+    
+    // Filtro por búsqueda
+    if (busqueda) {
+      const b = busqueda.toLowerCase();
+      resultado = resultado.filter(a => 
+        (a.establecimiento_nombre || a.establecimiento?.nombre || '').toLowerCase().includes(b) ||
+        (a.expediente || '').toLowerCase().includes(b)
+      );
+    }
+    
+    setActas(resultado);
+  }, [filtroCidi, filtroTipologia, busqueda, actasOriginal]);
 
   const eliminarActa = async (id) => {
     try {
@@ -34,6 +64,17 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Error eliminando acta:', err);
       alert('Error al eliminar el acta');
+    }
+  };
+
+  const toggleCidi = async (actaId, actual) => {
+    try {
+      await actasAPI.toggleCidi(actaId);
+      setActas(prev => prev.map(a => 
+        a.id === actaId ? { ...a, subido_cidi: !actual } : a
+      ));
+    } catch {
+      alert('Error al actualizar CIDI');
     }
   };
 
@@ -74,15 +115,22 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <div className="flex gap-4 mb-4">
+        <div className="flex gap-4 mb-4 flex-wrap">
+          <input
+            type="text"
+            placeholder="Buscar por nombre o expediente..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg flex-1 min-w-[200px]"
+          />
           <select
             value={filtroCidi}
             onChange={(e) => setFiltroCidi(e.target.value)}
             className="p-2 border border-gray-300 rounded-lg"
           >
-            <option value="">Todas</option>
-            <option value="false">No subidas a CIDI</option>
+            <option value="">CIDI: Todas</option>
             <option value="true">Subidas a CIDI</option>
+            <option value="false">No subidas a CIDI</option>
           </select>
         </div>
 
@@ -125,9 +173,29 @@ export default function Dashboard() {
                   <div className="flex justify-between text-sm text-gray-500 mt-2">
                     <span>Expte: {acta.expediente || 'Sin expediente'}</span>
                     <span>{acta.fecha}</span>
+                    {acta.updated_at && (
+                      <span style={{ color: '#9ca3af' }}>
+                        Editado: {new Date(acta.updated_at).toLocaleDateString('es-AR')}
+                      </span>
+                    )}
                   </div>
                 </Link>
-                <div className="mt-3 pt-3 border-t border-gray-200 flex justify-end">
+                <div className="mt-3 pt-3 border-t border-gray-200 flex justify-end gap-2">
+                  <button
+                    onClick={() => toggleCidi(acta.id, !!acta.subido_cidi)}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      borderRadius: '6px',
+                      border: acta.subido_cidi ? '2px solid #059669' : '1.5px solid #d1d5db',
+                      background: acta.subido_cidi ? '#d1fae5' : '#f9fafb',
+                      color: acta.subido_cidi ? '#059669' : '#6b7280',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {acta.subido_cidi ? '✓ CIDI' : 'CIDI'}
+                  </button>
                   <button
                     onClick={() => setMostrarModal(acta.id)}
                     className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200"

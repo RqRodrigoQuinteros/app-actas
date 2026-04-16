@@ -131,6 +131,31 @@ router.put('/tipologias/:id', soloAdmin, async (req, res) => {
   }
 });
 
+// DELETE /api/informes-templates/tipologias/:id  (solo admin/supervisor)
+router.delete('/tipologias/:id', soloAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Eliminar primero los items de esta tipología
+    await supabase
+      .from('informe_items')
+      .delete()
+      .eq('tipologia_id', id);
+
+    // Eliminar la tipología
+    const { error } = await supabase
+      .from('informe_tipologia')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    res.json({ message: 'Tipología eliminada permanentemente' });
+  } catch (err) {
+    console.error('Error eliminando tipología de informe:', err);
+    res.status(500).json({ error: 'Error al eliminar tipología' });
+  }
+});
+
 // ============================================================
 // ITEMS
 // ============================================================
