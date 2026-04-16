@@ -531,7 +531,7 @@ export default function InformeArqGeriatricos() {
       establecimiento_direccion: generales.direccion || "",
       establecimiento_localidad: generales.barrio || "",
       expediente: generales.expDigital || generales.expPapel || "",
-      fecha: generales.fecha || null,
+      fecha: generales.fecha || new Date().toISOString().split('T')[0],
       datos_formulario: { generales, checks, observaciones: obsArt, tipo: "geriatrico", tipologia_id: tipologiaId, tipologia_nombre: tipologiaNombre },
       observaciones: generales.observaciones || "",
       tipo: "geriatrico",
