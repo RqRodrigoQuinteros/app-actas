@@ -78,7 +78,7 @@ const SECCIONES = [
       { id: "fecha", label: "Fecha", tipo: "date", placeholder: "dd/mm/aaaa" },
       { id: "pileta",      label: "Pileta",                     tipo: "sino" },
       { id: "ascensor",    label: "Ascensor",                   tipo: "sino" },
-      { id: "instalacionesDeportivas", label: "Instalaciones Deportivas", tipo: "select", opciones: ["Si, de uso del establecimiento", "No"] },
+      { id: "instalacionesDeportivas", label: "Instalaciones Deportivas", tipo: "select", opciones: ["Si","Si, de uso del establecimiento", "No"] },
     ]
   },
   {
