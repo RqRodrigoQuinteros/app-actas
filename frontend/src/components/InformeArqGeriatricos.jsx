@@ -331,7 +331,7 @@ function Campo({ c, valor, onChange, opciones }) {
 }
 
 // ─── ARTÍCULO ITEM ────────────────────────────────────────────────────────────
-function ArticuloItem({ art, checked, obsValue, onCheck, onObs, todosLosArticulos }) {
+function ArticuloItem({ art, checked, obsValue, onCheck, onObs, todosLosArticulos, checks, obsArt, setCheck, setObs }) {
   const [refsOpen, setRefsOpen] = useState(false);
 
   // Parsear refs: "31,32" → ["31","32"]
@@ -339,8 +339,6 @@ function ArticuloItem({ art, checked, obsValue, onCheck, onObs, todosLosArticulo
     ? art.refs.split(',').map(r => r.trim()).filter(Boolean)
     : [];
   // Para cada ref buscar: exacto primero, sino todos los hijos directos
-  // "7" → matchea "7.b", "7.c" pero NO "72.a" (porque "72" no empieza con "7.")
-  // "31" → matchea "31.0", "31.a", "31.b"...
   const articulosReferenciados = refNros.flatMap(refNro => {
     const exacto = todosLosArticulos?.filter(a => a.nro === refNro) || [];
     if (exacto.length > 0) return exacto;
@@ -412,26 +410,22 @@ function ArticuloItem({ art, checked, obsValue, onCheck, onObs, todosLosArticulo
               borderRadius: "8px",
               border: "1.5px solid #fde68a",
               background: "#fffbeb",
-              overflow: "hidden",
+              padding: "8px",
             }}>
-              {articulosReferenciados.map((refArt, i) => (
-                <div key={refArt.nro} style={{
-                  padding: "10px 14px",
-                  borderBottom: i < articulosReferenciados.length - 1 ? "1px solid #fde68a" : "none",
-                }}>
-                  <span style={{
-                    display: "inline-block", fontWeight: 700, fontSize: "11px",
-                    color: "#92400e", background: "#fde68a",
-                    padding: "1px 7px", borderRadius: "4px",
-                    fontFamily: "monospace", marginBottom: "5px",
-                    letterSpacing: "0.03em",
-                  }}>
-                    Art. {refArt.nro}
-                  </span>
-                  <p style={{ margin: 0, fontSize: "12px", lineHeight: "1.6", color: "#78350f" }}>
-                    {refArt.desc}
-                  </p>
-                </div>
+              {articulosReferenciados.map(refArt => (
+                <ArticuloItem
+                  key={refArt.nro}
+                  art={{ ...refArt, refs: null }} // sin refs para evitar recursión
+                  checked={checks?.[refArt.nro] || false}
+                  obsValue={obsArt?.[refArt.nro] || ""}
+                  onCheck={v => setCheck?.(refArt.nro, v)}
+                  onObs={v => setObs?.(refArt.nro, v)}
+                  todosLosArticulos={todosLosArticulos}
+                  checks={checks}
+                  obsArt={obsArt}
+                  setCheck={setCheck}
+                  setObs={setObs}
+                />
               ))}
             </div>
           )}
@@ -573,7 +567,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                           <ArticuloItem key={art.nro} art={art}
                             checked={checks[art.nro]} obsValue={obsArt[art.nro]}
                             onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
-                            todosLosArticulos={articulos} />
+                            todosLosArticulos={articulos}
+                            checks={checks} obsArt={obsArt} setCheck={setCheck} setObs={setObs} />
                         ));
                       }
                       return (
@@ -618,7 +613,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                                 <ArticuloItem key={art.nro} art={art}
                                   checked={checks[art.nro]} obsValue={obsArt[art.nro]}
                                   onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
-                                  todosLosArticulos={articulos} />
+                                  todosLosArticulos={articulos}
+                                  checks={checks} obsArt={obsArt} setCheck={setCheck} setObs={setObs} />
                               ))}
                             </div>
                           )}
@@ -631,7 +627,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                       <ArticuloItem key={art.nro} art={art}
                         checked={checks[art.nro]} obsValue={obsArt[art.nro]}
                         onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
-                        todosLosArticulos={articulos} />
+                        todosLosArticulos={articulos}
+                        checks={checks} obsArt={obsArt} setCheck={setCheck} setObs={setObs} />
                     ))
                   )}
                 </div>
@@ -645,7 +642,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
           <ArticuloItem key={art.nro} art={art}
             checked={checks[art.nro]} obsValue={obsArt[art.nro]}
             onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
-            todosLosArticulos={articulos} />
+            todosLosArticulos={articulos}
+            checks={checks} obsArt={obsArt} setCheck={setCheck} setObs={setObs} />
         ))
       )}
 
