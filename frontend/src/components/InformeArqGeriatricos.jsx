@@ -338,9 +338,15 @@ function ArticuloItem({ art, checked, obsValue, onCheck, onObs, todosLosArticulo
   const refNros = art.refs
     ? art.refs.split(',').map(r => r.trim()).filter(Boolean)
     : [];
-  const articulosReferenciados = refNros
-    .map(nro => todosLosArticulos?.find(a => a.nro === nro))
-    .filter(Boolean);
+  // Para cada ref, buscar coincidencia exacta o todos los que empiecen con "ref."
+  const articulosReferenciados = refNros.flatMap(refNro => {
+    const exacto = todosLosArticulos?.filter(a => a.nro === refNro) || [];
+    if (exacto.length > 0) return exacto;
+    // Si no hay exacto, buscar por prefijo: "31" matchea "31.0", "31.a", "31.b"...
+    return todosLosArticulos?.filter(a => 
+      a.nro.startsWith(refNro + '.') || a.nro.startsWith(refNro + '.0')
+    ) || [];
+  });
 
   return (
     <div style={{
