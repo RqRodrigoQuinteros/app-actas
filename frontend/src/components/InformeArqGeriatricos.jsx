@@ -396,24 +396,43 @@ function BtnNav({ onClick, children, primary, disabled }) {
 }
 
 // ─── ARTÍCULOS CON SECCIONES COLAPSABLES ─────────────────────────────────────
-function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalChecked, setCheck, setObs, onBack, onNext }) {
-  // Agrupar artículos por grupo
+function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalChecked, setCheck, setObs, onBack, onNext, esGeriatrico }) {
+  // Agrupar artículos por grupo y subgrupo
   const articulosPorGrupo = articulos.reduce((acc, art) => {
     const g = art.grupo || '__sin_grupo__';
-    if (!acc[g]) acc[g] = [];
-    acc[g].push(art);
+    if (!acc[g]) acc[g] = {};
+    const sg = art.subgrupo || '__sin_subgrupo__';
+    if (!acc[g][sg]) acc[g][sg] = [];
+    acc[g][sg].push(art);
     return acc;
   }, {});
+  
   const grupos = Object.entries(articulosPorGrupo);
   const tieneGrupos = grupos.some(([g]) => g !== '__sin_grupo__');
-
-  const [openGrupos, setOpenGrupos] = useState(
-    () => Object.fromEntries(grupos.map(([g], i) => [g, i === 0]))
+  const tieneSubgrupos = grupos.some(([g, subs]) => 
+    g !== '__sin_grupo__' && Object.keys(subs).some(sg => sg !== '__sin_subgrupo__')
   );
-  const toggleGrupo = (g) => setOpenGrupos(prev => ({ ...prev, [g]: !prev[g] }));
 
-  // Contar seleccionados por grupo
-  const countGrupo = (arts) => arts.filter(a => checks[a.nro]).length;
+  const [openGrupos, setOpenGrupos] = useState(() => {
+    const initial = {};
+    grupos.forEach(([g, subs]) => {
+      initial[g] = { expanded: true, subgrupos: {} };
+      Object.keys(subs).forEach((sg, i) => {
+        initial[g].subgrupos[sg] = i === 0;
+      });
+    });
+    return initial;
+  });
+
+  const toggleGrupo = (g) => setOpenGrupos(prev => ({
+    ...prev, [g]: { ...prev[g], expanded: !prev[g].expanded }
+  }));
+
+  const toggleSubgrupo = (g, sg) => setOpenGrupos(prev => ({
+    ...prev, [g]: { ...prev[g], subgrupos: { ...prev[g].subgrupos, [sg]: !prev[g].subgrupos[sg] } }
+  }));
+
+  const countArts = (arts) => arts.filter(a => checks[a.nro]).length;
 
   return (
     <div>
@@ -428,12 +447,14 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
         <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontSize: "14px" }}>
           Cargando artículos...
         </div>
-      ) : tieneGrupos ? (
-        // Renderizado con acordeón por grupo
-        grupos.map(([grupoNombre, arts]) => {
-          const isOpen = !!openGrupos[grupoNombre];
-          const seleccionados = countGrupo(arts);
-          const label = grupoNombre === '__sin_grupo__' ? 'Sin sección' : grupoNombre;
+      ) : tieneGrupos && !esGeriatrico ? (
+        // Renderizado con acordeón por grupo y subgrupo (solo para no-geriátricos)
+        grupos.map(([grupoNombre, subgrupos]) => {
+          const isGrupoOpen = openGrupos[grupoNombre]?.expanded ?? true;
+          const labelGrupo = grupoNombre === '__sin_grupo__' ? 'Sin sección' : grupoNombre;
+          const subgruposList = Object.entries(subgrupos);
+          const totalSel = subgruposList.reduce((sum, [, arts]) => sum + countArts(arts), 0);
+          
           return (
             <div key={grupoNombre} style={{ marginBottom: "8px", borderRadius: "10px", border: "1.5px solid #e5e7eb", overflow: "hidden" }}>
               <div
@@ -441,35 +462,72 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                 style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                   minHeight: "52px", cursor: "pointer", padding: "0 16px",
-                  background: isOpen ? "#f9fafb" : "#e5e7eb", userSelect: "none",
+                  background: isGrupoOpen ? "#f9fafb" : "#e5e7eb", userSelect: "none",
                 }}
               >
                 <span style={{ fontWeight: 700, fontSize: "14px", color: "#111827", textTransform: "uppercase" }}>
-                  {label}
+                  {labelGrupo}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  {seleccionados > 0 && (
+                  {totalSel > 0 && (
                     <span style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", background: "#eff6ff", padding: "2px 8px", borderRadius: "12px" }}>
-                      {seleccionados} seleccionado{seleccionados !== 1 ? "s" : ""}
+                      {totalSel} seleccionado{totalSel !== 1 ? "s" : ""}
                     </span>
                   )}
-                  <span style={{ fontSize: "18px", color: "#6b7280" }}>{isOpen ? "▲" : "▼"}</span>
+                  <span style={{ fontSize: "18px", color: "#6b7280" }}>{isGrupoOpen ? "▲" : "▼"}</span>
                 </div>
               </div>
-              {isOpen && (
+              {isGrupoOpen && (
                 <div style={{ padding: "12px" }}>
-                  {arts.map(art => (
-                    <ArticuloItem key={art.nro} art={art}
-                      checked={checks[art.nro]} obsValue={obsArt[art.nro]}
-                      onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
-                  ))}
+                  {tieneSubgrupos ? (
+                    // Con subgrupos
+                    subgruposList.map(([subgrupoNombre, arts]) => {
+                      const isSubOpen = openGrupos[grupoNombre]?.subgrupos?.[subgrupoNombre] ?? true;
+                      const labelSub = subgrupoNombre === '__sin_subgrupo__' ? 'General' : subgrupoNombre;
+                      const selCount = countArts(arts);
+                      return (
+                        <div key={subgrupoNombre} style={{ marginBottom: "8px" }}>
+                          <div
+                            onClick={() => toggleSubgrupo(grupoNombre, subgrupoNombre)}
+                            style={{
+                              display: "flex", justifyContent: "space-between", alignItems: "center",
+                              minHeight: "40px", cursor: "pointer", padding: "0 12px",
+                              background: isSubOpen ? "#f3f4f6" : "#f9fafb",
+                              border: "1px solid #e5e7eb", borderRadius: "6px", userSelect: "none",
+                            }}
+                          >
+                            <span style={{ fontWeight: 600, fontSize: "13px", color: "#374151" }}>
+                              ↳ {labelSub}
+                            </span>
+                            <span style={{ fontSize: "16px", color: "#6b7280" }}>{isSubOpen ? "▲" : "▼"}</span>
+                          </div>
+                          {isSubOpen && (
+                            <div style={{ padding: "8px 0 0 12px" }}>
+                              {arts.map(art => (
+                                <ArticuloItem key={art.nro} art={art}
+                                  checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+                                  onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    // Sin subgrupos, solo artículos directos del grupo
+                    subgruposList[0]?.[1].map(art => (
+                      <ArticuloItem key={art.nro} art={art}
+                        checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+                        onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                    ))
+                  )}
                 </div>
               )}
             </div>
           );
         })
       ) : (
-        // Lista plana (sin grupos, ej: geriátricos)
+        // Lista plana (geriátricos o sin grupos)
         articulos.map(art => (
           <ArticuloItem key={art.nro} art={art}
             checked={checks[art.nro]} obsValue={obsArt[art.nro]}
@@ -743,6 +801,7 @@ export default function InformeArqGeriatricos() {
           totalChecked={totalChecked}
           setCheck={setCheck} setObs={setObs}
           onBack={() => setStep(0)} onNext={() => setStep(2)}
+          esGeriatrico={(tipologiaNombre || '').toLowerCase().includes('geriátrico')}
         />
       )}
 

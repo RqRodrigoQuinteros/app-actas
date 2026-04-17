@@ -920,6 +920,7 @@ function TabInformes() {
     const [nro, setNro] = useState(item?.nro || '');
     const [descripcion, setDescripcion] = useState(item?.descripcion || '');
     const [grupo, setGrupo] = useState(item?.grupo || '');
+    const [subgrupo, setSubgrupo] = useState(item?.subgrupo || '');
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
 
@@ -928,7 +929,12 @@ function TabInformes() {
       if (!descripcion.trim()) return setError('La descripción es requerida');
       setGuardando(true);
       try {
-        const payload = { nro: nro.trim(), descripcion: descripcion.trim(), grupo: grupo.trim() || null };
+        const payload = { 
+          nro: nro.trim(), 
+          descripcion: descripcion.trim(), 
+          grupo: grupo.trim() || null,
+          subgrupo: subgrupo.trim() || null 
+        };
         if (item) {
           await informesTemplatesAPI.actualizarItem(item.id, payload);
         } else {
@@ -953,10 +959,16 @@ function TabInformes() {
             placeholder="ej: 13.a.1, 27, 31.c" autoFocus />
         </div>
         <div style={{ marginBottom: '14px' }}>
-          <label style={S.label}>Sección / Grupo (opcional)</label>
+          <label style={S.label}>Grupo (opcional)</label>
           <input style={S.input} value={grupo}
             onChange={e => setGrupo(e.target.value)}
-            placeholder="ej: Circulaciones, Baños, Cocina..." />
+            placeholder="ej: Circulaciones, Baños..." />
+        </div>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={S.label}>Subgrupo (opcional)</label>
+          <input style={S.input} value={subgrupo}
+            onChange={e => setSubgrupo(e.target.value)}
+            placeholder="ej: Pasillos, Escaleras..." />
         </div>
         <div style={{ marginBottom: '20px' }}>
           <label style={S.label}>Descripción del artículo *</label>
