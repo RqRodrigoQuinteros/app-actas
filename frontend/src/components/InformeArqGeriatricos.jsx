@@ -338,14 +338,14 @@ function ArticuloItem({ art, checked, obsValue, onCheck, onObs, todosLosArticulo
   const refNros = art.refs
     ? art.refs.split(',').map(r => r.trim()).filter(Boolean)
     : [];
-  // Para cada ref, buscar coincidencia exacta o todos los que empiecen con "ref."
+  // Para cada ref buscar: exacto primero, sino todos los hijos directos
+  // "7" → matchea "7.b", "7.c" pero NO "72.a" (porque "72" no empieza con "7.")
+  // "31" → matchea "31.0", "31.a", "31.b"...
   const articulosReferenciados = refNros.flatMap(refNro => {
     const exacto = todosLosArticulos?.filter(a => a.nro === refNro) || [];
     if (exacto.length > 0) return exacto;
-    // Si no hay exacto, buscar por prefijo: "31" matchea "31.0", "31.a", "31.b"...
-    return todosLosArticulos?.filter(a => 
-      a.nro.startsWith(refNro + '.') || a.nro.startsWith(refNro + '.0')
-    ) || [];
+    const prefijo = refNro + '.';
+    return todosLosArticulos?.filter(a => a.nro.startsWith(prefijo)) || [];
   });
 
   return (
