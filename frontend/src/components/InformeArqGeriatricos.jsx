@@ -75,8 +75,13 @@ const SECCIONES = [
       { id: "departamento",label: "Departamento",               placeholder: "RÍO CUARTO" },
       { id: "metros2",     label: "Metros cuadrados",           placeholder: "m²" },
       { id: "cantCamas",   label: "Cantidad de camas",          placeholder: "22" },
+      { id: "cantUTI",    label: "Cant. unidades UTI",          tipo: "numero", placeholder: "0" },
+      { id: "cantUCO",    label: "Cant. unidades UCO",          tipo: "numero", placeholder: "0" },
+      { id: "cantUCI",    label: "Cant. unidades UCI",          tipo: "numero", placeholder: "0" },
+      { id: "cantUTIP",   label: "Cant. unidades UTIP",         tipo: "numero", placeholder: "0" },
+      { id: "cantUTIN",   label: "Cant. unidades UTIN",         tipo: "numero", placeholder: "0" },
       { id: "fecha", label: "Fecha", tipo: "date", placeholder: "dd/mm/aaaa" },
-      { id: "pileta",      label: "Pileta",                     tipo: "sino" },
+      { id: "pileta",      label: "Pileta",                     tipo: "select", opciones: ["Si", "Si, de uso para el establecimiento", "No"] },
       { id: "ascensor",    label: "Ascensor",                   tipo: "sino" },
       { id: "instalacionesDeportivas", label: "Instalaciones Deportivas", tipo: "select", opciones: ["Si","Si, de uso del establecimiento", "No"] },
     ]
@@ -102,21 +107,20 @@ const SECCIONES = [
       { id: "rad_laser",         label: "Láser",                                                  tipo: "sino" },
       { id: "rad_hemodinamia",   label: "Radiología Intervencionista - Hemodinamia",               tipo: "sino" },
       { id: "rad_pet",           label: "PET / SPECT / Tomografía por emisión de positrones",     tipo: "sino" },
-      { id: "rad_ultravioleta",  label: "Ultra Violeta",                                          tipo: "sino" },
-      { id: "rad_arco_c",        label: "Radiología Intervencionista - Arco en C",                tipo: "sino" },
-      { id: "rad_conebeam",      label: "Tomografía Computada - Dental / Cone Beam",              tipo: "sino" },
       { id: "rad_resonancia",    label: "Resonancia Magnética",                                   tipo: "sino" },
       { id: "rad_densitometria", label: "Densitometría Ósea",                                    tipo: "sino" },
-      { id: "rad_dental",        label: "Radiología Dental / Rayos X Dental",                    tipo: "sino" },
+      { id: "hemoterapia",       label: "Hemoterapia",                                            tipo: "sino" },
     ]
   },
   {
     titulo: "Otros",
     campos: [
-      { id: "otro_laboratorio",  label: "Laboratorio",  tipo: "sino" },
-      { id: "otro_hemodialisis", label: "Hemodiálisis", tipo: "sino" },
-      { id: "otro_oncologicos",  label: "Oncológicos",  tipo: "sino" },
-      { id: "otro_pileta",       label: "Pileta",       tipo: "sino" },
+      { id: "otro_laboratorio",       label: "Laboratorio",                           tipo: "sino" },
+      { id: "otro_hemodialisis",      label: "Hemodiálisis",                          tipo: "sino" },
+      { id: "cantUnidadesHemodialisis", label: "Cant. unidades en Hemodiálisis",      tipo: "numero", placeholder: "0" },
+      { id: "otro_oncologicos",       label: "Oncológicos",                           tipo: "sino" },
+      { id: "cantUnidadesOncologicos", label: "Cant. unidades Oncológicas",           tipo: "numero", placeholder: "0" },
+      { id: "otro_pileta",            label: "Pileta",                                tipo: "sino" },
     ]
   },
   {
@@ -183,16 +187,18 @@ const GENERALES_VACÍO = {
   expDigital: "", expPapel: "", fojasOrdenes: "",
   nombreEst: "", arquitecto: "", direccion: "", barrio: "",
   departamento: "", metros2: "", cantCamas: "", fecha: "",
-  pileta: "", habMunicipal: "", circ: "", seccion: "",
+  cantUTI: "", cantUCO: "", cantUCI: "", cantUTIP: "", cantUTIN: "",
+  pileta: "", ascensor: "", instalacionesDeportivas: "",
+  habMunicipal: "", circ: "", seccion: "",
   manzana: "", parcela: "", loteOficial: "",
   verificarInsp: "", observaciones: "", conclusion: "",
   // Radiofísica
   rad_convencional: "", rad_acelerador: "", rad_ortopanto: "", rad_tomografia: "",
   rad_litotricia: "", rad_laser: "", rad_hemodinamia: "", rad_pet: "",
-  rad_ultravioleta: "", rad_arco_c: "", rad_conebeam: "", rad_resonancia: "",
-  rad_densitometria: "", rad_dental: "",
+  rad_resonancia: "", rad_densitometria: "", hemoterapia: "",
   // Otros
-  otro_laboratorio: "", otro_hemodialisis: "", otro_oncologicos: "", otro_pileta: "",
+  otro_laboratorio: "", otro_hemodialisis: "", cantUnidadesHemodialisis: "",
+  otro_oncologicos: "", cantUnidadesOncologicos: "", otro_pileta: "",
 };
 
 // ─── CAMPO INDIVIDUAL ─────────────────────────────────────────────────────────
@@ -215,15 +221,24 @@ function Campo({ c, valor, onChange, opciones }) {
   };
   
   if (c.tipo === "date") {
-  return (
-    <div style={S.fieldWrap}>
-      <label style={S.label}>{c.label}</label>
-      <input type="date" value={valor} onChange={e => onChange(e.target.value)}
-        style={S.inputBase} />
-    </div>
-  );
-}
-  
+    return (
+      <div style={S.fieldWrap}>
+        <label style={S.label}>{c.label}</label>
+        <input type="date" value={valor} onChange={e => onChange(e.target.value)}
+          style={S.inputBase} />
+      </div>
+    );
+  }
+
+  if (c.tipo === "numero") {
+    return (
+      <div style={S.fieldWrap}>
+        <label style={S.label}>{c.label}</label>
+        <input type="number" min="0" placeholder={c.placeholder}
+          style={S.inputBase} {...commonProps} />
+      </div>
+    );
+  }
 
   if (c.tipo === "select") {
     return (

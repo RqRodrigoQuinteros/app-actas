@@ -594,8 +594,7 @@ async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCord
 const CAMPOS_RADIOFISICA = [
   'rad_convencional', 'rad_acelerador', 'rad_ortopanto', 'rad_tomografia',
   'rad_litotricia', 'rad_laser', 'rad_hemodinamia', 'rad_pet',
-  'rad_ultravioleta', 'rad_arco_c', 'rad_conebeam', 'rad_resonancia',
-  'rad_densitometria', 'rad_dental',
+  'rad_resonancia', 'rad_densitometria', 'hemoterapia',
 ];
 
 async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
@@ -604,7 +603,7 @@ async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase
 
   const template = handlebars.compile(baseTemplate);
   const tieneRadiofisica = CAMPOS_RADIOFISICA.some(k => datos[k]);
-  const tieneOtros = ['otro_laboratorio', 'otro_hemodialisis', 'otro_oncologicos', 'otro_pileta'].some(k => datos[k]);
+  const tieneOtros = ['otro_laboratorio', 'otro_hemodialisis', 'cantUnidadesHemodialisis', 'otro_oncologicos', 'cantUnidadesOncologicos', 'otro_pileta'].some(k => datos[k]);
   const htmlFinal = template({ ...datos, tieneRadiofisica, tieneOtros });
 
   const browser = await launchBrowser();

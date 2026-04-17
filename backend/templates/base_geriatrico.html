@@ -110,11 +110,18 @@
       {{#if parcela}}PARCELA:{{parcela}}{{/if}}
       {{#if loteOficial}} - LOTE OFICIAL: {{loteOficial}}{{/if}}
     </p>
-    <p><strong>Pileta:</strong> {{pileta}}</p>
+    {{#if pileta}}<p><strong>Pileta:</strong> {{pileta}}</p>{{/if}}
+    {{#if ascensor}}<p><strong>Ascensor:</strong> {{ascensor}}</p>{{/if}}
+    {{#if instalacionesDeportivas}}<p><strong>Instalaciones Deportivas:</strong> {{instalacionesDeportivas}}</p>{{/if}}
     {{#if habMunicipal}}<p><strong>Habilitación Municipal:</strong> {{habMunicipal}}</p>{{/if}}
     {{#if verificarInsp}}<p><strong>Verificar en Inspección:</strong> {{verificarInsp}}</p>{{/if}}
     {{#if observaciones}}<p class="obs-generales"><strong>Observaciones:</strong> {{observaciones}}</p>{{/if}}
     {{#if cantCamas}}<p><strong>Cantidad de camas:</strong> {{cantCamas}}</p>{{/if}}
+    {{#if cantUTI}}<p><strong>Unidades UTI:</strong> {{cantUTI}}</p>{{/if}}
+    {{#if cantUCO}}<p><strong>Unidades UCO:</strong> {{cantUCO}}</p>{{/if}}
+    {{#if cantUCI}}<p><strong>Unidades UCI:</strong> {{cantUCI}}</p>{{/if}}
+    {{#if cantUTIP}}<p><strong>Unidades UTIP:</strong> {{cantUTIP}}</p>{{/if}}
+    {{#if cantUTIN}}<p><strong>Unidades UTIN:</strong> {{cantUTIN}}</p>{{/if}}
   </div>
 
   <hr class="separador">
