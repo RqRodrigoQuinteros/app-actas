@@ -164,7 +164,7 @@ router.delete('/tipologias/:id', soloAdmin, async (req, res) => {
 router.post('/tipologias/:id/items', soloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { nro, descripcion, orden, grupo, subgrupo } = req.body;
+    const { nro, descripcion, orden, grupo, subgrupo, refs } = req.body;
 
     if (!nro || !descripcion) {
       return res.status(400).json({ error: 'nro y descripcion son requeridos' });
@@ -184,7 +184,7 @@ router.post('/tipologias/:id/items', soloAdmin, async (req, res) => {
 
     const { data, error } = await supabase
       .from('informe_items')
-      .insert({ tipologia_id: parseInt(id), nro, descripcion, orden: ordenFinal, grupo: grupo || null, subgrupo: subgrupo || null })
+      .insert({ tipologia_id: parseInt(id), nro, descripcion, orden: ordenFinal, grupo: grupo || null, subgrupo: subgrupo || null, refs: refs || null })
       .select()
       .single();
 
@@ -200,13 +200,14 @@ router.post('/tipologias/:id/items', soloAdmin, async (req, res) => {
 router.put('/items/:id', soloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { nro, descripcion, orden, grupo, subgrupo } = req.body;
+    const { nro, descripcion, orden, grupo, subgrupo, refs } = req.body;
     const updates = {};
     if (nro !== undefined) updates.nro = nro;
     if (descripcion !== undefined) updates.descripcion = descripcion;
     if (orden !== undefined) updates.orden = orden;
     if (grupo !== undefined) updates.grupo = grupo || null;
     if (subgrupo !== undefined) updates.subgrupo = subgrupo || null;
+    if (refs !== undefined) updates.refs = refs || null;
 
     const { data, error } = await supabase
       .from('informe_items')
