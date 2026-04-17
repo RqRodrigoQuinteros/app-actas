@@ -305,14 +305,14 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
                 const esBool = val === true || val === false;
                 const texto = esBool ? (val ? 'SI' : 'NO') : String(val);
                 const clase = esBool ? (val ? 'valor-si' : 'valor-no') : '';
-                return `<tr><td>${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:80px">${texto}</td></tr>`;
+                return `<tr><td style="width:70%;word-wrap:break-word">${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
               }).join('');
             if (!filas) return '';
             return `
               <div class="seccion">
                 <h3>${sec.titulo}</h3>
                 ${sec.texto_previo ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-bottom:8px">${sec.texto_previo}</p>` : ''}
-                <table><tbody>${filas}</tbody></table>
+                <table class="tabla-campos"><tbody>${filas}</tbody></table>
                 ${sec.texto_posterior ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-top:8px">${sec.texto_posterior}</p>` : ''}
               </div>`;
           }).filter(Boolean).join('\n');
@@ -325,10 +325,10 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
             const esBool = val === true || val === false;
             const texto = esBool ? (val ? 'SI' : 'NO') : String(val);
             const clase = esBool ? (val ? 'valor-si' : 'valor-no') : '';
-            return `<tr><td>${token}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:80px">${texto}</td></tr>`;
+            return `<tr><td style="width:70%;word-wrap:break-word">${token}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
           }).join('');
         if (!filas) return '';
-        return `<div class="seccion"><h3>Datos de la Inspección</h3><table><tbody>${filas}</tbody></table></div>`;
+        return `<div class="seccion"><h3>Datos de la Inspección</h3><table class="tabla-campos"><tbody>${filas}</tbody></table></div>`;
       })();
 
       console.log(`[PDF] Secciones renderizadas dinámicamente`);

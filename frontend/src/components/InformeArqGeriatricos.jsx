@@ -250,7 +250,7 @@ function Campo({ c, valor, onChange, opciones }) {
         <div style={{ display: "flex", gap: "8px" }}>
           {["SI", "NO"].map(op => (
             <button key={op} type="button"
-              onClick={() => onChange(op)}
+              onClick={() => onChange(valor === op ? "" : op)}
               style={{
                 flex: 1, padding: "10px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
                 border: valor === op ? "2px solid #2563eb" : "1.5px solid #d1d5db",
@@ -273,7 +273,7 @@ function Campo({ c, valor, onChange, opciones }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {CONCLUSIONES.map(op => (
             <button key={op} type="button"
-              onClick={() => onChange(op)}
+              onClick={() => onChange(valor === op ? "" : op)}
               style={{
                 padding: "11px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: valor === op ? 700 : 400,
                 border: valor === op ? "2px solid #2563eb" : "1.5px solid #d1d5db",
