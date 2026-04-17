@@ -498,26 +498,54 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                     // Con subgrupos
                     subgruposList.map(([subgrupoNombre, arts]) => {
                       const isSubOpen = openGrupos[grupoNombre]?.subgrupos?.[subgrupoNombre] ?? true;
-                      const labelSub = subgrupoNombre === '__sin_subgrupo__' ? 'General' : subgrupoNombre;
+                      const labelSub = subgrupoNombre === '__sin_subgrupo__' ? null : subgrupoNombre;
                       const selCount = countArts(arts);
+                      // Si no tiene subgrupo real, renderizar artículos directamente sin wrapper
+                      if (!labelSub) {
+                        return arts.map(art => (
+                          <ArticuloItem key={art.nro} art={art}
+                            checked={checks[art.nro]} obsValue={obsArt[art.nro]}
+                            onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                        ));
+                      }
                       return (
-                        <div key={subgrupoNombre} style={{ marginBottom: "8px" }}>
+                        <div key={subgrupoNombre} style={{
+                          marginBottom: "10px",
+                          borderRadius: "8px",
+                          border: "1.5px solid #bfdbfe",
+                          overflow: "hidden",
+                          background: "#f0f7ff",
+                        }}>
+                          {/* Header del subgrupo */}
                           <div
                             onClick={() => toggleSubgrupo(grupoNombre, subgrupoNombre)}
                             style={{
                               display: "flex", justifyContent: "space-between", alignItems: "center",
-                              minHeight: "40px", cursor: "pointer", padding: "0 12px",
-                              background: isSubOpen ? "#f3f4f6" : "#f9fafb",
-                              border: "1px solid #e5e7eb", borderRadius: "6px", userSelect: "none",
+                              minHeight: "38px", cursor: "pointer", padding: "0 12px",
+                              background: isSubOpen ? "#dbeafe" : "#eff6ff",
+                              borderBottom: isSubOpen ? "1.5px solid #bfdbfe" : "none",
+                              userSelect: "none",
                             }}
                           >
-                            <span style={{ fontWeight: 600, fontSize: "13px", color: "#374151" }}>
-                              ↳ {labelSub}
-                            </span>
-                            <span style={{ fontSize: "16px", color: "#6b7280" }}>{isSubOpen ? "▲" : "▼"}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{
+                                width: "4px", height: "18px", borderRadius: "2px",
+                                background: "#2563eb", display: "inline-block", flexShrink: 0,
+                              }} />
+                              <span style={{ fontWeight: 700, fontSize: "12px", color: "#1d4ed8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                {labelSub}
+                              </span>
+                              {selCount > 0 && (
+                                <span style={{ fontSize: "11px", fontWeight: 700, color: "#2563eb", background: "#fff", padding: "1px 7px", borderRadius: "10px", border: "1px solid #bfdbfe" }}>
+                                  {selCount} sel.
+                                </span>
+                              )}
+                            </div>
+                            <span style={{ fontSize: "14px", color: "#2563eb" }}>{isSubOpen ? "▲" : "▼"}</span>
                           </div>
+                          {/* Artículos del subgrupo */}
                           {isSubOpen && (
-                            <div style={{ padding: "8px 0 0 12px" }}>
+                            <div style={{ padding: "8px 10px" }}>
                               {arts.map(art => (
                                 <ArticuloItem key={art.nro} art={art}
                                   checked={checks[art.nro]} obsValue={obsArt[art.nro]}
