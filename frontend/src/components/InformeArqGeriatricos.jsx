@@ -123,14 +123,6 @@ const SECCIONES = [
       { id: "otro_pileta",            label: "Pileta",                                tipo: "sino" },
     ]
   },
-  {
-    titulo: "Observaciones y Conclusión",
-    campos: [
-      { id: "verificarInsp", label: "Verificar en Inspección", placeholder: "-", fullWidth: true },
-      { id: "observaciones", label: "Observaciones generales", placeholder: "Observaciones...", textarea: true },
-      { id: "conclusion",    label: "Conclusión", tipo: "conclusion", fullWidth: true },
-    ]
-  },
 ];
 
 const CONCLUSIONES = [
@@ -801,7 +793,7 @@ export default function InformeArqGeriatricos() {
     "EN ESPERA DE ACLARACION Y/O DOCUMENTACION": { bg: "#eff6ff", border: "#93c5fd", text: "#1d4ed8" },
   }[generales.conclusion] || {};
 
-  const tabs = ["Datos Generales", `Artículos${totalChecked > 0 ? ` (${totalChecked})` : ""}`, "Vista Previa"];
+  const tabs = ["Datos Generales", `Artículos${totalChecked > 0 ? ` (${totalChecked})` : ""}`, "Observaciones", "Vista Previa"];
 
   if (cargando) return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px", color: "#9ca3af", fontSize: "14px" }}>
@@ -917,8 +909,35 @@ export default function InformeArqGeriatricos() {
         />
       )}
 
-      {/* ── PASO 2: VISTA PREVIA ── */}
+      {/* ── PASO 2: OBSERVACIONES Y CONCLUSIÓN ── */}
       {step === 2 && (
+        <div>
+          <div style={S.card}>
+            <p style={S.sectionTitle}>Observaciones y Conclusión</p>
+            <div style={{ display: "grid", gap: "16px" }}>
+              {[
+                { id: "verificarInsp", label: "Verificar en Inspección", placeholder: "-", fullWidth: true },
+                { id: "observaciones", label: "Observaciones generales", placeholder: "Observaciones...", textarea: true },
+                { id: "conclusion",    label: "Conclusión", tipo: "conclusion", fullWidth: true },
+              ].map(c => (
+                <Campo
+                  key={c.id}
+                  c={c}
+                  valor={generales[c.id]}
+                  onChange={v => setGen(c.id, v)}
+                />
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+            <BtnNav onClick={() => setStep(1)}>← Artículos</BtnNav>
+            <BtnNav primary onClick={() => setStep(3)}>Ver Informe →</BtnNav>
+          </div>
+        </div>
+      )}
+
+      {/* ── PASO 3: VISTA PREVIA ── */}
+      {step === 3 && (
         <div>
           {/* Cabecera del informe */}
           <div style={S.card}>
@@ -990,7 +1009,7 @@ export default function InformeArqGeriatricos() {
 
           {/* Botones */}
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: "24px", flexWrap: "wrap", gap: "10px" }}>
-            <BtnNav onClick={() => setStep(1)}>← Volver a Artículos</BtnNav>
+            <BtnNav onClick={() => setStep(2)}>← Volver a Artículos</BtnNav>
             <BtnNav primary disabled={generandoPDF} onClick={handleGenerarPDF}>
               {generandoPDF ? "Generando PDF..." : "⬇ Descargar PDF"}
             </BtnNav>
