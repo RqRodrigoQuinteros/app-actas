@@ -296,15 +296,20 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       const seccionesHTML = (() => {
         const secciones = acta.secciones_render || [];
 
+        // Función para convertir valor a SI/NO
+        const valorASiNo = (val) => {
+          if (val === true || val === 'true') return { texto: 'SI', esBool: true, esSi: true };
+          if (val === false || val === 'false') return { texto: 'NO', esBool: true, esSi: false };
+          return { texto: String(val), esBool: false, esSi: false };
+        };
+
         if (secciones.length > 0) {
           return secciones.map(sec => {
             const filas = (sec.campos || [])
               .filter(c => df[c.token] !== undefined && df[c.token] !== null && df[c.token] !== '')
               .map(c => {
-                const val = df[c.token];
-                const esBool = val === true || val === false;
-                const texto = esBool ? (val ? 'SI' : 'NO') : String(val);
-                const clase = esBool ? (val ? 'valor-si' : 'valor-no') : '';
+                const { texto, esBool, esSi } = valorASiNo(df[c.token]);
+                const clase = esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
                 return `<tr><td style="width:70%;word-wrap:break-word">${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
               }).join('');
             if (!filas) return '';
@@ -322,9 +327,8 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         const filas = Object.entries(df)
           .filter(([, v]) => v !== undefined && v !== null && v !== '' && typeof v !== 'object')
           .map(([token, val]) => {
-            const esBool = val === true || val === false;
-            const texto = esBool ? (val ? 'SI' : 'NO') : String(val);
-            const clase = esBool ? (val ? 'valor-si' : 'valor-no') : '';
+            const { texto, esBool, esSi } = valorASiNo(val);
+            const clase = esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
             return `<tr><td style="width:70%;word-wrap:break-word">${token}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
           }).join('');
         if (!filas) return '';
