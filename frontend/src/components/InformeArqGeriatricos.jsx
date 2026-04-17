@@ -331,7 +331,17 @@ function Campo({ c, valor, onChange, opciones }) {
 }
 
 // ─── ARTÍCULO ITEM ────────────────────────────────────────────────────────────
-function ArticuloItem({ art, checked, obsValue, onCheck, onObs }) {
+function ArticuloItem({ art, checked, obsValue, onCheck, onObs, todosLosArticulos }) {
+  const [refsOpen, setRefsOpen] = useState(false);
+
+  // Parsear refs: "31,32" → ["31","32"]
+  const refNros = art.refs
+    ? art.refs.split(',').map(r => r.trim()).filter(Boolean)
+    : [];
+  const articulosReferenciados = refNros
+    .map(nro => todosLosArticulos?.find(a => a.nro === nro))
+    .filter(Boolean);
+
   return (
     <div style={{
       borderRadius: "10px",
@@ -370,6 +380,57 @@ function ArticuloItem({ art, checked, obsValue, onCheck, onObs }) {
           </p>
         </div>
       </label>
+
+      {/* Sub-subgrupo: artículos referenciados */}
+      {articulosReferenciados.length > 0 && (
+        <div style={{ padding: "0 14px 12px 48px" }}>
+          <div
+            onClick={() => setRefsOpen(o => !o)}
+            style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              cursor: "pointer", userSelect: "none",
+              padding: "6px 10px", borderRadius: "6px",
+              background: refsOpen ? "#fef9c3" : "#fefce8",
+              border: "1.5px solid #fde68a",
+              width: "fit-content",
+            }}
+          >
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              📎 Arts. referenciados: {refNros.join(', ')}
+            </span>
+            <span style={{ fontSize: "12px", color: "#b45309" }}>{refsOpen ? "▲" : "▼"}</span>
+          </div>
+          {refsOpen && (
+            <div style={{
+              marginTop: "8px",
+              borderRadius: "8px",
+              border: "1.5px solid #fde68a",
+              background: "#fffbeb",
+              overflow: "hidden",
+            }}>
+              {articulosReferenciados.map((refArt, i) => (
+                <div key={refArt.nro} style={{
+                  padding: "10px 14px",
+                  borderBottom: i < articulosReferenciados.length - 1 ? "1px solid #fde68a" : "none",
+                }}>
+                  <span style={{
+                    display: "inline-block", fontWeight: 700, fontSize: "11px",
+                    color: "#92400e", background: "#fde68a",
+                    padding: "1px 7px", borderRadius: "4px",
+                    fontFamily: "monospace", marginBottom: "5px",
+                    letterSpacing: "0.03em",
+                  }}>
+                    Art. {refArt.nro}
+                  </span>
+                  <p style={{ margin: 0, fontSize: "12px", lineHeight: "1.6", color: "#78350f" }}>
+                    {refArt.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {checked && (
         <div style={{ padding: "0 16px 14px 48px", borderTop: "1px solid #bfdbfe" }}>
@@ -505,7 +566,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                         return arts.map(art => (
                           <ArticuloItem key={art.nro} art={art}
                             checked={checks[art.nro]} obsValue={obsArt[art.nro]}
-                            onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                            onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
+                            todosLosArticulos={articulos} />
                         ));
                       }
                       return (
@@ -549,7 +611,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                               {arts.map(art => (
                                 <ArticuloItem key={art.nro} art={art}
                                   checked={checks[art.nro]} obsValue={obsArt[art.nro]}
-                                  onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                                  onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
+                                  todosLosArticulos={articulos} />
                               ))}
                             </div>
                           )}
@@ -561,7 +624,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
                     subgruposList[0]?.[1].map(art => (
                       <ArticuloItem key={art.nro} art={art}
                         checked={checks[art.nro]} obsValue={obsArt[art.nro]}
-                        onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+                        onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
+                        todosLosArticulos={articulos} />
                     ))
                   )}
                 </div>
@@ -574,7 +638,8 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
         articulos.map(art => (
           <ArticuloItem key={art.nro} art={art}
             checked={checks[art.nro]} obsValue={obsArt[art.nro]}
-            onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)} />
+            onCheck={v => setCheck(art.nro, v)} onObs={v => setObs(art.nro, v)}
+            todosLosArticulos={articulos} />
         ))
       )}
 
@@ -630,12 +695,12 @@ export default function InformeArqGeriatricos() {
         let arts;
         if (tipologiaId) {
           const r = await informesTemplatesAPI.getItems(tipologiaId);
-          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null }));
+          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
         } else {
           const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
           setTipologiaId(r.data.id);
           if (!tipologiaNombre) setTipologiaNombre(r.data.nombre);
-          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null }));
+          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
         }
         const lista = arts.length > 0 ? arts : ARTICULOS_FALLBACK;
         setArticulos(lista);
