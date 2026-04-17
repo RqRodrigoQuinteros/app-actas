@@ -630,12 +630,12 @@ export default function InformeArqGeriatricos() {
         let arts;
         if (tipologiaId) {
           const r = await informesTemplatesAPI.getItems(tipologiaId);
-          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null }));
+          arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null }));
         } else {
           const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
           setTipologiaId(r.data.id);
           if (!tipologiaNombre) setTipologiaNombre(r.data.nombre);
-          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null }));
+          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null }));
         }
         const lista = arts.length > 0 ? arts : ARTICULOS_FALLBACK;
         setArticulos(lista);
