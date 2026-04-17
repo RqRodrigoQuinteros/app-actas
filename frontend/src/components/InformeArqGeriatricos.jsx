@@ -77,7 +77,8 @@ const SECCIONES = [
       { id: "cantCamas",   label: "Cantidad de camas",          placeholder: "22" },
       { id: "fecha", label: "Fecha", tipo: "date", placeholder: "dd/mm/aaaa" },
       { id: "pileta",      label: "Pileta",                     tipo: "sino" },
-      { id: "habMunicipal",label: "Habilitación Municipal",     tipo: "sino" },
+      { id: "ascensor",    label: "Ascensor",                   tipo: "sino" },
+      { id: "instalacionesDeportivas", label: "Instalaciones Deportivas", tipo: "select", opciones: ["Si, de uso del establecimiento", "No"] },
     ]
   },
   {

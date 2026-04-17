@@ -3,7 +3,9 @@
     "allow": [
       "Bash(xargs grep:*)",
       "Bash(node -e ':*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(wc -l /c/Users/rodri/OneDrive/Desktop/App_Actas/backend/routes/*.js /c/Users/rodri/OneDrive/Desktop/App_Actas/frontend/src/components/*.jsx)",
+      "Bash(grep -r \"try.*catch\" /c/Users/rodri/OneDrive/Desktop/App_Actas/backend/routes/*.js)"
     ]
   }
 }
