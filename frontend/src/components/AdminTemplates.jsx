@@ -921,6 +921,7 @@ function TabInformes() {
     const [descripcion, setDescripcion] = useState(item?.descripcion || '');
     const [grupo, setGrupo] = useState(item?.grupo || '');
     const [subgrupo, setSubgrupo] = useState(item?.subgrupo || '');
+    const [refs, setRefs] = useState(item?.refs || '');
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
 
@@ -933,7 +934,8 @@ function TabInformes() {
           nro: nro.trim(), 
           descripcion: descripcion.trim(), 
           grupo: grupo.trim() || null,
-          subgrupo: subgrupo.trim() || null 
+          subgrupo: subgrupo.trim() || null,
+          refs: refs.trim() || null,
         };
         if (item) {
           await informesTemplatesAPI.actualizarItem(item.id, payload);
@@ -969,6 +971,15 @@ function TabInformes() {
           <input style={S.input} value={subgrupo}
             onChange={e => setSubgrupo(e.target.value)}
             placeholder="ej: Pasillos, Escaleras..." />
+        </div>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={S.label}>Arts. referenciados (opcional)</label>
+          <input style={{ ...S.input, fontFamily: 'monospace' }} value={refs}
+            onChange={e => setRefs(e.target.value)}
+            placeholder="ej: 31,32  (separados por coma)" />
+          <span style={{ fontSize: '11px', color: '#9ca3af', marginTop: '3px', display: 'block' }}>
+            Se mostrarán como sub-subgrupo colapsable dentro del artículo
+          </span>
         </div>
         <div style={{ marginBottom: '20px' }}>
           <label style={S.label}>Descripción del artículo *</label>
