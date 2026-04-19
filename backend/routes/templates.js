@@ -297,21 +297,14 @@ router.post('/tipologias/:tipologiaId/secciones', soloSupervisor, async (req, re
       return res.status(400).json({ error: 'titulo es requerido' });
     }
 
-    // Si no se manda orden, la pone al final
+    // Si no se manda orden, la pone al final usando el máximo global de la tipología
+    // (el constraint único es sobre tipologia_id+orden, no sobre parent+orden)
     let ordenFinal = orden;
     if (ordenFinal === undefined) {
-      const query = supabase
+      const { data: ultima } = await supabase
         .from('template_secciones')
         .select('orden')
-        .eq('tipologia_id', tipologiaId);
-      
-      if (parent_seccion_id) {
-        query.eq('parent_seccion_id', parent_seccion_id);
-      } else {
-        query.is('parent_seccion_id', null);
-      }
-      
-      const { data: ultima } = await query
+        .eq('tipologia_id', tipologiaId)
         .order('orden', { ascending: false })
         .limit(1)
         .single();
