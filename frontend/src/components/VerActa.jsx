@@ -311,6 +311,16 @@ export default function VerActa() {
 
         {/* Acciones PDF */}
         <div className="flex flex-col gap-3">
+          {/* Botón Editar — solo para el inspector dueño del acta, si no está cerrada */}
+          {acta.estado !== 'cerrado' && (usuario?.rol === 'inspector' || usuario?.rol === 'supervisor') && (
+            <button
+              onClick={() => navigate(`/acta/${id}/editar`)}
+              className="w-full py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-lg transition-colors"
+            >
+              ✏️ Editar acta
+            </button>
+          )}
+
           <button onClick={generarPDF} disabled={generandoPDF}
             className="btn-primary bg-green-600 hover:bg-green-700 disabled:opacity-50">
             {generandoPDF ? 'Generando PDF...' : 'Generar/Actualizar PDF'}
