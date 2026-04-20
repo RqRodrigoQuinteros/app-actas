@@ -254,7 +254,21 @@ router.delete('/tipologias/:id', soloSupervisor, async (req, res) => {
 
     if (secciones && secciones.length > 0) {
       const seccionIds = secciones.map(s => s.id);
-      
+
+      // Obtener IDs de campos para poder borrar sus respuestas primero
+      const { data: campos } = await supabase
+        .from('template_campos')
+        .select('id')
+        .in('seccion_id', seccionIds);
+
+      if (campos && campos.length > 0) {
+        const campoIds = campos.map(c => c.id);
+        await supabase
+          .from('actas_respuestas')
+          .delete()
+          .in('campo_id', campoIds);
+      }
+
       // Eliminar campos de esas secciones
       await supabase
         .from('template_campos')
@@ -370,6 +384,27 @@ router.put('/secciones/:id', soloSupervisor, async (req, res) => {
 router.delete('/secciones/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Borrar respuestas vinculadas a campos de esta sección (y subsecciones)
+    const { data: todasSecciones } = await supabase
+      .from('template_secciones')
+      .select('id')
+      .or(`id.eq.${id},parent_seccion_id.eq.${id}`);
+
+    if (todasSecciones && todasSecciones.length > 0) {
+      const seccionIds = todasSecciones.map(s => s.id);
+      const { data: campos } = await supabase
+        .from('template_campos')
+        .select('id')
+        .in('seccion_id', seccionIds);
+
+      if (campos && campos.length > 0) {
+        await supabase
+          .from('actas_respuestas')
+          .delete()
+          .in('campo_id', campos.map(c => c.id));
+      }
+    }
 
     const { error } = await supabase
       .from('template_secciones')
