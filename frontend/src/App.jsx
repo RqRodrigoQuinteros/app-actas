@@ -10,6 +10,7 @@ import InformeArquitecto from './components/InformeArquitecto';
 import InformeArqGeriatricos from './components/InformeArqGeriatricos';
 import AdminTemplates from './components/AdminTemplates';
 import AdminLogin from './components/AdminLogin';
+import EditarActa from './components/EditarActa';
 
 function ProtectedRoute({ children, roles }) {
   const { usuario, loading } = useAuth();
@@ -65,6 +66,12 @@ function AppRoutes() {
       <Route path="/nueva-acta" element={
         <ProtectedRoute roles={['inspector']}>
           <NuevaActa />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/acta/:id/editar" element={
+        <ProtectedRoute roles={['inspector']}>
+          <EditarActa />
         </ProtectedRoute>
       } />
 
