@@ -156,7 +156,120 @@ function FormTestigos({ testigos, onChange }) {
   );
 }
 
-// ── Componente sección repetible ─────────────────────────────────────────────
+// ── Renderizador de campo dentro de una instancia repetible ──────────────────
+function RenderCampoRepetible({ campo, valor, onChange }) {
+  if (campo.tipo === 'si_no') {
+    return (
+      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+        <span className="text-base">{campo.etiqueta}</span>
+        <div className="flex gap-2">
+          <button type="button"
+            onClick={() => onChange(valor === 'SI' ? '' : 'SI')}
+            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'SI' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            SI
+          </button>
+          <button type="button"
+            onClick={() => onChange(valor === 'NO' ? '' : 'NO')}
+            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            NO
+          </button>
+        </div>
+      </div>
+    );
+  }
+  if (campo.tipo === 'check') {
+    return (
+      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+        <input type="checkbox" checked={valor === 'true'}
+          onChange={e => onChange(e.target.checked ? 'true' : 'false')}
+          className="w-5 h-5 cursor-pointer" />
+        <span className="text-base">{campo.etiqueta}</span>
+      </div>
+    );
+  }
+  if (campo.tipo === 'textarea') {
+    return (
+      <div className="flex flex-col">
+        <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+        <textarea className="p-3 border border-gray-300 rounded-lg" rows={3}
+          value={valor} onChange={e => onChange(e.target.value)}
+          placeholder={campo.placeholder || ''} />
+      </div>
+    );
+  }
+  if (campo.tipo === 'numero') {
+    return (
+      <div className="flex flex-col">
+        <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+        <input type="number" inputMode="numeric" className="p-3 border border-gray-300 rounded-lg"
+          value={valor} onChange={e => onChange(e.target.value)}
+          placeholder={campo.placeholder || ''} />
+      </div>
+    );
+  }
+  if (campo.tipo === 'select') {
+    const opciones = Array.isArray(campo.opciones) ? campo.opciones : [];
+    return (
+      <div className="flex flex-col">
+        <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+        <select className="p-3 border border-gray-300 rounded-lg bg-white"
+          value={valor} onChange={e => onChange(e.target.value)}>
+          <option value="">Seleccionar...</option>
+          {opciones.map(op => <option key={op} value={op}>{op}</option>)}
+        </select>
+      </div>
+    );
+  }
+  // texto (default)
+  return (
+    <div className="flex flex-col">
+      <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+      <input type="text" className="p-3 border border-gray-300 rounded-lg"
+        value={valor} onChange={e => onChange(e.target.value)}
+        placeholder={campo.placeholder || ''} />
+    </div>
+  );
+}
+
+// ── Subsección dentro de una instancia repetible ──────────────────────────────
+function SubseccionRepetible({ subseccion, inst, onCampo }) {
+  const [isOpen, setIsOpen] = useState(true);
+  return (
+    <div className="mt-3 rounded-lg border border-blue-200 overflow-hidden">
+      <div onClick={() => setIsOpen(p => !p)} style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        minHeight: '40px', cursor: 'pointer', padding: '0 12px',
+        background: isOpen ? '#eff6ff' : '#dbeafe',
+        userSelect: 'none', borderLeft: '4px solid #3b82f6',
+      }}>
+        <span style={{ fontWeight: 700, fontSize: '12px', color: '#1d4ed8', textTransform: 'uppercase' }}>
+          ↳ {subseccion.titulo}
+        </span>
+        <span style={{ fontSize: '13px', color: '#3b82f6' }}>{isOpen ? '▲' : '▼'}</span>
+      </div>
+      {isOpen && (
+        <div className="p-3 bg-blue-50 space-y-3">
+          {subseccion.texto_previo && (
+            <p className="text-xs text-gray-500 italic">{subseccion.texto_previo}</p>
+          )}
+          {(subseccion.campos || []).map(campo => (
+            <RenderCampoRepetible
+              key={campo.id}
+              campo={campo}
+              valor={inst[campo.id] ?? ''}
+              onChange={v => onCampo(campo.id, v)}
+            />
+          ))}
+          {subseccion.texto_posterior && (
+            <p className="text-xs text-gray-500 italic mt-2">{subseccion.texto_posterior}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Sección repetible ─────────────────────────────────────────────────────────
 function SeccionRepetible({ seccion, instancias, onInstanciasChange }) {
   const [openIdx, setOpenIdx] = useState([0]);
   const toggleOpen = (i) => setOpenIdx(prev =>
@@ -183,7 +296,7 @@ function SeccionRepetible({ seccion, instancias, onInstanciasChange }) {
 
   return (
     <div className="mb-4 rounded-lg border border-blue-200 overflow-hidden">
-      {/* Header */}
+      {/* Header principal */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         minHeight: '56px', padding: '0 16px',
@@ -210,16 +323,12 @@ function SeccionRepetible({ seccion, instancias, onInstanciasChange }) {
         const isOpen = openIdx.includes(i);
         return (
           <div key={i} style={{ borderTop: i > 0 ? '1px solid #bfdbfe' : 'none' }}>
-            {/* Sub-header */}
-            <div
-              onClick={() => toggleOpen(i)}
-              style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                minHeight: '48px', cursor: 'pointer', padding: '0 16px',
-                background: isOpen ? '#dbeafe' : '#eff6ff',
-                userSelect: 'none',
-              }}
-            >
+            {/* Sub-header de instancia */}
+            <div onClick={() => toggleOpen(i)} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              minHeight: '48px', cursor: 'pointer', padding: '0 16px',
+              background: isOpen ? '#dbeafe' : '#eff6ff', userSelect: 'none',
+            }}>
               <span style={{ fontWeight: 600, fontSize: '14px', color: '#1e40af' }}>
                 {seccion.titulo} #{i + 1}
               </span>
@@ -232,37 +341,29 @@ function SeccionRepetible({ seccion, instancias, onInstanciasChange }) {
                 <span style={{ fontSize: '16px', color: '#3b82f6' }}>{isOpen ? '▲' : '▼'}</span>
               </div>
             </div>
+
             {isOpen && (
               <div className="p-4 bg-white space-y-3">
-                {(seccion.campos || []).map(campo => {
-                  const valor = inst[campo.id] ?? '';
-                  if (campo.tipo === 'si_no') {
-                    return (
-                      <div key={campo.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                        <span className="text-base">{campo.etiqueta}</span>
-                        <div className="flex gap-2">
-                          <button type="button"
-                            onClick={() => handleCampo(i, campo.id, valor === 'SI' ? '' : 'SI')}
-                            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'SI' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                            SI
-                          </button>
-                          <button type="button"
-                            onClick={() => handleCampo(i, campo.id, valor === 'NO' ? '' : 'NO')}
-                            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                            NO
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div key={campo.id} className="flex flex-col">
-                      <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
-                      <input className="p-3 border border-gray-300 rounded-lg" type="text"
-                        value={valor} onChange={e => handleCampo(i, campo.id, e.target.value)} />
-                    </div>
-                  );
-                })}
+                {/* Campos directos de la sección */}
+                {(seccion.campos || []).map(campo => (
+                  <RenderCampoRepetible
+                    key={campo.id}
+                    campo={campo}
+                    valor={inst[campo.id] ?? ''}
+                    onChange={v => handleCampo(i, campo.id, v)}
+                  />
+                ))}
+
+                {/* Subsecciones */}
+                {(seccion.subsecciones || []).map(sub => (
+                  <SubseccionRepetible
+                    key={sub.id}
+                    subseccion={sub}
+                    inst={inst}
+                    onCampo={(campoId, v) => handleCampo(i, campoId, v)}
+                  />
+                ))}
+
                 {/* Observación de la instancia */}
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600 mb-1">Observación</label>
@@ -279,6 +380,7 @@ function SeccionRepetible({ seccion, instancias, onInstanciasChange }) {
     </div>
   );
 }
+
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function NuevaActa() {
@@ -412,6 +514,15 @@ export default function NuevaActa() {
   const seccionesNormales = seccionesFiltradas.filter(s => s.tipo !== 'residentes' && !s.repetible);
   const seccionResidentes = seccionesFiltradas.find(s => s.tipo === 'residentes');
   const seccionesRepetibles = seccionesFiltradas.filter(s => s.repetible);
+
+  // Detectar sección de flota vehicular (sección repetible cuyo título contiene "flota")
+  // Sus instancias definen cuántas columnas mostrar en campos tipo tabla_unidades
+  const seccionFlota = seccionesRepetibles.find(s =>
+    /flota/i.test(s.titulo)
+  );
+  const flotaInstancias = seccionFlota
+    ? (seccionesExtra[seccionFlota.id] || [])
+    : [];
 
   // ── Guardar acta ─────────────────────────────────────────────────────────
   const buildPayload = () => ({
@@ -872,6 +983,7 @@ export default function NuevaActa() {
                 secciones={seccionesNormales}
                 respuestas={respuestas}
                 onChange={handleRespuesta}
+                flotaInstancias={flotaInstancias}
               />
 
               {/* Secciones repetibles */}
