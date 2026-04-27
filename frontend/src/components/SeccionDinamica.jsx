@@ -2,6 +2,7 @@
 // Recibe: secciones[] con campos[] y subsecciones[] adentro, respuestas {campo_id: valor}, onChange(campo_id, valor)
 
 import { useState } from 'react';
+import { esCampoTotalCamas } from '../utils/actaHelpers';
 
 // ── Renderizador de un campo individual ────────────────────────────────────────
 function RenderCampo({ campo, respuestas, onChange }) {
@@ -51,12 +52,20 @@ function RenderCampo({ campo, respuestas, onChange }) {
   }
 
   if (campo.tipo === 'numero') {
+    const esTotal = esCampoTotalCamas(campo);
     return (
       <div className="flex flex-col">
-        <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+        <label className="text-sm text-gray-600 mb-1">
+          {campo.etiqueta}
+          {esTotal && (
+            <span className="ml-2 text-xs text-gray-500">(calculado automáticamente)</span>
+          )}
+        </label>
         <input type="number" inputMode="numeric" value={valor}
           onChange={e => onChange(campo.id, e.target.value)}
-          placeholder={campo.placeholder || ''} className="p-3 border border-gray-300 rounded-lg" />
+          placeholder={campo.placeholder || ''}
+          readOnly={esTotal}
+          className={`p-3 border rounded-lg ${esTotal ? 'border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed' : 'border-gray-300 bg-white'}`} />
       </div>
     );
   }

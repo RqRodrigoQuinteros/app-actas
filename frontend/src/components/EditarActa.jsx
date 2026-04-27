@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
+import { calcularTotalesDeCamas } from '../utils/actaHelpers';
 import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';
@@ -430,13 +431,28 @@ export default function EditarActa() {
     }
   };
 
-  const handleRespuesta = (campoId, valor) => setRespuestas(prev => ({ ...prev, [campoId]: valor }));
+  const handleRespuesta = (campoId, valor) => {
+    setRespuestas(prev => {
+      const next = { ...prev, [campoId]: valor };
+      if (!template?.secciones?.length) return next;
+      return { ...next, ...calcularTotalesDeCamas(next, template.secciones) };
+    });
+  };
   const handleInstancias = (seccionId, nuevas) => setSeccionesExtra(prev => ({ ...prev, [seccionId]: nuevas }));
 
   const seccionesFiltradas = (template?.secciones || []).filter(s => seccionesActivas.includes(s.id));
   const seccionesNormales = seccionesFiltradas.filter(s => s.tipo !== 'residentes' && !s.repetible);
   const seccionResidentes = seccionesFiltradas.find(s => s.tipo === 'residentes');
   const seccionesRepetibles = seccionesFiltradas.filter(s => s.repetible);
+
+  useEffect(() => {
+    if (!template?.secciones?.length) return;
+    setRespuestas(prev => {
+      const totales = calcularTotalesDeCamas(prev, template.secciones);
+      const hayCambio = Object.keys(totales).some(id => prev[id] !== totales[id]);
+      return hayCambio ? { ...prev, ...totales } : prev;
+    });
+  }, [template]);
 
   // Flota vehicular: sección repetible cuyo título contiene "flota"
   const seccionFlota = seccionesRepetibles.find(s => /flota/i.test(s.titulo));

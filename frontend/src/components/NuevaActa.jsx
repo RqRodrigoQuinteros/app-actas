@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
+import { calcularTotalesDeCamas } from '../utils/actaHelpers';
 import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';
@@ -498,8 +499,21 @@ export default function NuevaActa() {
   }, [datos.tipologia]);
 
   const handleRespuesta = (campoId, valor) => {
-    setRespuestas(prev => ({ ...prev, [campoId]: valor }));
+    setRespuestas(prev => {
+      const next = { ...prev, [campoId]: valor };
+      if (!template?.secciones?.length) return next;
+      return { ...next, ...calcularTotalesDeCamas(next, template.secciones) };
+    });
   };
+
+  useEffect(() => {
+    if (!template?.secciones?.length) return;
+    setRespuestas(prev => {
+      const totales = calcularTotalesDeCamas(prev, template.secciones);
+      const hayCambio = Object.keys(totales).some(id => prev[id] !== totales[id]);
+      return hayCambio ? { ...prev, ...totales } : prev;
+    });
+  }, [template]);
 
   const handleInstancias = (seccionId, nuevas) => {
     setSeccionesExtra(prev => ({ ...prev, [seccionId]: nuevas }));
