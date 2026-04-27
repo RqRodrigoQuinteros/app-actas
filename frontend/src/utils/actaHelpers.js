@@ -39,3 +39,19 @@ export const calcularTotalesDeCamas = (respuestas = {}, secciones = []) => {
 
   return totales;
 };
+
+export const ponerTodoSi = (respuestas = {}, secciones = []) => {
+  const siguientes = { ...respuestas };
+  secciones.forEach((seccion) => {
+    const campos = [
+      ...(seccion.campos || []),
+      ...((seccion.subsecciones || []).flatMap(sub => sub.campos || [])),
+    ];
+    campos.forEach((campo) => {
+      if (campo.tipo === 'si_no') {
+        siguientes[campo.id] = 'SI';
+      }
+    });
+  });
+  return siguientes;
+};

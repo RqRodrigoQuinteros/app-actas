@@ -276,6 +276,26 @@ handlebars.registerHelper('valorSiNo', function(value) {
   return '';
 });
 
+const formatFechaTexto = (fechaStr) => {
+  if (!fechaStr) return '';
+  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  let fecha = new Date(fechaStr);
+  if (Number.isNaN(fecha.getTime())) {
+    const partes = String(fechaStr).split('/').map(p => p.trim());
+    if (partes.length === 3) {
+      const dia = parseInt(partes[0], 10);
+      const mes = parseInt(partes[1], 10);
+      const anio = partes[2];
+      if (!Number.isNaN(dia) && !Number.isNaN(mes) && anio) {
+        return `${dia} de ${meses[mes - 1] || partes[1]} de ${anio}`;
+      }
+    }
+    return fechaStr;
+  }
+
+  return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+};
+
 async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const maxRetries = 3;
   let lastError;
@@ -340,7 +360,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       const template = handlebars.compile(baseTemplate);
       const htmlFinal = template({
         expediente: acta.expediente || '',
-        fecha: acta.fecha,
+        fecha: formatFechaTexto(acta.fecha),
         hora: acta.hora,
         tipo_inspeccion: acta.tipo_inspeccion || 'RUTINA',
         virtual: acta.virtual ? 'SI' : 'NO',
@@ -486,7 +506,7 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
       const template = handlebars.compile(baseTemplate);
       const htmlFinal = template({
         expediente: acta.expediente || '',
-        fecha: acta.fecha,
+        fecha: formatFechaTexto(acta.fecha),
         hora: acta.hora,
         inspector_nombre: acta.inspector_nombre || '',
         inspector_dni: acta.inspector_dni || '',

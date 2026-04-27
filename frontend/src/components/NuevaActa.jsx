@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
-import { calcularTotalesDeCamas } from '../utils/actaHelpers';
+import { calcularTotalesDeCamas, ponerTodoSi } from '../utils/actaHelpers';
 import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';
@@ -990,7 +990,19 @@ export default function NuevaActa() {
           {/* PASO 5 — Formulario */}
           {paso === 5 && (
             <div>
-              <h2 className="text-xl font-bold mb-4">Formulario de Inspección</h2>
+              <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Formulario de Inspección</h2>
+            <button
+              type="button"
+              onClick={() => setRespuestas(prev => {
+                const next = ponerTodoSi(prev, seccionesNormales);
+                return template?.secciones?.length ? { ...next, ...calcularTotalesDeCamas(next, template.secciones) } : next;
+              })}
+              className="btn-secondary"
+            >
+              Todo SI
+            </button>
+          </div>
 
               {/* Secciones normales */}
               <SeccionDinamica
