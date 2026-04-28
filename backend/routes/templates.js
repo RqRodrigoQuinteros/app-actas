@@ -434,7 +434,7 @@ router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => 
       return res.status(400).json({ error: 'etiqueta y token son requeridos' });
     }
 
-    const tiposValidos = ['si_no', 'texto', 'textarea', 'numero', 'fecha', 'select', 'check'];
+    const tiposValidos = ['si_no', 'texto', 'textarea', 'numero', 'fecha', 'select', 'check', 'tabla_unidades'];
     if (tipo && !tiposValidos.includes(tipo)) {
       return res.status(400).json({ error: `tipo debe ser uno de: ${tiposValidos.join(', ')}` });
     }

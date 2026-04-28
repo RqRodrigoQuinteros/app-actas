@@ -129,6 +129,7 @@ const TIPOS_CAMPO = [
   { value: 'fecha', label: 'Fecha' },
   { value: 'select', label: 'Desplegable' },
   { value: 'check', label: 'Checkbox' },
+  { value: 'tabla_unidades', label: 'Tabla por Unidad (checkbox ✓)' },
 ];
 
 // ─── Subcomponente: Modal genérico ───────────────────────────────────────────
@@ -510,6 +511,15 @@ function TabTipologias() {
                 value={form.opciones}
                 onChange={e => setForm(f => ({ ...f, opciones: e.target.value }))}
                 placeholder={'Bueno\nRegular\nMalo'} />
+            </div>
+          )}
+
+          {form.tipo === 'tabla_unidades' && (
+            <div style={{
+              padding: '10px 14px', background: '#fefce8', border: '1px solid #fde68a',
+              borderRadius: '8px', fontSize: '12px', color: '#92400e',
+            }}>
+              Cada campo genera una fila con checkboxes, una columna por unidad declarada en Flota Vehicular.
             </div>
           )}
 

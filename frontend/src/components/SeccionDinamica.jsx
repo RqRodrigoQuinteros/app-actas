@@ -5,8 +5,58 @@ import { useState } from 'react';
 import { esCampoTotalCamas } from '../utils/actaHelpers';
 
 // ── Renderizador de un campo individual ────────────────────────────────────────
-function RenderCampo({ campo, respuestas, onChange }) {
+function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [] }) {
   const valor = respuestas[campo.id] ?? '';
+
+  if (campo.tipo === 'tabla_unidades') {
+    const nUnidades = flotaInstancias.length;
+
+    if (nUnidades === 0) {
+      return (
+        <div style={{ padding: '10px', background: '#fefce8', border: '1px solid #fde68a',
+          borderRadius: '8px', fontSize: '13px', color: '#92400e' }}>
+          ⚠️ <strong>{campo.etiqueta}</strong> — Completá primero la Flota Vehicular.
+        </div>
+      );
+    }
+
+    let checks = [];
+    try { checks = JSON.parse(valor); } catch { checks = []; }
+    if (!Array.isArray(checks)) checks = [];
+    while (checks.length < nUnidades) checks.push(false);
+    checks = checks.slice(0, nUnidades);
+
+    const toggle = (idx) => {
+      const nueva = [...checks];
+      nueva[idx] = !nueva[idx];
+      onChange(campo.id, JSON.stringify(nueva));
+    };
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center',
+        borderBottom: '1px solid #e5e7eb', padding: '4px 0' }}>
+        <span style={{ flex: 1, fontSize: '13px', color: '#374151', paddingRight: '8px' }}>
+          {campo.etiqueta}
+        </span>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {checks.map((checked, idx) => (
+            <button key={idx} type="button" onClick={() => toggle(idx)}
+              title={`Unidad ${idx + 1}`}
+              style={{
+                width: '36px', height: '36px', borderRadius: '6px',
+                border: checked ? '2px solid #16a34a' : '2px solid #d1d5db',
+                background: checked ? '#dcfce7' : '#f9fafb',
+                color: checked ? '#16a34a' : '#9ca3af',
+                fontWeight: 700, fontSize: '16px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+              {checked ? '✓' : ''}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (campo.tipo === 'si_no') {
     const esSi = valor === 'SI';
@@ -105,8 +155,10 @@ function RenderCampo({ campo, respuestas, onChange }) {
 }
 
 // ── Subsección colapsable anidada ───────────────────────────────────────────────
-function Subseccion({ subseccion, respuestas, onChange }) {
+function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) {
   const [isOpen, setIsOpen] = useState(true);
+  const campos = subseccion.campos || [];
+  const tieneTablasUnidades = campos.some(c => c.tipo === 'tabla_unidades');
 
   return (
     <div className="mt-3 rounded-lg border border-blue-200 overflow-hidden">
@@ -131,8 +183,23 @@ function Subseccion({ subseccion, respuestas, onChange }) {
           {subseccion.texto_previo && (
             <p className="text-sm text-gray-500 italic">{subseccion.texto_previo}</p>
           )}
-          {(subseccion.campos || []).map(campo => (
-            <RenderCampo key={campo.id} campo={campo} respuestas={respuestas} onChange={onChange} />
+          {tieneTablasUnidades && flotaInstancias.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center',
+              borderBottom: '2px solid #e5e7eb', paddingBottom: '4px', marginBottom: '4px' }}>
+              <span style={{ flex: 1, fontSize: '11px', fontWeight: 700,
+                color: '#6b7280', textTransform: 'uppercase' }}>Ítem</span>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {Array.from({ length: flotaInstancias.length }, (_, i) => (
+                  <div key={i} style={{ width: '36px', textAlign: 'center',
+                    fontSize: '11px', fontWeight: 700, color: '#6b7280' }}>
+                    U{i + 1}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {campos.map(campo => (
+            <RenderCampo key={campo.id} campo={campo} respuestas={respuestas} onChange={onChange} flotaInstancias={flotaInstancias} />
           ))}
           {subseccion.texto_posterior && (
             <p className="text-sm text-gray-500 italic mt-2">{subseccion.texto_posterior}</p>
@@ -144,7 +211,7 @@ function Subseccion({ subseccion, respuestas, onChange }) {
 }
 
 // ── Componente principal ────────────────────────────────────────────────────────
-export default function SeccionDinamica({ secciones = [], respuestas = {}, onChange }) {
+export default function SeccionDinamica({ secciones = [], respuestas = {}, onChange, flotaInstancias = [] }) {
   const [openSections, setOpenSections] = useState(
     () => Object.fromEntries(secciones.map((s, i) => [s.id, i === 0]))
   );
@@ -165,6 +232,8 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
         const subsecciones = seccion.subsecciones || [];
         const campos = seccion.campos || [];
         const tieneSubsecciones = subsecciones.length > 0;
+
+        const tieneTablasUnidades = campos.some(c => c.tipo === 'tabla_unidades');
 
         return (
           <div key={seccion.id} className="mb-4 rounded-lg border border-gray-200 overflow-hidden">
@@ -207,14 +276,31 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
                   <p className="text-sm text-gray-500 italic">{seccion.texto_previo}</p>
                 )}
 
+                {/* Header de columnas para tabla_unidades */}
+                {tieneTablasUnidades && flotaInstancias.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center',
+                    borderBottom: '2px solid #e5e7eb', paddingBottom: '4px', marginBottom: '4px' }}>
+                    <span style={{ flex: 1, fontSize: '11px', fontWeight: 700,
+                      color: '#6b7280', textTransform: 'uppercase' }}>Ítem</span>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {Array.from({ length: flotaInstancias.length }, (_, i) => (
+                        <div key={i} style={{ width: '36px', textAlign: 'center',
+                          fontSize: '11px', fontWeight: 700, color: '#6b7280' }}>
+                          U{i + 1}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Campos directos de la sección padre */}
                 {campos.map(campo => (
-                  <RenderCampo key={campo.id} campo={campo} respuestas={respuestas} onChange={onChange} />
+                  <RenderCampo key={campo.id} campo={campo} respuestas={respuestas} onChange={onChange} flotaInstancias={flotaInstancias} />
                 ))}
 
                 {/* Subsecciones anidadas */}
                 {subsecciones.map(sub => (
-                  <Subseccion key={sub.id} subseccion={sub} respuestas={respuestas} onChange={onChange} />
+                  <Subseccion key={sub.id} subseccion={sub} respuestas={respuestas} onChange={onChange} flotaInstancias={flotaInstancias} />
                 ))}
 
                 {campos.length === 0 && !tieneSubsecciones && (

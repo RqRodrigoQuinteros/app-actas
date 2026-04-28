@@ -200,7 +200,11 @@ async function enriquecerConRespuestas(acta) {
     console.log('[PDF] secciones_render total (con repetibles):', secciones_render.length);
   }
 
-  return { ...acta, datos_formulario: datosFormulario, secciones_render };
+  return {
+    ...acta,
+    datos_formulario: { ...datosFormulario, secciones_extra: acta.datos_formulario?.secciones_extra || {} },
+    secciones_render,
+  };
 }
 
 router.post('/generar/:id', authenticateToken, async (req, res) => {

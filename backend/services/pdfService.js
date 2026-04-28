@@ -315,44 +315,136 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
       const seccionesHTML = (() => {
         const secciones = acta.secciones_render || [];
+        if (secciones.length === 0) return '';
 
-        // Función para convertir valor a SI/NO
         const valorASiNo = (val) => {
           if (val === true || val === 'true') return { texto: 'SI', esBool: true, esSi: true };
           if (val === false || val === 'false') return { texto: 'NO', esBool: true, esSi: false };
           return { texto: String(val), esBool: false, esSi: false };
         };
 
-        if (secciones.length > 0) {
-          return secciones.map(sec => {
-            const filas = (sec.campos || [])
-              .filter(c => df[c.token] !== undefined && df[c.token] !== null && df[c.token] !== '')
-              .map(c => {
-                const { texto, esBool, esSi } = valorASiNo(df[c.token]);
-                const clase = esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
-                return `<tr><td style="width:70%;word-wrap:break-word">${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
+        // Detecta si un valor es un array JSON de booleanos (formato tabla_unidades)
+        const parsearArrayBool = (val) => {
+          if (!val || typeof val !== 'string') return null;
+          if (!val.startsWith('[')) return null;
+          try {
+            const arr = JSON.parse(val);
+            if (Array.isArray(arr) && arr.every(v => typeof v === 'boolean')) return arr;
+          } catch {}
+          return null;
+        };
+
+        // Un campo es "tabla por unidad" si su tipo lo dice O si su valor es array de booleanos
+        const esTablaPorUnidad = (c) => {
+          if (c.tipo === 'tabla_unidades') return true;
+          return parsearArrayBool(df[c.token]) !== null;
+        };
+
+        // Detectar flota desde secciones_render ("Flota Vehicular #N")
+        const flotasSections = secciones.filter(s => /flota vehicular/i.test(s.titulo));
+        const flotaParaTabla = flotasSections.map(sec => ({
+          marca:   df[(sec.campos.find(c => /marca/i.test(c.etiqueta))   || {}).token] || '',
+          modelo:  df[(sec.campos.find(c => /modelo/i.test(c.etiqueta))  || {}).token] || '',
+          dominio: df[(sec.campos.find(c => /dominio/i.test(c.etiqueta)) || {}).token] || '',
+        }));
+
+        // nUnidades: desde flota, o desde primer array bool encontrado
+        let nUnidades = flotaParaTabla.length;
+        if (nUnidades === 0) {
+          outer: for (const sec of secciones) {
+            for (const c of (sec.campos || [])) {
+              const arr = parsearArrayBool(df[c.token]);
+              if (arr && arr.length > 0) { nUnidades = arr.length; break outer; }
+            }
+          }
+        }
+
+        // Separar secciones: flota / normales / por unidad
+        const seccionesNormales = secciones
+          .filter(s => !/flota vehicular/i.test(s.titulo))
+          .filter(s => !(s.campos || []).some(esTablaPorUnidad));
+
+        const seccionesTabla = secciones
+          .filter(s => !/flota vehicular/i.test(s.titulo))
+          .filter(s => (s.campos || []).some(esTablaPorUnidad));
+
+        // ── Flota combinada ────────────────────────────────────────────────────
+        let flotaHTML = '';
+        if (flotaParaTabla.length > 0) {
+          const filas = flotaParaTabla.map((f, i) => `
+            <tr>
+              <td style="text-align:center;width:8%">${i + 1}</td>
+              <td>${f.marca}</td><td>${f.modelo}</td><td>${f.dominio}</td>
+            </tr>`).join('');
+          flotaHTML = `
+            <div class="seccion">
+              <h3>Flota Vehicular</h3>
+              <table class="tabla-campos">
+                <thead><tr style="background:#f3f4f6">
+                  <th style="text-align:center;width:8%">N°</th>
+                  <th>Marca</th><th>Modelo</th><th>Dominio</th>
+                </tr></thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>`;
+        }
+
+        // ── Secciones normales (SI/NO, texto, etc.) ───────────────────────────
+        const normalesHTML = seccionesNormales.map(sec => {
+          const filas = (sec.campos || [])
+            .filter(c => df[c.token] !== undefined && df[c.token] !== null && df[c.token] !== '')
+            .map(c => {
+              const { texto, esBool, esSi } = valorASiNo(df[c.token]);
+              const clase = esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
+              return `<tr><td style="width:70%;word-wrap:break-word">${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
+            }).join('');
+          if (!filas) return '';
+          return `
+            <div class="seccion">
+              <h3>${sec.titulo}</h3>
+              ${sec.texto_previo ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-bottom:8px">${sec.texto_previo}</p>` : ''}
+              <table class="tabla-campos"><tbody>${filas}</tbody></table>
+              ${sec.texto_posterior ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-top:8px">${sec.texto_posterior}</p>` : ''}
+            </div>`;
+        }).filter(Boolean).join('\n');
+
+        // ── Una tabla por unidad ──────────────────────────────────────────────
+        let porUnidadHTML = '';
+        if (nUnidades > 0 && seccionesTabla.length > 0) {
+          porUnidadHTML = Array.from({ length: nUnidades }, (_, ui) => {
+            const flota = flotaParaTabla[ui] || {};
+            const subtitulo = [flota.marca, flota.modelo, flota.dominio].filter(Boolean).join(' – ');
+
+            const filasUnidad = seccionesTabla.map(sec => {
+              const camposTabla = (sec.campos || []).filter(esTablaPorUnidad);
+              if (camposTabla.length === 0) return '';
+
+              const filasSec = camposTabla.map(c => {
+                const checks = parsearArrayBool(df[c.token]) || [];
+                const checked = checks[ui] === true;
+                return `<tr>
+                  <td style="width:85%;word-wrap:break-word;padding:3px 8px">${c.etiqueta}</td>
+                  <td style="text-align:center;width:15%;font-size:14pt;font-weight:bold;color:${checked ? '#16a34a' : '#9ca3af'}">${checked ? '✓' : '–'}</td>
+                </tr>`;
               }).join('');
-            if (!filas) return '';
+
+              return `
+                <tr style="background:#f3f4f6">
+                  <td colspan="2" style="padding:5px 8px;font-weight:700;font-size:9pt;text-transform:uppercase;letter-spacing:0.04em">${sec.titulo}</td>
+                </tr>
+                ${filasSec}`;
+            }).join('');
+
+            if (!filasUnidad) return '';
             return `
               <div class="seccion">
-                <h3>${sec.titulo}</h3>
-                ${sec.texto_previo ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-bottom:8px">${sec.texto_previo}</p>` : ''}
-                <table class="tabla-campos"><tbody>${filas}</tbody></table>
-                ${sec.texto_posterior ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-top:8px">${sec.texto_posterior}</p>` : ''}
+                <h3>Unidad N° ${ui + 1}${subtitulo ? ` — ${subtitulo}` : ''}</h3>
+                <table class="tabla-campos"><tbody>${filasUnidad}</tbody></table>
               </div>`;
           }).filter(Boolean).join('\n');
         }
 
-        // Fallback: tabla genérica con todos los tokens (solo primitivos)
-        const filas = Object.entries(df)
-          .filter(([, v]) => v !== undefined && v !== null && v !== '' && typeof v !== 'object')
-          .map(([token, val]) => {
-            const { texto, esBool, esSi } = valorASiNo(val);
-            const clase = esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
-            return `<tr><td style="width:70%;word-wrap:break-word">${token}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
-          }).join('');
-        if (!filas) return '';
-        return `<div class="seccion"><h3>Datos de la Inspección</h3><table class="tabla-campos"><tbody>${filas}</tbody></table></div>`;
+        return [flotaHTML, normalesHTML, porUnidadHTML].filter(Boolean).join('\n');
       })();
 
       console.log(`[PDF] Secciones renderizadas dinámicamente`);
