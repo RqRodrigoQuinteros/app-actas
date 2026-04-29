@@ -991,18 +991,8 @@ export default function NuevaActa() {
           {paso === 5 && (
             <div>
               <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Formulario de Inspección</h2>
-            <button
-              type="button"
-              onClick={() => setRespuestas(prev => {
-                const next = ponerTodoSi(prev, seccionesNormales);
-                return template?.secciones?.length ? { ...next, ...calcularTotalesDeCamas(next, template.secciones) } : next;
-              })}
-              className="btn-secondary"
-            >
-              Todo SI
-            </button>
-          </div>
+                <h2 className="text-xl font-bold">Formulario de Inspección</h2>
+              </div>
 
               {/* Secciones normales */}
               <SeccionDinamica

@@ -408,38 +408,39 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
             </div>`;
         }).filter(Boolean).join('\n');
 
-        // ── Una tabla por unidad ──────────────────────────────────────────────
+        // ── Una tabla por unidad, solo ítems marcados SI ─────────────────────
         let porUnidadHTML = '';
         if (nUnidades > 0 && seccionesTabla.length > 0) {
           porUnidadHTML = Array.from({ length: nUnidades }, (_, ui) => {
-            const flota = flotaParaTabla[ui] || {};
-            const subtitulo = [flota.marca, flota.modelo, flota.dominio].filter(Boolean).join(' – ');
+            const f = flotaParaTabla[ui] || {};
+            const subtitulo = [f.marca, f.modelo, f.dominio].filter(Boolean).join(' – ');
 
             const filasUnidad = seccionesTabla.map(sec => {
               const camposTabla = (sec.campos || []).filter(esTablaPorUnidad);
-              if (camposTabla.length === 0) return '';
+              // Solo los ítems marcados como SI para esta unidad
+              const filasSI = camposTabla
+                .filter(c => {
+                  const checks = parsearArrayBool(df[c.token]) || [];
+                  return checks[ui] === true;
+                })
+                .map(c => `<tr><td>${c.etiqueta}</td></tr>`)
+                .join('');
 
-              const filasSec = camposTabla.map(c => {
-                const checks = parsearArrayBool(df[c.token]) || [];
-                const checked = checks[ui] === true;
-                return `<tr>
-                  <td style="width:85%;word-wrap:break-word;padding:3px 8px">${c.etiqueta}</td>
-                  <td style="text-align:center;width:15%;font-size:14pt;font-weight:bold;color:${checked ? '#16a34a' : '#9ca3af'}">${checked ? '✓' : '–'}</td>
-                </tr>`;
-              }).join('');
-
+              if (!filasSI) return '';
               return `
-                <tr style="background:#f3f4f6">
-                  <td colspan="2" style="padding:5px 8px;font-weight:700;font-size:9pt;text-transform:uppercase;letter-spacing:0.04em">${sec.titulo}</td>
+                <tr style="background:#d1d5db">
+                  <td style="padding:4px 8px;font-weight:700;font-size:9pt;text-transform:uppercase">${sec.titulo}</td>
                 </tr>
-                ${filasSec}`;
+                ${filasSI}`;
             }).join('');
 
             if (!filasUnidad) return '';
             return `
               <div class="seccion">
                 <h3>Unidad N° ${ui + 1}${subtitulo ? ` — ${subtitulo}` : ''}</h3>
-                <table class="tabla-campos"><tbody>${filasUnidad}</tbody></table>
+                <table class="tabla-campos">
+                  <tbody>${filasUnidad}</tbody>
+                </table>
               </div>`;
           }).filter(Boolean).join('\n');
         }

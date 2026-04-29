@@ -159,6 +159,12 @@ function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) 
   const [isOpen, setIsOpen] = useState(true);
   const campos = subseccion.campos || [];
   const tieneTablasUnidades = campos.some(c => c.tipo === 'tabla_unidades');
+  const tieneSiNo = campos.some(c => c.tipo === 'si_no');
+
+  const todoSiSubseccion = (e) => {
+    e.stopPropagation();
+    campos.forEach(c => { if (c.tipo === 'si_no') onChange(c.id, 'SI'); });
+  };
 
   return (
     <div className="mt-3 rounded-lg border border-blue-200 overflow-hidden">
@@ -175,7 +181,19 @@ function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) 
         <span style={{ fontWeight: 700, fontSize: '13px', color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
           ↳ {subseccion.titulo}
         </span>
-        <span style={{ fontSize: '14px', color: '#3b82f6' }}>{isOpen ? '▲' : '▼'}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {tieneSiNo && (
+            <button type="button" onClick={todoSiSubseccion}
+              style={{
+                fontSize: '11px', fontWeight: 600, padding: '2px 8px',
+                borderRadius: '5px', border: '1.5px solid #16a34a',
+                background: '#f0fdf4', color: '#16a34a', cursor: 'pointer',
+              }}>
+              Todo SI
+            </button>
+          )}
+          <span style={{ fontSize: '14px', color: '#3b82f6' }}>{isOpen ? '▲' : '▼'}</span>
+        </div>
       </div>
 
       {isOpen && (
@@ -235,6 +253,16 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
 
         const tieneTablasUnidades = campos.some(c => c.tipo === 'tabla_unidades');
 
+        // Todos los campos si_no de la sección (directos + subsecciones)
+        const todosCamposSiNo = [
+          ...campos.filter(c => c.tipo === 'si_no'),
+          ...subsecciones.flatMap(sub => (sub.campos || []).filter(c => c.tipo === 'si_no')),
+        ];
+        const todoSiSeccion = (e) => {
+          e.stopPropagation();
+          todosCamposSiNo.forEach(c => onChange(c.id, 'SI'));
+        };
+
         return (
           <div key={seccion.id} className="mb-4 rounded-lg border border-gray-200 overflow-hidden">
             {/* Header sección principal */}
@@ -264,9 +292,22 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
                   </span>
                 )}
               </div>
-              <span style={{ fontSize: '18px', color: '#6b7280', lineHeight: 1 }}>
-                {isOpen ? '▲' : '▼'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {todosCamposSiNo.length > 0 && (
+                  <button type="button" onClick={todoSiSeccion}
+                    style={{
+                      fontSize: '12px', fontWeight: 600, padding: '4px 12px',
+                      borderRadius: '6px', border: '1.5px solid #16a34a',
+                      background: '#f0fdf4', color: '#16a34a', cursor: 'pointer',
+                      minHeight: '32px',
+                    }}>
+                    Todo SI
+                  </button>
+                )}
+                <span style={{ fontSize: '18px', color: '#6b7280', lineHeight: 1 }}>
+                  {isOpen ? '▲' : '▼'}
+                </span>
+              </div>
             </div>
 
             {/* Body */}

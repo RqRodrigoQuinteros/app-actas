@@ -43,13 +43,19 @@
     
     p.justificado { text-align: justify; }
     
-    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
     td, th { border: 1px solid black; padding: 5px 8px; }
     th { background-color: #f0f0f0; font-weight: bold; }
     .valor-si { color: black; }
     .valor-no { color: red; font-weight: bold; }
+    .tabla-campos { table-layout: fixed; }
     .tabla-campos td:first-child { width: 70%; }
     .tabla-campos td:last-child { width: 30%; min-width: 80px; }
+    .tabla-grilla { table-layout: auto; }
+    .tabla-grilla td:first-child, .tabla-grilla th:first-child { width: auto; min-width: 160px; }
+    .tabla-grilla td:not(:first-child), .tabla-grilla th:not(:first-child) { width: 38px; text-align: center; }
+    .check-si { color: #16a34a; font-weight: bold; font-size: 12pt; }
+    .check-no { color: #9ca3af; }
     
     .seccion { margin-bottom: 20px; }
     .seccion h3 {
