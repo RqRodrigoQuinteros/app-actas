@@ -613,15 +613,13 @@ router.post('/actas/:actaId/respuestas', async (req, res) => {
 // ============================================================
 
 // PUT /api/templates/campos/:id/mover-arriba
-// Mueve un campo hacia arriba intercambiando orden con el anterior
 router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Obtener el campo actual
     const { data: campoActual, error: errActual } = await supabase
       .from('template_campos')
-      .select('*')
+      .select('id, seccion_id, orden')
       .eq('id', id)
       .single();
 
@@ -629,32 +627,20 @@ router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
       return res.status(404).json({ error: 'Campo no encontrado' });
     }
 
-    // Obtener el campo anterior (menor orden, mismo seccion_id)
-    const { data: campoAnterior, error: errAnterior } = await supabase
+    const { data: todos } = await supabase
       .from('template_campos')
-      .select('*')
+      .select('id, orden')
       .eq('seccion_id', campoActual.seccion_id)
-      .lt('orden', campoActual.orden)
-      .order('orden', { ascending: false })
-      .limit(1)
-      .single();
+      .order('orden');
 
-    if (errAnterior || !campoAnterior) {
-      // No hay campo anterior, no hacer nada
-      return res.json({ message: 'El campo ya está al inicio' });
-    }
+    const idx = todos.findIndex(c => c.id === campoActual.id);
+    if (idx <= 0) return res.json({ message: 'El campo ya está al inicio' });
 
-    // Intercambiar órdenes
-    const ordenTemp = campoActual.orden;
-    await supabase
-      .from('template_campos')
-      .update({ orden: campoAnterior.orden })
-      .eq('id', campoActual.id);
-
-    await supabase
-      .from('template_campos')
-      .update({ orden: ordenTemp })
-      .eq('id', campoAnterior.id);
+    // Swap by array position and reassign all orden values
+    [todos[idx], todos[idx - 1]] = [todos[idx - 1], todos[idx]];
+    await Promise.all(todos.map((c, i) =>
+      supabase.from('template_campos').update({ orden: i }).eq('id', c.id)
+    ));
 
     res.json({ message: 'Campo movido hacia arriba' });
   } catch (err) {
@@ -664,15 +650,13 @@ router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
 });
 
 // PUT /api/templates/campos/:id/mover-abajo
-// Mueve un campo hacia abajo intercambiando orden con el siguiente
 router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Obtener el campo actual
     const { data: campoActual, error: errActual } = await supabase
       .from('template_campos')
-      .select('*')
+      .select('id, seccion_id, orden')
       .eq('id', id)
       .single();
 
@@ -680,32 +664,19 @@ router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
       return res.status(404).json({ error: 'Campo no encontrado' });
     }
 
-    // Obtener el campo siguiente (mayor orden, mismo seccion_id)
-    const { data: campoSiguiente, error: errSiguiente } = await supabase
+    const { data: todos } = await supabase
       .from('template_campos')
-      .select('*')
+      .select('id, orden')
       .eq('seccion_id', campoActual.seccion_id)
-      .gt('orden', campoActual.orden)
-      .order('orden', { ascending: true })
-      .limit(1)
-      .single();
+      .order('orden');
 
-    if (errSiguiente || !campoSiguiente) {
-      // No hay campo siguiente, no hacer nada
-      return res.json({ message: 'El campo ya está al final' });
-    }
+    const idx = todos.findIndex(c => c.id === campoActual.id);
+    if (idx < 0 || idx >= todos.length - 1) return res.json({ message: 'El campo ya está al final' });
 
-    // Intercambiar órdenes
-    const ordenTemp = campoActual.orden;
-    await supabase
-      .from('template_campos')
-      .update({ orden: campoSiguiente.orden })
-      .eq('id', campoActual.id);
-
-    await supabase
-      .from('template_campos')
-      .update({ orden: ordenTemp })
-      .eq('id', campoSiguiente.id);
+    [todos[idx], todos[idx + 1]] = [todos[idx + 1], todos[idx]];
+    await Promise.all(todos.map((c, i) =>
+      supabase.from('template_campos').update({ orden: i }).eq('id', c.id)
+    ));
 
     res.json({ message: 'Campo movido hacia abajo' });
   } catch (err) {
@@ -715,15 +686,13 @@ router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
 });
 
 // PUT /api/templates/secciones/:id/mover-arriba
-// Mueve una sección hacia arriba intercambiando orden con la anterior
 router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Obtener la sección actual
     const { data: seccionActual, error: errActual } = await supabase
       .from('template_secciones')
-      .select('*')
+      .select('id, tipologia_id, parent_seccion_id, orden')
       .eq('id', id)
       .single();
 
@@ -731,32 +700,25 @@ router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
       return res.status(404).json({ error: 'Sección no encontrada' });
     }
 
-    // Obtener la sección anterior (menor orden, mismo tipologia_id, sin parent o con mismo parent)
-    const { data: seccionAnterior, error: errAnterior } = await supabase
+    let query = supabase
       .from('template_secciones')
-      .select('*')
+      .select('id, orden')
       .eq('tipologia_id', seccionActual.tipologia_id)
-      .eq('parent_seccion_id', seccionActual.parent_seccion_id || null)
-      .lt('orden', seccionActual.orden)
-      .order('orden', { ascending: false })
-      .limit(1)
-      .single();
+      .order('orden');
 
-    if (errAnterior || !seccionAnterior) {
-      return res.json({ message: 'La sección ya está al inicio' });
-    }
+    query = seccionActual.parent_seccion_id
+      ? query.eq('parent_seccion_id', seccionActual.parent_seccion_id)
+      : query.is('parent_seccion_id', null);
 
-    // Intercambiar órdenes
-    const ordenTemp = seccionActual.orden;
-    await supabase
-      .from('template_secciones')
-      .update({ orden: seccionAnterior.orden })
-      .eq('id', seccionActual.id);
+    const { data: todas } = await query;
 
-    await supabase
-      .from('template_secciones')
-      .update({ orden: ordenTemp })
-      .eq('id', seccionAnterior.id);
+    const idx = todas.findIndex(s => s.id === seccionActual.id);
+    if (idx <= 0) return res.json({ message: 'La sección ya está al inicio' });
+
+    [todas[idx], todas[idx - 1]] = [todas[idx - 1], todas[idx]];
+    await Promise.all(todas.map((s, i) =>
+      supabase.from('template_secciones').update({ orden: i }).eq('id', s.id)
+    ));
 
     res.json({ message: 'Sección movida hacia arriba' });
   } catch (err) {
@@ -766,15 +728,13 @@ router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
 });
 
 // PUT /api/templates/secciones/:id/mover-abajo
-// Mueve una sección hacia abajo intercambiando orden con la siguiente
 router.put('/secciones/:id/mover-abajo', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Obtener la sección actual
     const { data: seccionActual, error: errActual } = await supabase
       .from('template_secciones')
-      .select('*')
+      .select('id, tipologia_id, parent_seccion_id, orden')
       .eq('id', id)
       .single();
 
@@ -782,32 +742,25 @@ router.put('/secciones/:id/mover-abajo', soloSupervisor, async (req, res) => {
       return res.status(404).json({ error: 'Sección no encontrada' });
     }
 
-    // Obtener la sección siguiente (mayor orden, mismo tipologia_id, sin parent o con mismo parent)
-    const { data: seccionSiguiente, error: errSiguiente } = await supabase
+    let query = supabase
       .from('template_secciones')
-      .select('*')
+      .select('id, orden')
       .eq('tipologia_id', seccionActual.tipologia_id)
-      .eq('parent_seccion_id', seccionActual.parent_seccion_id || null)
-      .gt('orden', seccionActual.orden)
-      .order('orden', { ascending: true })
-      .limit(1)
-      .single();
+      .order('orden');
 
-    if (errSiguiente || !seccionSiguiente) {
-      return res.json({ message: 'La sección ya está al final' });
-    }
+    query = seccionActual.parent_seccion_id
+      ? query.eq('parent_seccion_id', seccionActual.parent_seccion_id)
+      : query.is('parent_seccion_id', null);
 
-    // Intercambiar órdenes
-    const ordenTemp = seccionActual.orden;
-    await supabase
-      .from('template_secciones')
-      .update({ orden: seccionSiguiente.orden })
-      .eq('id', seccionActual.id);
+    const { data: todas } = await query;
 
-    await supabase
-      .from('template_secciones')
-      .update({ orden: ordenTemp })
-      .eq('id', seccionSiguiente.id);
+    const idx = todas.findIndex(s => s.id === seccionActual.id);
+    if (idx < 0 || idx >= todas.length - 1) return res.json({ message: 'La sección ya está al final' });
+
+    [todas[idx], todas[idx + 1]] = [todas[idx + 1], todas[idx]];
+    await Promise.all(todas.map((s, i) =>
+      supabase.from('template_secciones').update({ orden: i }).eq('id', s.id)
+    ));
 
     res.json({ message: 'Sección movida hacia abajo' });
   } catch (err) {

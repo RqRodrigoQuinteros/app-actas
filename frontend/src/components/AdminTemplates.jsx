@@ -573,7 +573,8 @@ function TabTipologias() {
     try {
       await templatesAPI.moverCampoArriba(campoId);
       await cargarDetalle(seleccionada.id);
-    } catch {
+    } catch (e) {
+      console.error('moverCampoArriba:', e);
       setMsg({ type: 'error', text: 'Error al mover campo' });
     }
   };
@@ -582,7 +583,8 @@ function TabTipologias() {
     try {
       await templatesAPI.moverCampoAbajo(campoId);
       await cargarDetalle(seleccionada.id);
-    } catch {
+    } catch (e) {
+      console.error('moverCampoAbajo:', e);
       setMsg({ type: 'error', text: 'Error al mover campo' });
     }
   };
@@ -592,7 +594,8 @@ function TabTipologias() {
     try {
       await templatesAPI.moverSeccionArriba(seccionId);
       await cargarDetalle(seleccionada.id);
-    } catch {
+    } catch (e) {
+      console.error('moverSeccionArriba:', e);
       setMsg({ type: 'error', text: 'Error al mover sección' });
     }
   };
@@ -601,7 +604,8 @@ function TabTipologias() {
     try {
       await templatesAPI.moverSeccionAbajo(seccionId);
       await cargarDetalle(seleccionada.id);
-    } catch {
+    } catch (e) {
+      console.error('moverSeccionAbajo:', e);
       setMsg({ type: 'error', text: 'Error al mover sección' });
     }
   };
