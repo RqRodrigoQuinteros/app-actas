@@ -568,6 +568,44 @@ function TabTipologias() {
     }
   };
 
+  // ── Mover campo arriba/abajo ─────────────────────────────────────────────
+  const moverCampoArriba = async (campoId) => {
+    try {
+      await templatesAPI.moverCampoArriba(campoId);
+      await cargarDetalle(seleccionada.id);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al mover campo' });
+    }
+  };
+
+  const moverCampoAbajo = async (campoId) => {
+    try {
+      await templatesAPI.moverCampoAbajo(campoId);
+      await cargarDetalle(seleccionada.id);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al mover campo' });
+    }
+  };
+
+  // ── Mover sección arriba/abajo ───────────────────────────────────────────
+  const moverSeccionArriba = async (seccionId) => {
+    try {
+      await templatesAPI.moverSeccionArriba(seccionId);
+      await cargarDetalle(seleccionada.id);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al mover sección' });
+    }
+  };
+
+  const moverSeccionAbajo = async (seccionId) => {
+    try {
+      await templatesAPI.moverSeccionAbajo(seccionId);
+      await cargarDetalle(seleccionada.id);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al mover sección' });
+    }
+  };
+
   if (loading) return <p style={{ color: '#6b7280', fontSize: '13px' }}>Cargando...</p>;
 
   return (
@@ -724,6 +762,16 @@ function TabTipologias() {
                       <button style={S.btnOutline} onClick={() => setModalSubseccion(sec.id)}>
                         + Sub
                       </button>
+                      {idx > 0 && (
+                        <button style={S.btnOutline} onClick={() => moverSeccionArriba(sec.id)} title="Subir sección">
+                          ↑
+                        </button>
+                      )}
+                      {idx < (seleccionada.secciones || []).length - 1 && (
+                        <button style={S.btnOutline} onClick={() => moverSeccionAbajo(sec.id)} title="Bajar sección">
+                          ↓
+                        </button>
+                      )}
                       <button style={S.btnOutline} onClick={() => setEditandoSeccion(sec)}>
                         Editar
                       </button>
@@ -768,6 +816,18 @@ function TabTipologias() {
                       <span style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace' }}>
                         {campo.token}
                       </span>
+                      {cidx > 0 && (
+                        <button style={{ ...S.btnOutline, padding: '3px 6px', fontSize: '11px' }}
+                          onClick={() => moverCampoArriba(campo.id)} title="Subir">
+                          ↑
+                        </button>
+                      )}
+                      {cidx < (sec.campos || []).length - 1 && (
+                        <button style={{ ...S.btnOutline, padding: '3px 6px', fontSize: '11px' }}
+                          onClick={() => moverCampoAbajo(campo.id)} title="Bajar">
+                          ↓
+                        </button>
+                      )}
                       <button style={{ ...S.btnOutline, padding: '3px 8px', fontSize: '11px' }}
                         onClick={() => setEditandoCampo(campo)}>
                         Editar

@@ -164,10 +164,17 @@
     {{establecimiento_direccion}}, Localidad: <strong>{{establecimiento_localidad}}</strong>, 
     se constituye en el lugar a fin de cumplir las exigencias de la Ley 6.222, 
     Decreto 033/08 y Resolución Ministerial N° 1226/2025, según el formulario de 
-    Inspección provisto por la repartición. Se solicita la presencia del responsable 
-    del Establecimiento y se hace presente el/la Sr./Sra. 
+    Inspección provisto por la repartición. 
+    {{#if director_tecnico_nombre}}
+    Se solicita la presencia del Director Técnico del Establecimiento y se hace presente 
+    el/la Sr./Sra. <strong>{{director_tecnico_nombre}} {{director_tecnico_apellido}}</strong> 
+    DNI <strong>{{director_tecnico_dni}}</strong>, Matrícula Profesional <strong>{{director_tecnico_matricula}}</strong>.
+    {{/if}}
+    {{#if responsable_nombre}}
+    Se solicita la presencia del responsable del Establecimiento y se hace presente el/la Sr./Sra. 
     <strong>{{responsable_nombre}}</strong> DNI <strong>{{responsable_dni}}</strong> 
-    en su carácter de <strong>{{responsable_caracter}}</strong>. 
+    en su carácter de <strong>{{responsable_caracter}}</strong>.
+    {{/if}}
     Efectuada la inspección, se constata:
   </p>
 
@@ -179,6 +186,28 @@
   <div class="observaciones">
     <strong>Observaciones:</strong><br>
     <p class="justificado">{{observaciones}}</p>
+  </div>
+  {{/if}}
+
+  {{#if director_tecnico_nombre}}
+  <div class="seccion" style="margin-top: 20px; page-break-inside: avoid;">
+    <h3>DIRECTOR TÉCNICO</h3>
+    <table class="tabla-campos">
+      <tr><td><strong>Nombre y Apellido</strong></td><td>{{director_tecnico_nombre}} {{director_tecnico_apellido}}</td></tr>
+      <tr><td><strong>DNI</strong></td><td>{{director_tecnico_dni}}</td></tr>
+      <tr><td><strong>Matrícula Profesional</strong></td><td>{{director_tecnico_matricula}}</td></tr>
+    </table>
+  </div>
+  {{/if}}
+
+  {{#if responsable_nombre}}
+  <div class="seccion" style="margin-top: 20px; page-break-inside: avoid;">
+    <h3>RESPONSABLE</h3>
+    <table class="tabla-campos">
+      <tr><td><strong>Nombre y Apellido</strong></td><td>{{responsable_nombre}}</td></tr>
+      <tr><td><strong>DNI</strong></td><td>{{responsable_dni}}</td></tr>
+      <tr><td><strong>Carácter</strong></td><td>{{responsable_caracter}}</td></tr>
+    </table>
   </div>
   {{/if}}
 

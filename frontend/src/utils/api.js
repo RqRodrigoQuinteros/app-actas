@@ -105,11 +105,15 @@ export const templatesAPI = {
   crearSeccion: (tipologiaId, data) => api.post(`/templates/tipologias/${tipologiaId}/secciones`, data),
   actualizarSeccion: (id, data) => api.put(`/templates/secciones/${id}`, data),
   eliminarSeccion: (id) => api.delete(`/templates/secciones/${id}`),
+  moverSeccionArriba: (id) => api.put(`/templates/secciones/${id}/mover-arriba`),
+  moverSeccionAbajo: (id) => api.put(`/templates/secciones/${id}/mover-abajo`),
 
   // Campos
   crearCampo: (seccionId, data) => api.post(`/templates/secciones/${seccionId}/campos`, data),
   actualizarCampo: (id, data) => api.put(`/templates/campos/${id}`, data),
   eliminarCampo: (id) => api.delete(`/templates/campos/${id}`),
+  moverCampoArriba: (id) => api.put(`/templates/campos/${id}/mover-arriba`),
+  moverCampoAbajo: (id) => api.put(`/templates/campos/${id}/mover-abajo`),
 
   // Respuestas
   getRespuestas: (actaId) => api.get(`/templates/actas/${actaId}/respuestas`),

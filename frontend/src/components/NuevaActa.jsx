@@ -422,6 +422,10 @@ export default function NuevaActa() {
     establecimiento_direccion: '',
     establecimiento_localidad: '',
     tipologia: '',
+    director_tecnico_nombre: '',
+    director_tecnico_apellido: '',
+    director_tecnico_dni: '',
+    director_tecnico_matricula: '',
     responsable_nombre: '',
     responsable_dni: '',
     responsable_caracter: '',
@@ -444,19 +448,21 @@ export default function NuevaActa() {
   // paso 8 = testigos (geriátrico NO)
   const PASOS_NORMAL = [
     { id: 1, label: 'Establecimiento' },
-    { id: 2, label: 'Responsable' },
+    { id: 2, label: 'Director Técnico' },
     { id: 3, label: 'Tipo Insp.' },
     { id: 4, label: 'Secciones' },
     { id: 5, label: 'Formulario' },
-    { id: 6, label: 'Fotos' },
+    { id: 6, label: 'Responsable' },
+    { id: 9, label: 'Fotos' },
     { id: 7, label: 'Firmas' },
   ];
   const PASOS_NO_FUNC = [
     { id: 1, label: 'Establecimiento' },
-    { id: 2, label: 'Responsable' },
+    { id: 2, label: 'Director Técnico' },
     { id: 3, label: 'Tipo Insp.' },
     { id: 8, label: 'Testigos' },
-    { id: 6, label: 'Fotos' },
+    { id: 6, label: 'Responsable' },
+    { id: 9, label: 'Fotos' },
     { id: 7, label: 'Firmas' },
   ];
 
@@ -810,37 +816,44 @@ export default function NuevaActa() {
             </div>
           )}
 
-          {/* PASO 2 — Responsable */}
+          {/* PASO 2 — Director Técnico */}
           {paso === 2 && (
             <div>
-              <h2 className="text-xl font-bold mb-4">Datos del Responsable</h2>
+              <h2 className="text-xl font-bold mb-4">Datos del Director Técnico</h2>
 
               <div className="mb-4">
-                <label className="label-field">Nombre y Apellido *</label>
-                <input type="text" value={datos.responsable_nombre}
-                  onChange={e => setDatos(prev => ({ ...prev, responsable_nombre: e.target.value }))}
+                <label className="label-field">Nombre *</label>
+                <input type="text" value={datos.director_tecnico_nombre}
+                  onChange={e => setDatos(prev => ({ ...prev, director_tecnico_nombre: e.target.value }))}
                   className="input-field" required />
               </div>
 
               <div className="mb-4">
-                <label className="label-field">DNI</label>
-                <input type="number" inputMode="numeric" value={datos.responsable_dni}
-                  onChange={e => setDatos(prev => ({ ...prev, responsable_dni: e.target.value }))}
+                <label className="label-field">Apellido</label>
+                <input type="text" value={datos.director_tecnico_apellido}
+                  onChange={e => setDatos(prev => ({ ...prev, director_tecnico_apellido: e.target.value }))}
                   className="input-field" />
               </div>
 
               <div className="mb-4">
-                <label className="label-field">Carácter</label>
-                <input type="text" value={datos.responsable_caracter}
-                  onChange={e => setDatos(prev => ({ ...prev, responsable_caracter: e.target.value }))}
-                  className="input-field" placeholder="Ej: Director Técnico, Propietario..." />
+                <label className="label-field">DNI</label>
+                <input type="number" inputMode="numeric" value={datos.director_tecnico_dni}
+                  onChange={e => setDatos(prev => ({ ...prev, director_tecnico_dni: e.target.value }))}
+                  className="input-field" />
+              </div>
+
+              <div className="mb-4">
+                <label className="label-field">Matrícula Profesional</label>
+                <input type="text" value={datos.director_tecnico_matricula}
+                  onChange={e => setDatos(prev => ({ ...prev, director_tecnico_matricula: e.target.value }))}
+                  className="input-field" placeholder="Ej: 1234/2023" />
               </div>
 
               <div className="flex gap-4">
                 <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={async () => {
-                  if (datos.responsable_nombre) { await guardarBorrador(); irSiguiente(); }
-                }} disabled={!datos.responsable_nombre} className="btn-primary disabled:opacity-50">
+                  if (datos.director_tecnico_nombre) { await guardarBorrador(); irSiguiente(); }
+                }} disabled={!datos.director_tecnico_nombre} className="btn-primary disabled:opacity-50">
                   Siguiente →
                 </button>
               </div>
@@ -1084,6 +1097,43 @@ export default function NuevaActa() {
             </div>
           )}
 
+          {/* PASO 6 — Responsable */}
+          {paso === 6 && (
+            <div>
+              <h2 className="text-xl font-bold mb-4">Datos del Responsable</h2>
+
+              <div className="mb-4">
+                <label className="label-field">Nombre y Apellido *</label>
+                <input type="text" value={datos.responsable_nombre}
+                  onChange={e => setDatos(prev => ({ ...prev, responsable_nombre: e.target.value }))}
+                  className="input-field" required />
+              </div>
+
+              <div className="mb-4">
+                <label className="label-field">DNI</label>
+                <input type="number" inputMode="numeric" value={datos.responsable_dni}
+                  onChange={e => setDatos(prev => ({ ...prev, responsable_dni: e.target.value }))}
+                  className="input-field" />
+              </div>
+
+              <div className="mb-4">
+                <label className="label-field">Carácter</label>
+                <input type="text" value={datos.responsable_caracter}
+                  onChange={e => setDatos(prev => ({ ...prev, responsable_caracter: e.target.value }))}
+                  className="input-field" placeholder="Ej: Propietario, Administrador..." />
+              </div>
+
+              <div className="flex gap-4">
+                <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
+                <button onClick={async () => {
+                  if (datos.responsable_nombre) { await guardarBorrador(); irSiguiente(); }
+                }} disabled={!datos.responsable_nombre} className="btn-primary disabled:opacity-50">
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* PASO 8 — Testigos (geriátrico NO en funcionamiento) */}
           {paso === 8 && (
             <div>
@@ -1128,8 +1178,8 @@ export default function NuevaActa() {
             </div>
           )}
 
-          {/* PASO 6 — Fotos */}
-          {paso === 6 && (
+          {/* PASO 9 — Fotos */}
+          {paso === 9 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Fotos de la Inspección</h2>
               <SubidaFotos onFotosChange={guardarFotos} />
