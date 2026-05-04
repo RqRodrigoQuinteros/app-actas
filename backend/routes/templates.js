@@ -614,9 +614,9 @@ router.post('/actas/:actaId/respuestas', async (req, res) => {
 
 // PUT /api/templates/campos/:id/mover-arriba
 router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
+  const { id } = req.params;
+  console.log('[mover-arriba campo] id:', id);
   try {
-    const { id } = req.params;
-
     const { data: campoActual, error: errActual } = await supabase
       .from('template_campos')
       .select('id, seccion_id, orden')
@@ -624,23 +624,29 @@ router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
       .single();
 
     if (errActual || !campoActual) {
+      console.log('[mover-arriba campo] no encontrado, error:', errActual);
       return res.status(404).json({ error: 'Campo no encontrado' });
     }
+    console.log('[mover-arriba campo] campoActual:', campoActual);
 
-    const { data: todos } = await supabase
+    const { data: todos, error: errTodos } = await supabase
       .from('template_campos')
       .select('id, orden')
       .eq('seccion_id', campoActual.seccion_id)
       .order('orden');
 
-    const idx = todos.findIndex(c => c.id === campoActual.id);
+    console.log('[mover-arriba campo] todos:', todos, 'error:', errTodos);
+
+    const idx = (todos || []).findIndex(c => c.id == campoActual.id);
+    console.log('[mover-arriba campo] idx:', idx, 'de', (todos || []).length);
     if (idx <= 0) return res.json({ message: 'El campo ya está al inicio' });
 
-    // Swap by array position and reassign all orden values
     [todos[idx], todos[idx - 1]] = [todos[idx - 1], todos[idx]];
-    await Promise.all(todos.map((c, i) =>
+    const updates = await Promise.all(todos.map((c, i) =>
       supabase.from('template_campos').update({ orden: i }).eq('id', c.id)
     ));
+    const errores = updates.filter(r => r.error).map(r => r.error);
+    if (errores.length) console.error('[mover-arriba campo] errores update:', errores);
 
     res.json({ message: 'Campo movido hacia arriba' });
   } catch (err) {
@@ -651,9 +657,9 @@ router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
 
 // PUT /api/templates/campos/:id/mover-abajo
 router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
+  const { id } = req.params;
+  console.log('[mover-abajo campo] id:', id);
   try {
-    const { id } = req.params;
-
     const { data: campoActual, error: errActual } = await supabase
       .from('template_campos')
       .select('id, seccion_id, orden')
@@ -661,22 +667,29 @@ router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
       .single();
 
     if (errActual || !campoActual) {
+      console.log('[mover-abajo campo] no encontrado, error:', errActual);
       return res.status(404).json({ error: 'Campo no encontrado' });
     }
+    console.log('[mover-abajo campo] campoActual:', campoActual);
 
-    const { data: todos } = await supabase
+    const { data: todos, error: errTodos } = await supabase
       .from('template_campos')
       .select('id, orden')
       .eq('seccion_id', campoActual.seccion_id)
       .order('orden');
 
-    const idx = todos.findIndex(c => c.id === campoActual.id);
-    if (idx < 0 || idx >= todos.length - 1) return res.json({ message: 'El campo ya está al final' });
+    console.log('[mover-abajo campo] todos:', todos, 'error:', errTodos);
+
+    const idx = (todos || []).findIndex(c => c.id == campoActual.id);
+    console.log('[mover-abajo campo] idx:', idx, 'de', (todos || []).length);
+    if (idx < 0 || idx >= (todos || []).length - 1) return res.json({ message: 'El campo ya está al final' });
 
     [todos[idx], todos[idx + 1]] = [todos[idx + 1], todos[idx]];
-    await Promise.all(todos.map((c, i) =>
+    const updates = await Promise.all(todos.map((c, i) =>
       supabase.from('template_campos').update({ orden: i }).eq('id', c.id)
     ));
+    const errores = updates.filter(r => r.error).map(r => r.error);
+    if (errores.length) console.error('[mover-abajo campo] errores update:', errores);
 
     res.json({ message: 'Campo movido hacia abajo' });
   } catch (err) {
@@ -687,9 +700,9 @@ router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
 
 // PUT /api/templates/secciones/:id/mover-arriba
 router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
+  const { id } = req.params;
+  console.log('[mover-arriba seccion] id:', id);
   try {
-    const { id } = req.params;
-
     const { data: seccionActual, error: errActual } = await supabase
       .from('template_secciones')
       .select('id, tipologia_id, parent_seccion_id, orden')
@@ -697,8 +710,10 @@ router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
       .single();
 
     if (errActual || !seccionActual) {
+      console.log('[mover-arriba seccion] no encontrada, error:', errActual);
       return res.status(404).json({ error: 'Sección no encontrada' });
     }
+    console.log('[mover-arriba seccion] seccionActual:', seccionActual);
 
     let query = supabase
       .from('template_secciones')
@@ -710,15 +725,19 @@ router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
       ? query.eq('parent_seccion_id', seccionActual.parent_seccion_id)
       : query.is('parent_seccion_id', null);
 
-    const { data: todas } = await query;
+    const { data: todas, error: errTodas } = await query;
+    console.log('[mover-arriba seccion] todas:', todas, 'error:', errTodas);
 
-    const idx = todas.findIndex(s => s.id === seccionActual.id);
+    const idx = (todas || []).findIndex(s => s.id == seccionActual.id);
+    console.log('[mover-arriba seccion] idx:', idx, 'de', (todas || []).length);
     if (idx <= 0) return res.json({ message: 'La sección ya está al inicio' });
 
     [todas[idx], todas[idx - 1]] = [todas[idx - 1], todas[idx]];
-    await Promise.all(todas.map((s, i) =>
+    const updates = await Promise.all(todas.map((s, i) =>
       supabase.from('template_secciones').update({ orden: i }).eq('id', s.id)
     ));
+    const errores = updates.filter(r => r.error).map(r => r.error);
+    if (errores.length) console.error('[mover-arriba seccion] errores update:', errores);
 
     res.json({ message: 'Sección movida hacia arriba' });
   } catch (err) {
@@ -729,9 +748,9 @@ router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
 
 // PUT /api/templates/secciones/:id/mover-abajo
 router.put('/secciones/:id/mover-abajo', soloSupervisor, async (req, res) => {
+  const { id } = req.params;
+  console.log('[mover-abajo seccion] id:', id);
   try {
-    const { id } = req.params;
-
     const { data: seccionActual, error: errActual } = await supabase
       .from('template_secciones')
       .select('id, tipologia_id, parent_seccion_id, orden')
@@ -739,8 +758,10 @@ router.put('/secciones/:id/mover-abajo', soloSupervisor, async (req, res) => {
       .single();
 
     if (errActual || !seccionActual) {
+      console.log('[mover-abajo seccion] no encontrada, error:', errActual);
       return res.status(404).json({ error: 'Sección no encontrada' });
     }
+    console.log('[mover-abajo seccion] seccionActual:', seccionActual);
 
     let query = supabase
       .from('template_secciones')
@@ -752,15 +773,19 @@ router.put('/secciones/:id/mover-abajo', soloSupervisor, async (req, res) => {
       ? query.eq('parent_seccion_id', seccionActual.parent_seccion_id)
       : query.is('parent_seccion_id', null);
 
-    const { data: todas } = await query;
+    const { data: todas, error: errTodas } = await query;
+    console.log('[mover-abajo seccion] todas:', todas, 'error:', errTodas);
 
-    const idx = todas.findIndex(s => s.id === seccionActual.id);
-    if (idx < 0 || idx >= todas.length - 1) return res.json({ message: 'La sección ya está al final' });
+    const idx = (todas || []).findIndex(s => s.id == seccionActual.id);
+    console.log('[mover-abajo seccion] idx:', idx, 'de', (todas || []).length);
+    if (idx < 0 || idx >= (todas || []).length - 1) return res.json({ message: 'La sección ya está al final' });
 
     [todas[idx], todas[idx + 1]] = [todas[idx + 1], todas[idx]];
-    await Promise.all(todas.map((s, i) =>
+    const updates = await Promise.all(todas.map((s, i) =>
       supabase.from('template_secciones').update({ orden: i }).eq('id', s.id)
     ));
+    const errores = updates.filter(r => r.error).map(r => r.error);
+    if (errores.length) console.error('[mover-abajo seccion] errores update:', errores);
 
     res.json({ message: 'Sección movida hacia abajo' });
   } catch (err) {

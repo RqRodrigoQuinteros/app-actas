@@ -570,42 +570,50 @@ function TabTipologias() {
 
   // ── Mover campo arriba/abajo ─────────────────────────────────────────────
   const moverCampoArriba = async (campoId) => {
+    console.log('[AdminTemplates] moverCampoArriba campoId:', campoId);
     try {
-      await templatesAPI.moverCampoArriba(campoId);
+      const r = await templatesAPI.moverCampoArriba(campoId);
+      console.log('[AdminTemplates] moverCampoArriba resp:', r.data);
       await cargarDetalle(seleccionada.id);
     } catch (e) {
-      console.error('moverCampoArriba:', e);
+      console.error('moverCampoArriba error:', e.response?.status, e.response?.data || e.message);
       setMsg({ type: 'error', text: 'Error al mover campo' });
     }
   };
 
   const moverCampoAbajo = async (campoId) => {
+    console.log('[AdminTemplates] moverCampoAbajo campoId:', campoId);
     try {
-      await templatesAPI.moverCampoAbajo(campoId);
+      const r = await templatesAPI.moverCampoAbajo(campoId);
+      console.log('[AdminTemplates] moverCampoAbajo resp:', r.data);
       await cargarDetalle(seleccionada.id);
     } catch (e) {
-      console.error('moverCampoAbajo:', e);
+      console.error('moverCampoAbajo error:', e.response?.status, e.response?.data || e.message);
       setMsg({ type: 'error', text: 'Error al mover campo' });
     }
   };
 
   // ── Mover sección arriba/abajo ───────────────────────────────────────────
   const moverSeccionArriba = async (seccionId) => {
+    console.log('[AdminTemplates] moverSeccionArriba seccionId:', seccionId);
     try {
-      await templatesAPI.moverSeccionArriba(seccionId);
+      const r = await templatesAPI.moverSeccionArriba(seccionId);
+      console.log('[AdminTemplates] moverSeccionArriba resp:', r.data);
       await cargarDetalle(seleccionada.id);
     } catch (e) {
-      console.error('moverSeccionArriba:', e);
+      console.error('moverSeccionArriba error:', e.response?.status, e.response?.data || e.message);
       setMsg({ type: 'error', text: 'Error al mover sección' });
     }
   };
 
   const moverSeccionAbajo = async (seccionId) => {
+    console.log('[AdminTemplates] moverSeccionAbajo seccionId:', seccionId);
     try {
-      await templatesAPI.moverSeccionAbajo(seccionId);
+      const r = await templatesAPI.moverSeccionAbajo(seccionId);
+      console.log('[AdminTemplates] moverSeccionAbajo resp:', r.data);
       await cargarDetalle(seleccionada.id);
     } catch (e) {
-      console.error('moverSeccionAbajo:', e);
+      console.error('moverSeccionAbajo error:', e.response?.status, e.response?.data || e.message);
       setMsg({ type: 'error', text: 'Error al mover sección' });
     }
   };
