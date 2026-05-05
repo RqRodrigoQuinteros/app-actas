@@ -556,6 +556,12 @@ router.delete('/campos/:id', soloSupervisor, async (req, res) => {
 
     if (errGet || !campo) return res.status(404).json({ error: 'Campo no encontrado' });
 
+    // Borrar respuestas vinculadas a este campo antes de eliminarlo
+    await supabase
+      .from('actas_respuestas')
+      .delete()
+      .eq('campo_id', id);
+
     const { error } = await supabase
       .from('template_campos')
       .delete()
