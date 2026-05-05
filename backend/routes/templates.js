@@ -612,29 +612,35 @@ router.post('/actas/:actaId/respuestas', async (req, res) => {
 // REORDENAMIENTO DE CAMPOS Y SECCIONES
 // ============================================================
 
+// Actualiza secuencialmente todos los orden de un array de items.
+// Usa valores temporales grandes para evitar conflictos con unique constraints.
+async function reordenarItems(tabla, items) {
+  const BASE_TEMP = 100000;
+  // Paso 1: set temporales para evitar conflictos
+  for (let i = 0; i < items.length; i++) {
+    const { error } = await supabase.from(tabla).update({ orden: BASE_TEMP + i }).eq('id', items[i].id);
+    if (error) { console.error(`[reordenar] temp update error:`, error); return error; }
+  }
+  // Paso 2: set valores finales
+  for (let i = 0; i < items.length; i++) {
+    const { error } = await supabase.from(tabla).update({ orden: i }).eq('id', items[i].id);
+    if (error) { console.error(`[reordenar] final update error:`, error); return error; }
+  }
+  return null;
+}
+
 // PUT /api/templates/campos/:id/mover-arriba
 router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
   const { id } = req.params;
   console.log('[mover-arriba campo] id:', id);
   try {
     const { data: campoActual, error: errActual } = await supabase
-      .from('template_campos')
-      .select('id, seccion_id, orden')
-      .eq('id', id)
-      .single();
-
-    if (errActual || !campoActual) {
-      console.log('[mover-arriba campo] no encontrado, error:', errActual);
-      return res.status(404).json({ error: 'Campo no encontrado' });
-    }
+      .from('template_campos').select('id, seccion_id, orden').eq('id', id).single();
+    if (errActual || !campoActual) return res.status(404).json({ error: 'Campo no encontrado' });
     console.log('[mover-arriba campo] campoActual:', campoActual);
 
     const { data: todos, error: errTodos } = await supabase
-      .from('template_campos')
-      .select('id, orden')
-      .eq('seccion_id', campoActual.seccion_id)
-      .order('orden');
-
+      .from('template_campos').select('id, orden').eq('seccion_id', campoActual.seccion_id).order('orden');
     console.log('[mover-arriba campo] todos:', todos, 'error:', errTodos);
 
     const idx = (todos || []).findIndex(c => c.id == campoActual.id);
@@ -642,11 +648,8 @@ router.put('/campos/:id/mover-arriba', soloSupervisor, async (req, res) => {
     if (idx <= 0) return res.json({ message: 'El campo ya está al inicio' });
 
     [todos[idx], todos[idx - 1]] = [todos[idx - 1], todos[idx]];
-    const updates = await Promise.all(todos.map((c, i) =>
-      supabase.from('template_campos').update({ orden: i }).eq('id', c.id)
-    ));
-    const errores = updates.filter(r => r.error).map(r => r.error);
-    if (errores.length) console.error('[mover-arriba campo] errores update:', errores);
+    const err = await reordenarItems('template_campos', todos);
+    if (err) return res.status(500).json({ error: 'Error al guardar orden' });
 
     res.json({ message: 'Campo movido hacia arriba' });
   } catch (err) {
@@ -661,23 +664,12 @@ router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
   console.log('[mover-abajo campo] id:', id);
   try {
     const { data: campoActual, error: errActual } = await supabase
-      .from('template_campos')
-      .select('id, seccion_id, orden')
-      .eq('id', id)
-      .single();
-
-    if (errActual || !campoActual) {
-      console.log('[mover-abajo campo] no encontrado, error:', errActual);
-      return res.status(404).json({ error: 'Campo no encontrado' });
-    }
+      .from('template_campos').select('id, seccion_id, orden').eq('id', id).single();
+    if (errActual || !campoActual) return res.status(404).json({ error: 'Campo no encontrado' });
     console.log('[mover-abajo campo] campoActual:', campoActual);
 
     const { data: todos, error: errTodos } = await supabase
-      .from('template_campos')
-      .select('id, orden')
-      .eq('seccion_id', campoActual.seccion_id)
-      .order('orden');
-
+      .from('template_campos').select('id, orden').eq('seccion_id', campoActual.seccion_id).order('orden');
     console.log('[mover-abajo campo] todos:', todos, 'error:', errTodos);
 
     const idx = (todos || []).findIndex(c => c.id == campoActual.id);
@@ -685,11 +677,8 @@ router.put('/campos/:id/mover-abajo', soloSupervisor, async (req, res) => {
     if (idx < 0 || idx >= (todos || []).length - 1) return res.json({ message: 'El campo ya está al final' });
 
     [todos[idx], todos[idx + 1]] = [todos[idx + 1], todos[idx]];
-    const updates = await Promise.all(todos.map((c, i) =>
-      supabase.from('template_campos').update({ orden: i }).eq('id', c.id)
-    ));
-    const errores = updates.filter(r => r.error).map(r => r.error);
-    if (errores.length) console.error('[mover-abajo campo] errores update:', errores);
+    const err = await reordenarItems('template_campos', todos);
+    if (err) return res.status(500).json({ error: 'Error al guardar orden' });
 
     res.json({ message: 'Campo movido hacia abajo' });
   } catch (err) {
@@ -704,27 +693,15 @@ router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
   console.log('[mover-arriba seccion] id:', id);
   try {
     const { data: seccionActual, error: errActual } = await supabase
-      .from('template_secciones')
-      .select('id, tipologia_id, parent_seccion_id, orden')
-      .eq('id', id)
-      .single();
-
-    if (errActual || !seccionActual) {
-      console.log('[mover-arriba seccion] no encontrada, error:', errActual);
-      return res.status(404).json({ error: 'Sección no encontrada' });
-    }
+      .from('template_secciones').select('id, tipologia_id, parent_seccion_id, orden').eq('id', id).single();
+    if (errActual || !seccionActual) return res.status(404).json({ error: 'Sección no encontrada' });
     console.log('[mover-arriba seccion] seccionActual:', seccionActual);
 
-    let query = supabase
-      .from('template_secciones')
-      .select('id, orden')
-      .eq('tipologia_id', seccionActual.tipologia_id)
-      .order('orden');
-
+    let query = supabase.from('template_secciones').select('id, orden')
+      .eq('tipologia_id', seccionActual.tipologia_id).order('orden');
     query = seccionActual.parent_seccion_id
       ? query.eq('parent_seccion_id', seccionActual.parent_seccion_id)
       : query.is('parent_seccion_id', null);
-
     const { data: todas, error: errTodas } = await query;
     console.log('[mover-arriba seccion] todas:', todas, 'error:', errTodas);
 
@@ -733,11 +710,8 @@ router.put('/secciones/:id/mover-arriba', soloSupervisor, async (req, res) => {
     if (idx <= 0) return res.json({ message: 'La sección ya está al inicio' });
 
     [todas[idx], todas[idx - 1]] = [todas[idx - 1], todas[idx]];
-    const updates = await Promise.all(todas.map((s, i) =>
-      supabase.from('template_secciones').update({ orden: i }).eq('id', s.id)
-    ));
-    const errores = updates.filter(r => r.error).map(r => r.error);
-    if (errores.length) console.error('[mover-arriba seccion] errores update:', errores);
+    const err = await reordenarItems('template_secciones', todas);
+    if (err) return res.status(500).json({ error: 'Error al guardar orden' });
 
     res.json({ message: 'Sección movida hacia arriba' });
   } catch (err) {
@@ -752,27 +726,15 @@ router.put('/secciones/:id/mover-abajo', soloSupervisor, async (req, res) => {
   console.log('[mover-abajo seccion] id:', id);
   try {
     const { data: seccionActual, error: errActual } = await supabase
-      .from('template_secciones')
-      .select('id, tipologia_id, parent_seccion_id, orden')
-      .eq('id', id)
-      .single();
-
-    if (errActual || !seccionActual) {
-      console.log('[mover-abajo seccion] no encontrada, error:', errActual);
-      return res.status(404).json({ error: 'Sección no encontrada' });
-    }
+      .from('template_secciones').select('id, tipologia_id, parent_seccion_id, orden').eq('id', id).single();
+    if (errActual || !seccionActual) return res.status(404).json({ error: 'Sección no encontrada' });
     console.log('[mover-abajo seccion] seccionActual:', seccionActual);
 
-    let query = supabase
-      .from('template_secciones')
-      .select('id, orden')
-      .eq('tipologia_id', seccionActual.tipologia_id)
-      .order('orden');
-
+    let query = supabase.from('template_secciones').select('id, orden')
+      .eq('tipologia_id', seccionActual.tipologia_id).order('orden');
     query = seccionActual.parent_seccion_id
       ? query.eq('parent_seccion_id', seccionActual.parent_seccion_id)
       : query.is('parent_seccion_id', null);
-
     const { data: todas, error: errTodas } = await query;
     console.log('[mover-abajo seccion] todas:', todas, 'error:', errTodas);
 
@@ -781,11 +743,8 @@ router.put('/secciones/:id/mover-abajo', soloSupervisor, async (req, res) => {
     if (idx < 0 || idx >= (todas || []).length - 1) return res.json({ message: 'La sección ya está al final' });
 
     [todas[idx], todas[idx + 1]] = [todas[idx + 1], todas[idx]];
-    const updates = await Promise.all(todas.map((s, i) =>
-      supabase.from('template_secciones').update({ orden: i }).eq('id', s.id)
-    ));
-    const errores = updates.filter(r => r.error).map(r => r.error);
-    if (errores.length) console.error('[mover-abajo seccion] errores update:', errores);
+    const err = await reordenarItems('template_secciones', todas);
+    if (err) return res.status(500).json({ error: 'Error al guardar orden' });
 
     res.json({ message: 'Sección movida hacia abajo' });
   } catch (err) {

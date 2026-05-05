@@ -7,7 +7,16 @@
       "Bash(wc -l /c/Users/rodri/OneDrive/Desktop/App_Actas/backend/routes/*.js /c/Users/rodri/OneDrive/Desktop/App_Actas/frontend/src/components/*.jsx)",
       "Bash(grep -r \"try.*catch\" /c/Users/rodri/OneDrive/Desktop/App_Actas/backend/routes/*.js)",
       "Bash(git -C /c/Users/rodri/OneDrive/Desktop/App_Actas log --oneline -10)",
-      "Bash(node seed_moviles.js)"
+      "Bash(node seed_moviles.js)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "Bash(git clone *)",
+      "Bash(git -C \"C:/Users/rodri/AppData/Local/Temp/app-actas-remote\" log --oneline -10)",
+      "Bash(git -C \"C:/Users/rodri/AppData/Local/Temp/app-actas-remote\" show --stat HEAD)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npm run *)"
     ]
   }
 }

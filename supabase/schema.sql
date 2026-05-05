@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS actas (
   director_tecnico_apellido TEXT,
   director_tecnico_dni TEXT,
   director_tecnico_matricula TEXT,
+  propietario TEXT,
   responsable_nombre TEXT,
   responsable_dni TEXT,
   responsable_caracter TEXT,

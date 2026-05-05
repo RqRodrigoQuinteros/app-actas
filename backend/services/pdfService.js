@@ -468,6 +468,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         director_tecnico_apellido: acta.director_tecnico_apellido || '',
         director_tecnico_dni: acta.director_tecnico_dni || '',
         director_tecnico_matricula: acta.director_tecnico_matricula || '',
+        propietario: acta.propietario || '',
         responsable_nombre: acta.responsable_nombre || '',
         responsable_dni: acta.responsable_dni || '',
         responsable_caracter: acta.responsable_caracter || '',

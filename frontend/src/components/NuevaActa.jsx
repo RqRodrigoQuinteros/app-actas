@@ -422,6 +422,7 @@ export default function NuevaActa() {
     establecimiento_direccion: '',
     establecimiento_localidad: '',
     tipologia: '',
+    propietario: '',
     director_tecnico_nombre: '',
     director_tecnico_apellido: '',
     director_tecnico_dni: '',
@@ -786,6 +787,13 @@ export default function NuevaActa() {
                 <input type="text" value={datos.establecimiento_nombre}
                   onChange={e => setDatos(prev => ({ ...prev, establecimiento_nombre: e.target.value }))}
                   className="input-field" required />
+              </div>
+
+              <div className="mb-4">
+                <label className="label-field">Propietario</label>
+                <input type="text" value={datos.propietario}
+                  onChange={e => setDatos(prev => ({ ...prev, propietario: e.target.value }))}
+                  className="input-field" placeholder="Nombre del propietario" />
               </div>
 
               <div className="mb-4">
