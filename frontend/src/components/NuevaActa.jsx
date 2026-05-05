@@ -790,13 +790,6 @@ export default function NuevaActa() {
               </div>
 
               <div className="mb-4">
-                <label className="label-field">Propietario</label>
-                <input type="text" value={datos.propietario}
-                  onChange={e => setDatos(prev => ({ ...prev, propietario: e.target.value }))}
-                  className="input-field" placeholder="Nombre del propietario" />
-              </div>
-
-              <div className="mb-4">
                 <label className="label-field">Dirección</label>
                 <input type="text" value={datos.establecimiento_direccion}
                   onChange={e => setDatos(prev => ({ ...prev, establecimiento_direccion: e.target.value }))}
@@ -824,13 +817,22 @@ export default function NuevaActa() {
             </div>
           )}
 
-          {/* PASO 2 — Director Técnico */}
+          {/* PASO 2 — Propiedad y Director Técnico */}
           {paso === 2 && (
             <div>
-              <h2 className="text-xl font-bold mb-4">Datos del Director Técnico</h2>
+              <h2 className="text-xl font-bold mb-4">Propiedad y Director Técnico</h2>
 
               <div className="mb-4">
-                <label className="label-field">Nombre *</label>
+                <label className="label-field">Propietario *</label>
+                <input type="text" value={datos.propietario}
+                  onChange={e => setDatos(prev => ({ ...prev, propietario: e.target.value }))}
+                  className="input-field" placeholder="Nombre del propietario" required />
+              </div>
+
+              <hr className="my-4 border-gray-200" />
+
+              <div className="mb-4">
+                <label className="label-field">Nombre del Director Técnico *</label>
                 <input type="text" value={datos.director_tecnico_nombre}
                   onChange={e => setDatos(prev => ({ ...prev, director_tecnico_nombre: e.target.value }))}
                   className="input-field" required />
@@ -860,8 +862,8 @@ export default function NuevaActa() {
               <div className="flex gap-4">
                 <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={async () => {
-                  if (datos.director_tecnico_nombre) { await guardarBorrador(); irSiguiente(); }
-                }} disabled={!datos.director_tecnico_nombre} className="btn-primary disabled:opacity-50">
+                  if (datos.propietario && datos.director_tecnico_nombre) { await guardarBorrador(); irSiguiente(); }
+                }} disabled={!datos.propietario || !datos.director_tecnico_nombre} className="btn-primary disabled:opacity-50">
                   Siguiente →
                 </button>
               </div>
