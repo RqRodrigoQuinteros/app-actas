@@ -11,7 +11,12 @@ const ACTAS_FALLBACK_COLUMNS = [
   'fotos_urls',
   'datos_formulario',
   'firma_inspector_base64',
-  'firma_responsable_base64'
+  'firma_responsable_base64',
+  'director_tecnico_nombre',
+  'director_tecnico_apellido',
+  'director_tecnico_dni',
+  'director_tecnico_matricula',
+  'propietario',
 ];
 
 function removeMissingColumnsFromPayload(error, payload) {
@@ -125,6 +130,8 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+  console.log('=== POST /actas ===');
+  console.log('propietario:', req.body.propietario, '| dt_nombre:', req.body.director_tecnico_nombre);
   try {
     const {
       inspector_id,
@@ -181,14 +188,15 @@ router.post('/', async (req, res) => {
       .select()
       .single();
 
-    if (insertResult.error && removeMissingColumnsFromPayload(insertResult.error, actaData)) {
-      insertResult = await supabase
-        .from('actas')
-        .insert(actaData)
-        .select()
-        .single();
+    if (insertResult.error) {
+      console.error('=== INSERT error:', insertResult.error.message);
+      if (removeMissingColumnsFromPayload(insertResult.error, actaData)) {
+        console.log('=== Reintentando sin columnas faltantes...');
+        insertResult = await supabase.from('actas').insert(actaData).select().single();
+      }
     }
 
+    console.log('=== INSERT result - propietario:', insertResult.data?.propietario, '| dt:', insertResult.data?.director_tecnico_nombre, '| error:', insertResult.error?.message);
     if (insertResult.error) throw insertResult.error;
     res.status(201).json(insertResult.data);
   } catch (err) {

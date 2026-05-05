@@ -166,6 +166,23 @@ export default function VerActa() {
           </div>
         </div>
 
+        {/* Propiedad y Director Técnico */}
+        {(acta.propietario || acta.director_tecnico_nombre) && (
+          <div className="card mb-4">
+            <h3 className="font-bold text-lg mb-3">Propiedad y Director Técnico</h3>
+            {acta.propietario && (
+              <p><strong>Propietario:</strong> {acta.propietario}</p>
+            )}
+            {acta.director_tecnico_nombre && (
+              <>
+                <p className="mt-2"><strong>Director Técnico:</strong> {acta.director_tecnico_nombre} {acta.director_tecnico_apellido}</p>
+                {acta.director_tecnico_dni && <p><strong>DNI:</strong> {acta.director_tecnico_dni}</p>}
+                {acta.director_tecnico_matricula && <p><strong>Matrícula:</strong> {acta.director_tecnico_matricula}</p>}
+              </>
+            )}
+          </div>
+        )}
+
         {/* Responsable */}
         <div className="card mb-4">
           <h3 className="font-bold text-lg mb-3">Responsable</h3>
