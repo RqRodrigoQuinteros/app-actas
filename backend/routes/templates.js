@@ -406,12 +406,37 @@ router.delete('/secciones/:id', soloSupervisor, async (req, res) => {
       }
     }
 
+    // Guardar datos de la sección antes de borrar para poder reordenar después
+    const { data: seccionABorrar } = await supabase
+      .from('template_secciones')
+      .select('tipologia_id, parent_seccion_id')
+      .eq('id', id)
+      .single();
+
     const { error } = await supabase
       .from('template_secciones')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
+
+    // Reordenar las secciones hermanas restantes para cerrar el hueco
+    if (seccionABorrar) {
+      let queryRest = supabase
+        .from('template_secciones')
+        .select('id, orden')
+        .eq('tipologia_id', seccionABorrar.tipologia_id)
+        .order('orden');
+      queryRest = seccionABorrar.parent_seccion_id
+        ? queryRest.eq('parent_seccion_id', seccionABorrar.parent_seccion_id)
+        : queryRest.is('parent_seccion_id', null);
+
+      const { data: restantes, error: errRest } = await queryRest;
+      if (!errRest && restantes && restantes.length > 0) {
+        await reordenarItems('template_secciones', restantes);
+      }
+    }
+
     res.json({ message: 'Sección eliminada' });
   } catch (err) {
     console.error('Error eliminando sección:', err);
@@ -517,10 +542,19 @@ router.put('/campos/:id', soloSupervisor, async (req, res) => {
 });
 
 // DELETE /api/templates/campos/:id
-// Borra un campo
+// Borra un campo y reordena los restantes para evitar huecos
 router.delete('/campos/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Obtener seccion_id antes de borrar
+    const { data: campo, error: errGet } = await supabase
+      .from('template_campos')
+      .select('id, seccion_id')
+      .eq('id', id)
+      .single();
+
+    if (errGet || !campo) return res.status(404).json({ error: 'Campo no encontrado' });
 
     const { error } = await supabase
       .from('template_campos')
@@ -528,6 +562,18 @@ router.delete('/campos/:id', soloSupervisor, async (req, res) => {
       .eq('id', id);
 
     if (error) throw error;
+
+    // Reordenar los campos restantes de la misma sección para cerrar el hueco
+    const { data: restantes, error: errRest } = await supabase
+      .from('template_campos')
+      .select('id, orden')
+      .eq('seccion_id', campo.seccion_id)
+      .order('orden');
+
+    if (!errRest && restantes && restantes.length > 0) {
+      await reordenarItems('template_campos', restantes);
+    }
+
     res.json({ message: 'Campo eliminado' });
   } catch (err) {
     console.error('Error eliminando campo:', err);
