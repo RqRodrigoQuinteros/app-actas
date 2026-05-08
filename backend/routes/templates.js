@@ -453,7 +453,8 @@ router.delete('/secciones/:id', soloSupervisor, async (req, res) => {
 router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => {
   try {
     const { seccionId } = req.params;
-    const { etiqueta, tipo, opciones, requerido, placeholder, token, orden } = req.body;
+    const { etiqueta, tipo, opciones, requerido, placeholder, token, orden, formula } = req.body;
+
 
     if (!etiqueta || !token) {
       return res.status(400).json({ error: 'etiqueta y token son requeridos' });
@@ -491,7 +492,8 @@ router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => 
         requerido: requerido || false,
         placeholder: placeholder || null,
         token,
-        orden: ordenFinal
+        orden: ordenFinal,
+        formula: tipo === 'tabla_equipamiento' ? (formula || null) : null,
       })
       .select()
       .single();
@@ -515,7 +517,7 @@ router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => 
 router.put('/campos/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
-    const { etiqueta, tipo, opciones, requerido, placeholder, token, orden } = req.body;
+    const { etiqueta, tipo, opciones, requerido, placeholder, token, orden, formula } = req.body;
 
     const updates = {};
     if (etiqueta !== undefined) updates.etiqueta = etiqueta;
@@ -525,6 +527,8 @@ router.put('/campos/:id', soloSupervisor, async (req, res) => {
     if (placeholder !== undefined) updates.placeholder = placeholder;
     if (token !== undefined) updates.token = token;
     if (orden !== undefined) updates.orden = orden;
+    if (formula !== undefined) updates.formula = formula || null;
+    if (formula !== undefined) updates.formula = formula || null;
 
     const { data, error } = await supabase
       .from('template_campos')

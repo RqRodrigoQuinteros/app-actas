@@ -424,6 +424,7 @@ function TabTipologias() {
       requerido: campo?.requerido || false,
       placeholder: campo?.placeholder || '',
       token: campo?.token || '',
+      formula: campo?.formula || '',
     });
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
@@ -461,6 +462,7 @@ function TabTipologias() {
           opciones: form.tipo === 'select'
             ? form.opciones.split('\n').map(o => o.trim()).filter(Boolean)
             : null,
+          formula: form.tipo === 'tabla_equipamiento' ? (form.formula.trim() || null) : null,
         };
         if (campo) {
           await templatesAPI.actualizarCampo(campo.id, payload);
@@ -525,11 +527,26 @@ function TabTipologias() {
           )}
 
           {form.tipo === 'tabla_equipamiento' && (
-            <div style={{
-              padding: '10px 14px', background: '#eef2ff', border: '1px solid #c7d2fe',
-              borderRadius: '8px', fontSize: '12px', color: '#3730a3',
-            }}>
-              Cada campo mostrará tres subcampos: cantidad declarada, cantidad requerida y observaciones.
+            <div>
+              <div style={{
+                padding: '10px 14px', background: '#eef2ff', border: '1px solid #c7d2fe',
+                borderRadius: '8px', fontSize: '12px', color: '#3730a3', marginBottom: '10px',
+              }}>
+                Cada campo mostrará tres subcampos: cantidad declarada, cantidad requerida y observaciones.
+              </div>
+              <label style={S.label}>
+                Fórmula para "Cant. requerida" <span style={{ color: '#6b7280', fontWeight: 400 }}>(opcional)</span>
+              </label>
+              <input
+                style={{ ...S.input, fontFamily: 'monospace', fontSize: '13px' }}
+                value={form.formula}
+                onChange={e => setForm(f => ({ ...f, formula: e.target.value }))}
+                placeholder="ej: quirofanos * 2 + 1  (usar tokens de otros campos)"
+              />
+              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                Usá los tokens de campos numéricos de la misma sección como variables.
+                Si está vacía, el inspector ingresa la cantidad manualmente.
+              </div>
             </div>
           )}
 

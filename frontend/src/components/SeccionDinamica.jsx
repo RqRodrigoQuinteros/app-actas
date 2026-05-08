@@ -3,10 +3,24 @@
 
 import { useState } from 'react';
 import { esCampoTotalCamas } from '../utils/actaHelpers';
+import { evaluarFormula } from '../utils/evaluarFormula';
 
 // ── Renderizador de un campo individual ────────────────────────────────────────
-function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [] }) {
+function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos = [], index = 0 }) {
   const valor = respuestas[campo.id] ?? '';
+
+  const getCantidadDeclaradaAnterior = () => {
+    for (let i = index - 1; i >= 0; i -= 1) {
+      const anterior = campos[i];
+      if (anterior && anterior.tipo === 'numero') {
+        const valorAnterior = respuestas[anterior.id];
+        if (valorAnterior !== undefined && valorAnterior !== null && String(valorAnterior).trim() !== '') {
+          return String(valorAnterior).trim();
+        }
+      }
+    }
+    return null;
+  };
 
   if (campo.tipo === 'tabla_unidades') {
     const nUnidades = flotaInstancias.length;
@@ -75,6 +89,32 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [] }) {
       onChange(campo.id, JSON.stringify({ ...datos, [campoNombre]: nuevoValor }));
     };
 
+    // Calcular cantidad requerida: fórmula > campo numero anterior > manual
+    let valorRequerida = datos.requerida ?? '';
+    let requeridaAutoLabel = null;
+
+    if (campo.formula) {
+      const vars = {};
+      for (const c of campos) {
+        if (c.token && respuestas[c.id] !== undefined) {
+          vars[c.token] = respuestas[c.id];
+        }
+      }
+      const resultado = evaluarFormula(campo.formula, vars);
+      if (resultado !== null) {
+        valorRequerida = String(resultado);
+        requeridaAutoLabel = `Calculado con fórmula: ${campo.formula} = ${resultado}`;
+      }
+    } else {
+      const cantidadDeclaradaAnterior = getCantidadDeclaradaAnterior();
+      if (cantidadDeclaradaAnterior !== null) {
+        valorRequerida = cantidadDeclaradaAnterior;
+        requeridaAutoLabel = `Calculado automáticamente desde el número anterior: ${cantidadDeclaradaAnterior}`;
+      }
+    }
+
+    const requeridaEsAuto = requeridaAutoLabel !== null;
+
     return (
       <div className="p-3 border rounded-lg bg-white">
         <div className="font-medium text-sm text-gray-700 mb-2">{campo.etiqueta}</div>
@@ -96,13 +136,19 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [] }) {
               <input
                 type="number"
                 inputMode="numeric"
-                value={datos.requerida ?? ''}
-                onChange={e => actualizar('requerida', e.target.value)}
+                value={valorRequerida}
+                onChange={requeridaEsAuto ? undefined : e => actualizar('requerida', e.target.value)}
                 placeholder="0"
-                className="p-3 border border-gray-300 rounded-lg"
+                readOnly={requeridaEsAuto}
+                className="p-3 border border-gray-300 rounded-lg bg-white"
               />
             </label>
           </div>
+          {requeridaAutoLabel && (
+            <div style={{ fontSize: '12px', color: '#4b5563' }}>
+              {requeridaAutoLabel}
+            </div>
+          )}
           <label className="flex flex-col text-sm text-gray-600">
             Observaciones
             <input
@@ -260,8 +306,16 @@ function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) 
               </div>
             </div>
           )}
-          {campos.map(campo => (
-            <RenderCampo key={campo.id} campo={campo} respuestas={respuestas} onChange={onChange} flotaInstancias={flotaInstancias} />
+          {campos.map((campo, idx) => (
+            <RenderCampo
+              key={campo.id}
+              campo={campo}
+              respuestas={respuestas}
+              onChange={onChange}
+              flotaInstancias={flotaInstancias}
+              campos={campos}
+              index={idx}
+            />
           ))}
           {subseccion.texto_posterior && (
             <p className="text-sm text-gray-500 italic mt-2">{subseccion.texto_posterior}</p>
@@ -358,13 +412,27 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
                 )}
 
                 {/* Campos directos de la sección padre */}
-                {campos.map(campo => (
-                  <RenderCampo key={campo.id} campo={campo} respuestas={respuestas} onChange={onChange} flotaInstancias={flotaInstancias} />
+                {campos.map((campo, campoIdx) => (
+                  <RenderCampo
+                    key={campo.id}
+                    campo={campo}
+                    respuestas={respuestas}
+                    onChange={onChange}
+                    flotaInstancias={flotaInstancias}
+                    campos={campos}
+                    index={campoIdx}
+                  />
                 ))}
 
                 {/* Subsecciones anidadas */}
                 {subsecciones.map(sub => (
-                  <Subseccion key={sub.id} subseccion={sub} respuestas={respuestas} onChange={onChange} flotaInstancias={flotaInstancias} />
+                  <Subseccion
+                    key={sub.id}
+                    subseccion={sub}
+                    respuestas={respuestas}
+                    onChange={onChange}
+                    flotaInstancias={flotaInstancias}
+                  />
                 ))}
 
                 {campos.length === 0 && !tieneSubsecciones && (

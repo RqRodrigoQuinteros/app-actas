@@ -340,6 +340,19 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
           return parsearArrayBool(df[c.token]) !== null;
         };
 
+        const calcularCantidadRequerida = (campos, indice) => {
+          for (let j = indice - 1; j >= 0; j -= 1) {
+            const previo = campos[j];
+            if (previo && previo.tipo === 'numero') {
+              const valorPrevio = df[previo.token];
+              if (valorPrevio !== undefined && valorPrevio !== null && String(valorPrevio).trim() !== '') {
+                return String(valorPrevio).trim();
+              }
+            }
+          }
+          return null;
+        };
+
         // Detectar flota desde secciones_render ("Flota Vehicular #N")
         const flotasSections = secciones.filter(s => /flota vehicular/i.test(s.titulo));
         const flotaParaTabla = flotasSections.map(sec => ({
@@ -402,7 +415,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
           const filasEquipamiento = (sec.campos || [])
             .filter(c => c.tipo === 'tabla_equipamiento')
-            .map(c => {
+            .map((c, cidx) => {
               const raw = df[c.token];
               let valorEquipamiento = { declarada: '', requerida: '', observaciones: '' };
               if (typeof raw === 'string' && raw.trim()) {
@@ -415,7 +428,11 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
               } else if (typeof raw === 'object' && raw !== null) {
                 valorEquipamiento = { ...valorEquipamiento, ...raw };
               }
-              const { declarada, requerida, observaciones } = valorEquipamiento;
+              const cantidadRequeridaAutomatica = calcularCantidadRequerida(sec.campos || [], cidx);
+              const { declarada, observaciones } = valorEquipamiento;
+              const requerida = cantidadRequeridaAutomatica !== null
+                ? cantidadRequeridaAutomatica
+                : (valorEquipamiento.requerida || '');
               if (declarada === '' && requerida === '' && !observaciones) return '';
               return `<tr>
                 <td style="width:45%;word-wrap:break-word">${c.etiqueta}</td>
