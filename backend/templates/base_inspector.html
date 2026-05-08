@@ -144,6 +144,13 @@
       break-before: page;
     }
 
+    /* Equipamiento tipología: formato prosa por sector */
+    .seccion-equip { margin-bottom: 18px; }
+    .seccion-equip p { margin-bottom: 6px; font-size: 11pt; }
+    .seccion-equip ul { list-style: none; padding-left: 0; margin: 0; }
+    .seccion-equip ul li::before { content: "* "; }
+    .seccion-equip ul li { margin-bottom: 4px; font-size: 11pt; text-align: justify; }
+
     .final-page {
       page-break-before: always;
       break-before: page;
@@ -152,18 +159,33 @@
 </head>
 <body>
 
-  <h1 class="titulo-acta">ACTA DE INSPECCIÓN {{#if expediente}}- Expte. N° {{expediente}}{{/if}}</h1>
+  <h1 class="titulo-acta">ACTA DE INSPECCIÓN</h1>
+
+  <div style="text-align: right; margin-bottom: 14px; font-size: 11pt;">
+    {{#if expediente_papel}}<p><strong>Exp. Papel N°:</strong> {{expediente_papel}}</p>{{/if}}
+    {{#if expediente}}<p><strong>Exp. Digital N°:</strong> {{expediente}}</p>{{/if}}
+  </div>
+
+  {{#if esEquipamiento}}
+  <p class="justificado">
+    En {{establecimiento_localidad}} a los {{dia_texto}} días del mes de {{mes_texto}} del {{anio_texto}},
+    siendo las {{hora}} hs, se procede a inspeccionar el equipamiento médico correspondiente a la
+    institución <strong>{{establecimiento_nombre}}</strong> sito en <strong>{{establecimiento_direccion}}</strong>
+    de propiedad de: <strong>{{propietario}}</strong> por parte del personal de la
+    Dirección General de Regulación Sanitaria, constatando lo que se observa:
+  </p>
+  {{else}}
   <p class="subtitulo">TIPO: {{tipo_inspeccion}} &nbsp;|&nbsp; VIRTUAL: {{virtual}} - PRESENCIAL: {{presencial}}</p>
 
   <p class="justificado">
     En el día {{fecha}} siendo las {{hora}} horas, el/la que suscribe inspector/a
-    <strong>{{inspector_nombre}}</strong> DNI: <strong>{{inspector_dni}}</strong>, 
-    comisionado/a por la <em>Dirección General de Regulación Sanitaria</em>, del 
-    <em>Ministerio de Salud</em> de la Provincia de Córdoba, a los fines de efectuar 
-    inspección al Establecimiento <strong>{{establecimiento_nombre}}</strong> sito en 
-    {{establecimiento_direccion}}, Localidad: <strong>{{establecimiento_localidad}}</strong>, 
-    se constituye en el lugar a fin de cumplir las exigencias de la Ley 6.222, 
-    Decreto 033/08 y Resolución Ministerial N° 1226/2025, según el formulario de 
+    <strong>{{inspector_nombre}}</strong> DNI: <strong>{{inspector_dni}}</strong>,
+    comisionado/a por la <em>Dirección General de Regulación Sanitaria</em>, del
+    <em>Ministerio de Salud</em> de la Provincia de Córdoba, a los fines de efectuar
+    inspección al Establecimiento <strong>{{establecimiento_nombre}}</strong> sito en
+    {{establecimiento_direccion}}, Localidad: <strong>{{establecimiento_localidad}}</strong>,
+    se constituye en el lugar a fin de cumplir las exigencias de la Ley 6.222,
+    Decreto 033/08 y Resolución Ministerial N° 1226/2025, según el formulario de
     Inspección provisto por la repartición.
     {{#if responsable_nombre}}
     Se solicita la presencia del responsable del Establecimiento y se hace presente el/la Sr./Sra.
@@ -184,6 +206,7 @@
       {{/if}}
     </div>
   </div>
+  {{/if}}
 
   <div class="secciones-dinamicas">
     {{{seccionesHTML}}}

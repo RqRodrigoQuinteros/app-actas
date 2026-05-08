@@ -136,6 +136,7 @@ router.post('/', async (req, res) => {
     const {
       inspector_id,
       expediente,
+      expediente_papel,
       fecha,
       hora,
       virtual,
@@ -160,6 +161,7 @@ router.post('/', async (req, res) => {
     const actaData = {
       inspector_id,
       expediente,
+      expediente_papel: expediente_papel || null,
       fecha,
       hora,
       virtual: virtual || false,

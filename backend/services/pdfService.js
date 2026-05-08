@@ -309,13 +309,53 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       console.log(`[PDF] Template base cargado`);
 
       console.log(`[PDF] Generando secciones dinámicas desde datos_formulario`);
-      
+
+      const esEquipamiento = /^equipamiento$/i.test((acta.establecimiento_tipologia || acta.tipologia || '').trim());
+
       // Generar seccionesHTML dinámicamente desde datos_formulario (tokens desde actas_respuestas)
       const df = acta.datos_formulario || {};
 
       const seccionesHTML = (() => {
         const secciones = acta.secciones_render || [];
         if (secciones.length === 0) return '';
+
+        // ── Renderizado especial para tipología Equipamiento ─────────────────
+        if (esEquipamiento) {
+          return secciones.map(sec => {
+            // Incluir campos directos y de subsecciones
+            const todasLasSecciones = [sec, ...(sec.subsecciones || [])];
+            const items = todasLasSecciones.flatMap(s =>
+              (s.campos || []).map(c => {
+                if (c.tipo === 'tabla_equipamiento') {
+                  const raw = df[c.token];
+                  let vals = { declarada: '', requerida: '', observaciones: '' };
+                  if (typeof raw === 'string' && raw.trim()) {
+                    try { vals = { ...vals, ...JSON.parse(raw) }; } catch {}
+                  } else if (raw && typeof raw === 'object') {
+                    vals = { ...vals, ...raw };
+                  }
+                  if (!vals.declarada && !vals.observaciones) return null;
+                  let text = vals.declarada ? `${vals.declarada} ${c.etiqueta}` : c.etiqueta;
+                  if (vals.observaciones) text += `: ${vals.observaciones}`;
+                  return `<li>${text}.</li>`;
+                }
+                if (c.tipo === 'texto' || c.tipo === 'textarea') {
+                  const val = df[c.token];
+                  if (!val) return null;
+                  return `<li>${val}</li>`;
+                }
+                return null;
+              })
+            ).filter(Boolean);
+
+            if (!items.length) return '';
+            return `
+              <div class="seccion-equip">
+                <p>En el sector <strong>${sec.titulo}</strong> se constató lo siguiente:</p>
+                <ul>${items.join('\n')}</ul>
+              </div>`;
+          }).filter(Boolean).join('\n');
+        }
 
         const valorASiNo = (val) => {
           if (val === true || val === 'true') return { texto: 'SI', esBool: true, esSi: true };
@@ -506,9 +546,26 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
       console.log(`[PDF] Secciones renderizadas dinámicamente`);
 
+      // Descomponer fecha para el formato de Equipamiento
+      const MESES_ES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      let dia_texto = '', mes_texto = '', anio_texto = '';
+      if (acta.fecha) {
+        const partesFecha = String(acta.fecha).split('-');
+        if (partesFecha.length === 3) {
+          anio_texto = partesFecha[0];
+          mes_texto  = MESES_ES[parseInt(partesFecha[1], 10) - 1] || '';
+          dia_texto  = String(parseInt(partesFecha[2], 10));
+        }
+      }
+
       const template = handlebars.compile(baseTemplate);
       const htmlFinal = template({
         expediente: acta.expediente || '',
+        expediente_papel: acta.expediente_papel || '',
+        esEquipamiento,
+        dia_texto,
+        mes_texto,
+        anio_texto,
         fecha: formatFechaTexto(acta.fecha),
         hora: acta.hora,
         tipo_inspeccion: acta.tipo_inspeccion || 'RUTINA',

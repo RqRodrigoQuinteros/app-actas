@@ -148,7 +148,10 @@ export default function VerActa() {
             </span>
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-gray-500">Expediente:</span> <span className="font-semibold">{acta.expediente || '-'}</span></div>
+            <div><span className="text-gray-500">Exp. Digital:</span> <span className="font-semibold">{acta.expediente || '-'}</span></div>
+            {acta.expediente_papel && (
+              <div><span className="text-gray-500">Exp. Papel:</span> <span className="font-semibold">{acta.expediente_papel}</span></div>
+            )}
             <div><span className="text-gray-500">Fecha:</span> <span className="font-semibold">{acta.fecha}</span></div>
             <div><span className="text-gray-500">Hora:</span> <span className="font-semibold">{acta.hora}</span></div>
             <div><span className="text-gray-500">Modalidad:</span> <span className="font-semibold">

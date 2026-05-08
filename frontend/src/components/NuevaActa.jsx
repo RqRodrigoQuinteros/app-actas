@@ -418,6 +418,7 @@ export default function NuevaActa() {
 
   const [datos, setDatos] = useState({
     expediente: '',
+    expediente_papel: '',
     establecimiento_nombre: '',
     establecimiento_direccion: '',
     establecimiento_localidad: '',
@@ -553,6 +554,7 @@ export default function NuevaActa() {
     establecimiento_localidad: datos.establecimiento_localidad,
     establecimiento_tipologia: datos.tipologia,
     expediente: datos.expediente,
+    expediente_papel: datos.expediente_papel || null,
     fecha: datos.fecha,
     hora: datos.hora,
     virtual: datos.virtual,
@@ -780,11 +782,19 @@ export default function NuevaActa() {
                 {loadingTemplate && <p className="text-xs text-blue-500 mt-1">Cargando template...</p>}
               </div>
 
-              <div className="mb-4">
-                <label className="label-field">Expediente</label>
-                <input type="text" value={datos.expediente}
-                  onChange={e => setDatos(prev => ({ ...prev, expediente: e.target.value }))}
-                  className="input-field" placeholder="0425-xxxxxx/20xx" />
+              <div className="mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label className="label-field">Exp. Digital</label>
+                  <input type="text" value={datos.expediente}
+                    onChange={e => setDatos(prev => ({ ...prev, expediente: e.target.value }))}
+                    className="input-field" placeholder="0425-xxxxxx/20xx" />
+                </div>
+                <div>
+                  <label className="label-field">Exp. Papel</label>
+                  <input type="text" value={datos.expediente_papel}
+                    onChange={e => setDatos(prev => ({ ...prev, expediente_papel: e.target.value }))}
+                    className="input-field" placeholder="0114-xxxxxx/19xx" />
+                </div>
               </div>
 
               <div className="mb-4">
