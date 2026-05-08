@@ -391,19 +391,58 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
         // ── Secciones normales (SI/NO, texto, etc.) ───────────────────────────
         const normalesHTML = seccionesNormales.map(sec => {
-          const filas = (sec.campos || [])
+          const camposNormales = (sec.campos || []).filter(c => c.tipo !== 'tabla_equipamiento');
+          const filas = camposNormales
             .filter(c => df[c.token] !== undefined && df[c.token] !== null && df[c.token] !== '')
             .map(c => {
               const { texto, esBool, esSi } = valorASiNo(df[c.token]);
               const clase = esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
               return `<tr><td style="width:70%;word-wrap:break-word">${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
             }).join('');
-          if (!filas) return '';
+
+          const filasEquipamiento = (sec.campos || [])
+            .filter(c => c.tipo === 'tabla_equipamiento')
+            .map(c => {
+              const raw = df[c.token];
+              let valorEquipamiento = { declarada: '', requerida: '', observaciones: '' };
+              if (typeof raw === 'string' && raw.trim()) {
+                try {
+                  const parsed = JSON.parse(raw);
+                  if (parsed && typeof parsed === 'object') {
+                    valorEquipamiento = { ...valorEquipamiento, ...parsed };
+                  }
+                } catch {}
+              } else if (typeof raw === 'object' && raw !== null) {
+                valorEquipamiento = { ...valorEquipamiento, ...raw };
+              }
+              const { declarada, requerida, observaciones } = valorEquipamiento;
+              if (declarada === '' && requerida === '' && !observaciones) return '';
+              return `<tr>
+                <td style="width:45%;word-wrap:break-word">${c.etiqueta}</td>
+                <td style="width:15%;text-align:center">${declarada || ''}</td>
+                <td style="width:15%;text-align:center">${requerida || ''}</td>
+                <td style="width:25%;word-wrap:break-word">${observaciones || ''}</td>
+              </tr>`;
+            }).filter(Boolean).join('');
+
+          if (!filas && !filasEquipamiento) return '';
           return `
             <div class="seccion">
               <h3>${sec.titulo}</h3>
               ${sec.texto_previo ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-bottom:8px">${sec.texto_previo}</p>` : ''}
-              <table class="tabla-campos"><tbody>${filas}</tbody></table>
+              ${filas ? `<table class="tabla-campos"><tbody>${filas}</tbody></table>` : ''}
+              ${filasEquipamiento ? `
+                <table class="tabla-campos" style="margin-top:10px">
+                  <thead>
+                    <tr style="background:#f3f4f6">
+                      <th style="text-align:left;min-width:180px">Ítem</th>
+                      <th style="text-align:center;min-width:90px">Cantidad declarada</th>
+                      <th style="text-align:center;min-width:90px">Cantidad requerida</th>
+                      <th style="text-align:left;min-width:180px">Observaciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filasEquipamiento}</tbody>
+                </table>` : ''}
               ${sec.texto_posterior ? `<p style="font-size:10pt;color:#555;font-style:italic;margin-top:8px">${sec.texto_posterior}</p>` : ''}
             </div>`;
         }).filter(Boolean).join('\n');
@@ -474,6 +513,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         responsable_caracter: acta.responsable_caracter || '',
         seccionesHTML,
         observaciones: acta.observaciones || '',
+        show_emplazamiento: !/^equipamiento$/i.test((acta.establecimiento_tipologia || acta.tipologia || '').trim()),
         emplazamiento_valor: acta.emplazamiento_valor || acta.emplazamiento_dias || 0,
         emplazamiento_tipo: (() => {
           const tipo = acta.emplazamiento_tipo || 'HORAS';

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
-import { calcularTotalesDeCamas, ponerTodoSi } from '../utils/actaHelpers';
+import { calcularTotalesDeCamas } from '../utils/actaHelpers';
 import FirmaCanvas from './FirmaCanvas';
 import SubidaFotos from './SubidaFotos';
 import SeccionDinamica from './SeccionDinamica';

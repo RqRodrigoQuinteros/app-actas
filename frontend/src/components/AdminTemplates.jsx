@@ -104,7 +104,7 @@ const S = {
       si_no: ['#dcfce7', '#16a34a'], texto: ['#dbeafe', '#2563eb'],
       textarea: ['#e0e7ff', '#4f46e5'], numero: ['#fef3c7', '#d97706'],
       fecha: ['#fce7f3', '#be185d'], select: ['#f3e8ff', '#7c3aed'],
-      check: ['#ecfdf5', '#059669'],
+      check: ['#ecfdf5', '#059669'], tabla_unidades: ['#f3f4f6', '#6b7280'], tabla_equipamiento: ['#ede9fe', '#6d28d9'],
     };
     const [bg, color] = colors[tipo] || ['#f3f4f6', '#6b7280'];
     return {
@@ -130,6 +130,7 @@ const TIPOS_CAMPO = [
   { value: 'select', label: 'Desplegable' },
   { value: 'check', label: 'Checkbox' },
   { value: 'tabla_unidades', label: 'Tabla por Unidad (checkbox ✓)' },
+  { value: 'tabla_equipamiento', label: 'Tabla Equipamiento (cant. declarada/requerida + observaciones)' },
 ];
 
 // ─── Subcomponente: Modal genérico ───────────────────────────────────────────
@@ -523,6 +524,15 @@ function TabTipologias() {
             </div>
           )}
 
+          {form.tipo === 'tabla_equipamiento' && (
+            <div style={{
+              padding: '10px 14px', background: '#eef2ff', border: '1px solid #c7d2fe',
+              borderRadius: '8px', fontSize: '12px', color: '#3730a3',
+            }}>
+              Cada campo mostrará tres subcampos: cantidad declarada, cantidad requerida y observaciones.
+            </div>
+          )}
+
           <div>
             <label style={S.label}>Placeholder (hint para el inspector)</label>
             <input style={S.input} value={form.placeholder}
@@ -877,6 +887,18 @@ function TabTipologias() {
                           <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }} onClick={() => setEditandoSeccion(sub)}>
                             Editar
                           </button>
+                          {sidx > 0 && (
+                            <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }}
+                              onClick={() => moverSeccionArriba(sub.id)} title="Subir subsección">
+                              ↑
+                            </button>
+                          )}
+                          {sidx < (sec.subsecciones || []).length - 1 && (
+                            <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }}
+                              onClick={() => moverSeccionAbajo(sub.id)} title="Bajar subsección">
+                              ↓
+                            </button>
+                          )}
                           <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px', color: '#dc2626', borderColor: '#fecaca' }}
                             onClick={() => eliminarSeccion(sub.id)}>
                             Eliminar
@@ -889,9 +911,21 @@ function TabTipologias() {
                           <span style={{ flex: 1 }}>{campo.etiqueta}</span>
                           <span style={S.tipoBadge(campo.tipo)}>{TIPOS_CAMPO.find(t => t.value === campo.tipo)?.label || campo.tipo}</span>
                           {campo.requerido && <span style={{ fontSize: '10px', color: '#dc2626', fontWeight: 700 }}>REQ</span>}
-                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }} onClick={() => setEditandoCampo(campo)}>Editar</button>
-                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px', color: '#dc2626', borderColor: '#fecaca' }} onClick={() => eliminarCampo(campo.id)}>×</button>
-                        </div>
+                          {cidx > 0 && (
+                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }}
+                            onClick={() => moverCampoArriba(campo.id)} title="Subir campo">
+                            ↑
+                          </button>
+                        )}
+                        {cidx < (sub.campos || []).length - 1 && (
+                          <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }}
+                            onClick={() => moverCampoAbajo(campo.id)} title="Bajar campo">
+                            ↓
+                          </button>
+                        )}
+                        <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px' }} onClick={() => setEditandoCampo(campo)}>Editar</button>
+                        <button style={{ ...S.btnOutline, padding: '2px 6px', fontSize: '10px', color: '#dc2626', borderColor: '#fecaca' }} onClick={() => eliminarCampo(campo.id)}>×</button>
+                      </div>
                       ))}
                     </div>
                   ))}
@@ -1089,6 +1123,24 @@ function TabInformes() {
     }
   };
 
+  const moverItemArriba = async (itemId) => {
+    try {
+      await informesTemplatesAPI.moverItemArriba(itemId);
+      await cargarDetalle(seleccionada.id);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al mover artículo hacia arriba' });
+    }
+  };
+
+  const moverItemAbajo = async (itemId) => {
+    try {
+      await informesTemplatesAPI.moverItemAbajo(itemId);
+      await cargarDetalle(seleccionada.id);
+    } catch {
+      setMsg({ type: 'error', text: 'Error al mover artículo hacia abajo' });
+    }
+  };
+
   if (loading) return <p style={{ color: '#6b7280', fontSize: '13px' }}>Cargando...</p>;
 
   return (
@@ -1208,6 +1260,18 @@ function TabInformes() {
                     <span style={{ flex: 1, fontSize: '12px', color: '#374151', lineHeight: 1.5 }}>
                       {item.descripcion}
                     </span>
+                    {idx > 0 && (
+                      <button style={{ ...S.btnOutline, padding: '3px 6px', fontSize: '11px', flexShrink: 0 }}
+                        onClick={() => moverItemArriba(item.id)} title="Subir artículo">
+                        ↑
+                      </button>
+                    )}
+                    {idx < (seleccionada.items || []).length - 1 && (
+                      <button style={{ ...S.btnOutline, padding: '3px 6px', fontSize: '11px', flexShrink: 0 }}
+                        onClick={() => moverItemAbajo(item.id)} title="Bajar artículo">
+                        ↓
+                      </button>
+                    )}
                     <button style={{ ...S.btnOutline, padding: '3px 8px', fontSize: '11px', flexShrink: 0 }}
                       onClick={() => setEditandoItem(item)}>
                       Editar

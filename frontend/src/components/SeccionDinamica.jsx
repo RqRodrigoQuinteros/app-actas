@@ -58,6 +58,66 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [] }) {
     );
   }
 
+  if (campo.tipo === 'tabla_equipamiento') {
+    let datos = { declarada: '', requerida: '', observaciones: '' };
+    if (typeof valor === 'string' && valor.trim()) {
+      try {
+        const parsed = JSON.parse(valor);
+        if (parsed && typeof parsed === 'object') {
+          datos = { ...datos, ...parsed };
+        }
+      } catch {}
+    } else if (typeof valor === 'object' && valor !== null) {
+      datos = { ...datos, ...valor };
+    }
+
+    const actualizar = (campoNombre, nuevoValor) => {
+      onChange(campo.id, JSON.stringify({ ...datos, [campoNombre]: nuevoValor }));
+    };
+
+    return (
+      <div className="p-3 border rounded-lg bg-white">
+        <div className="font-medium text-sm text-gray-700 mb-2">{campo.etiqueta}</div>
+        <div style={{ display: 'grid', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <label className="flex flex-col text-sm text-gray-600">
+              Cant. declarada
+              <input
+                type="number"
+                inputMode="numeric"
+                value={datos.declarada ?? ''}
+                onChange={e => actualizar('declarada', e.target.value)}
+                placeholder="0"
+                className="p-3 border border-gray-300 rounded-lg"
+              />
+            </label>
+            <label className="flex flex-col text-sm text-gray-600">
+              Cant. requerida
+              <input
+                type="number"
+                inputMode="numeric"
+                value={datos.requerida ?? ''}
+                onChange={e => actualizar('requerida', e.target.value)}
+                placeholder="0"
+                className="p-3 border border-gray-300 rounded-lg"
+              />
+            </label>
+          </div>
+          <label className="flex flex-col text-sm text-gray-600">
+            Observaciones
+            <input
+              type="text"
+              value={datos.observaciones ?? ''}
+              onChange={e => actualizar('observaciones', e.target.value)}
+              placeholder="Observaciones..."
+              className="p-3 border border-gray-300 rounded-lg"
+            />
+          </label>
+        </div>
+      </div>
+    );
+  }
+
   if (campo.tipo === 'si_no') {
     const esSi = valor === 'SI';
     const esNo = valor === 'NO';
@@ -159,12 +219,6 @@ function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) 
   const [isOpen, setIsOpen] = useState(true);
   const campos = subseccion.campos || [];
   const tieneTablasUnidades = campos.some(c => c.tipo === 'tabla_unidades');
-  const tieneSiNo = campos.some(c => c.tipo === 'si_no');
-
-  const todoSiSubseccion = (e) => {
-    e.stopPropagation();
-    campos.forEach(c => { if (c.tipo === 'si_no') onChange(c.id, 'SI'); });
-  };
 
   return (
     <div className="mt-3 rounded-lg border border-blue-200 overflow-hidden">
@@ -182,16 +236,6 @@ function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) 
           ↳ {subseccion.titulo}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {tieneSiNo && (
-            <button type="button" onClick={todoSiSubseccion}
-              style={{
-                fontSize: '11px', fontWeight: 600, padding: '2px 8px',
-                borderRadius: '5px', border: '1.5px solid #16a34a',
-                background: '#f0fdf4', color: '#16a34a', cursor: 'pointer',
-              }}>
-              Todo SI
-            </button>
-          )}
           <span style={{ fontSize: '14px', color: '#3b82f6' }}>{isOpen ? '▲' : '▼'}</span>
         </div>
       </div>
@@ -253,16 +297,6 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
 
         const tieneTablasUnidades = campos.some(c => c.tipo === 'tabla_unidades');
 
-        // Todos los campos si_no de la sección (directos + subsecciones)
-        const todosCamposSiNo = [
-          ...campos.filter(c => c.tipo === 'si_no'),
-          ...subsecciones.flatMap(sub => (sub.campos || []).filter(c => c.tipo === 'si_no')),
-        ];
-        const todoSiSeccion = (e) => {
-          e.stopPropagation();
-          todosCamposSiNo.forEach(c => onChange(c.id, 'SI'));
-        };
-
         return (
           <div key={seccion.id} className="mb-4 rounded-lg border border-gray-200 overflow-hidden">
             {/* Header sección principal */}
@@ -293,17 +327,6 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {todosCamposSiNo.length > 0 && (
-                  <button type="button" onClick={todoSiSeccion}
-                    style={{
-                      fontSize: '12px', fontWeight: 600, padding: '4px 12px',
-                      borderRadius: '6px', border: '1.5px solid #16a34a',
-                      background: '#f0fdf4', color: '#16a34a', cursor: 'pointer',
-                      minHeight: '32px',
-                    }}>
-                    Todo SI
-                  </button>
-                )}
                 <span style={{ fontSize: '18px', color: '#6b7280', lineHeight: 1 }}>
                   {isOpen ? '▲' : '▼'}
                 </span>

@@ -224,6 +224,71 @@ router.put('/items/:id', soloAdmin, async (req, res) => {
   }
 });
 
+async function reordenarInformeItems(items) {
+  const BASE_TEMP = 100000;
+  for (let i = 0; i < items.length; i++) {
+    const { error } = await supabase.from('informe_items').update({ orden: BASE_TEMP + i }).eq('id', items[i].id);
+    if (error) { console.error('[reordenarInformeItems] temp update error:', error); return error; }
+  }
+  for (let i = 0; i < items.length; i++) {
+    const { error } = await supabase.from('informe_items').update({ orden: i }).eq('id', items[i].id);
+    if (error) { console.error('[reordenarInformeItems] final update error:', error); return error; }
+  }
+  return null;
+}
+
+// PUT /api/informes-templates/items/:id/mover-arriba  (solo admin/supervisor)
+router.put('/items/:id/mover-arriba', soloAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data: itemActual, error: errActual } = await supabase
+      .from('informe_items').select('id, tipologia_id, orden').eq('id', id).single();
+    if (errActual || !itemActual) return res.status(404).json({ error: 'Artículo no encontrado' });
+
+    const { data: todos, error: errTodos } = await supabase
+      .from('informe_items').select('id, orden').eq('tipologia_id', itemActual.tipologia_id).order('orden');
+    if (errTodos) throw errTodos;
+
+    const idx = (todos || []).findIndex(i => i.id == itemActual.id);
+    if (idx <= 0) return res.json({ message: 'El artículo ya está al inicio' });
+
+    [todos[idx], todos[idx - 1]] = [todos[idx - 1], todos[idx]];
+    const err = await reordenarInformeItems(todos);
+    if (err) return res.status(500).json({ error: 'Error al guardar orden' });
+
+    res.json({ message: 'Artículo movido hacia arriba' });
+  } catch (err) {
+    console.error('Error moviendo artículo arriba:', err);
+    res.status(500).json({ error: 'Error al mover artículo' });
+  }
+});
+
+// PUT /api/informes-templates/items/:id/mover-abajo  (solo admin/supervisor)
+router.put('/items/:id/mover-abajo', soloAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data: itemActual, error: errActual } = await supabase
+      .from('informe_items').select('id, tipologia_id, orden').eq('id', id).single();
+    if (errActual || !itemActual) return res.status(404).json({ error: 'Artículo no encontrado' });
+
+    const { data: todos, error: errTodos } = await supabase
+      .from('informe_items').select('id, orden').eq('tipologia_id', itemActual.tipologia_id).order('orden');
+    if (errTodos) throw errTodos;
+
+    const idx = (todos || []).findIndex(i => i.id == itemActual.id);
+    if (idx < 0 || idx >= (todos || []).length - 1) return res.json({ message: 'El artículo ya está al final' });
+
+    [todos[idx], todos[idx + 1]] = [todos[idx + 1], todos[idx]];
+    const err = await reordenarInformeItems(todos);
+    if (err) return res.status(500).json({ error: 'Error al guardar orden' });
+
+    res.json({ message: 'Artículo movido hacia abajo' });
+  } catch (err) {
+    console.error('Error moviendo artículo abajo:', err);
+    res.status(500).json({ error: 'Error al mover artículo' });
+  }
+});
+
 // DELETE /api/informes-templates/items/:id  (solo admin/supervisor)
 router.delete('/items/:id', soloAdmin, async (req, res) => {
   try {

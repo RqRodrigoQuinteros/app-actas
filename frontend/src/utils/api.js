@@ -86,6 +86,8 @@ export const informesTemplatesAPI = {
   crearItem: (tipologiaId, data) => api.post(`/informes-templates/tipologias/${tipologiaId}/items`, data),
   actualizarItem: (id, data) => api.put(`/informes-templates/items/${id}`, data),
   eliminarItem: (id) => api.delete(`/informes-templates/items/${id}`),
+  moverItemArriba: (id) => api.put(`/informes-templates/items/${id}/mover-arriba`),
+  moverItemAbajo: (id) => api.put(`/informes-templates/items/${id}/mover-abajo`),
 };
 
 export const templatesAPI = {
