@@ -547,7 +547,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       console.log(`[PDF] Secciones renderizadas dinámicamente`);
 
       // Descomponer fecha para el formato de Equipamiento
-      const MESES_ES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
       let dia_texto = '', mes_texto = '', anio_texto = '';
       if (acta.fecha) {
         const partesFecha = String(acta.fecha).split('-');
