@@ -24,7 +24,7 @@ const upload = multer({
 
 // Wrapper para capturar errores de multer (ej: LIMIT_FILE_SIZE) antes del handler
 const uploadMiddleware = (req, res, next) => {
-  upload.array('fotos', 20)(req, res, (err) => {
+  upload.array('fotos', 100)(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({
