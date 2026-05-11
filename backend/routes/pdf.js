@@ -170,7 +170,7 @@ async function enriquecerConRespuestas(acta) {
           if (!campo) continue;
 
           const syntheticToken = `__rep_${secId}_${i}_${campoId}`;
-          datosFormulario[syntheticToken] = campo.tipo === 'si_no'
+          datosFormulario[syntheticToken] = (campo.tipo === 'si_no' || campo.tipo === 'check')
             ? (valor === 'SI' || valor === 'true' || valor === true)
             : valor;
 

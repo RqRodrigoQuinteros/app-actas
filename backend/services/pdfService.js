@@ -369,7 +369,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
           if (!val.startsWith('[')) return null;
           try {
             const arr = JSON.parse(val);
-            if (Array.isArray(arr) && arr.every(v => typeof v === 'boolean')) return arr;
+            if (Array.isArray(arr) && arr.every(v => typeof v === 'boolean' || v === null)) return arr;
           } catch {}
           return null;
         };
@@ -504,7 +504,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
             </div>`;
         }).filter(Boolean).join('\n');
 
-        // ── Una tabla por unidad, solo ítems marcados SI ─────────────────────
+        // ── Una tabla por unidad con SI/NO por ítem ──────────────────────────
         let porUnidadHTML = '';
         if (nUnidades > 0 && seccionesTabla.length > 0) {
           porUnidadHTML = Array.from({ length: nUnidades }, (_, ui) => {
@@ -513,21 +513,30 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
             const filasUnidad = seccionesTabla.map(sec => {
               const camposTabla = (sec.campos || []).filter(esTablaPorUnidad);
-              // Solo los ítems marcados como SI para esta unidad
-              const filasSI = camposTabla
+              // Mostrar ítems que tienen SI o NO (no los sin respuesta = null)
+              const filas = camposTabla
                 .filter(c => {
                   const checks = parsearArrayBool(df[c.token]) || [];
-                  return checks[ui] === true;
+                  return checks[ui] === true || checks[ui] === false;
                 })
-                .map(c => `<tr><td>${c.etiqueta}</td></tr>`)
+                .map(c => {
+                  const checks = parsearArrayBool(df[c.token]) || [];
+                  const esSi = checks[ui] === true;
+                  const clase = esSi ? 'valor-si' : 'valor-no';
+                  const texto = esSi ? 'SI' : 'NO';
+                  return `<tr>
+                    <td style="width:70%;word-wrap:break-word">${c.etiqueta}</td>
+                    <td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td>
+                  </tr>`;
+                })
                 .join('');
 
-              if (!filasSI) return '';
+              if (!filas) return '';
               return `
                 <tr style="background:#d1d5db">
-                  <td style="padding:4px 8px;font-weight:700;font-size:9pt;text-transform:uppercase">${sec.titulo}</td>
+                  <td colspan="2" style="padding:4px 8px;font-weight:700;font-size:9pt;text-transform:uppercase">${sec.titulo}</td>
                 </tr>
-                ${filasSI}`;
+                ${filas}`;
             }).join('');
 
             if (!filasUnidad) return '';

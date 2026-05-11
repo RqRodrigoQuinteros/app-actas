@@ -37,36 +37,49 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     let checks = [];
     try { checks = JSON.parse(valor); } catch { checks = []; }
     if (!Array.isArray(checks)) checks = [];
-    while (checks.length < nUnidades) checks.push(false);
+    while (checks.length < nUnidades) checks.push(null);
     checks = checks.slice(0, nUnidades);
 
-    const toggle = (idx) => {
+    const clickSI = (idx) => {
       const nueva = [...checks];
-      nueva[idx] = !nueva[idx];
+      nueva[idx] = nueva[idx] === true ? null : true;
+      onChange(campo.id, JSON.stringify(nueva));
+    };
+    const clickNO = (idx) => {
+      const nueva = [...checks];
+      nueva[idx] = nueva[idx] === false ? null : false;
       onChange(campo.id, JSON.stringify(nueva));
     };
 
     return (
-      <div style={{ display: 'flex', alignItems: 'center',
-        borderBottom: '1px solid #e5e7eb', padding: '4px 0' }}>
-        <span style={{ flex: 1, fontSize: '13px', color: '#374151', paddingRight: '8px' }}>
+      <div style={{ borderBottom: '1px solid #e5e7eb', padding: '6px 0' }}>
+        <span style={{ fontSize: '13px', color: '#374151', display: 'block', marginBottom: '6px' }}>
           {campo.etiqueta}
         </span>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          {checks.map((checked, idx) => (
-            <button key={idx} type="button" onClick={() => toggle(idx)}
-              title={`Unidad ${idx + 1}`}
-              style={{
-                width: '36px', height: '36px', borderRadius: '6px',
-                border: checked ? '2px solid #16a34a' : '2px solid #d1d5db',
-                background: checked ? '#dcfce7' : '#f9fafb',
-                color: checked ? '#16a34a' : '#9ca3af',
-                fontWeight: 700, fontSize: '16px', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-              {checked ? '✓' : ''}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {checks.map((val, idx) => {
+            const flota = flotaInstancias[idx] || {};
+            const subtitulo = [flota.marca, flota.modelo, flota.dominio].filter(Boolean).join(' – ') || `Unidad ${idx + 1}`;
+            return (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', color: '#6b7280', minWidth: '80px' }}>{subtitulo}</span>
+                <button type="button" onClick={() => clickSI(idx)}
+                  style={{
+                    padding: '4px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '13px',
+                    border: val === true ? '2px solid #16a34a' : '2px solid #d1d5db',
+                    background: val === true ? '#16a34a' : '#f9fafb',
+                    color: val === true ? '#fff' : '#9ca3af', cursor: 'pointer',
+                  }}>SI</button>
+                <button type="button" onClick={() => clickNO(idx)}
+                  style={{
+                    padding: '4px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '13px',
+                    border: val === false ? '2px solid #dc2626' : '2px solid #d1d5db',
+                    background: val === false ? '#dc2626' : '#f9fafb',
+                    color: val === false ? '#fff' : '#9ca3af', cursor: 'pointer',
+                  }}>NO</button>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -187,12 +200,23 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
   }
 
   if (campo.tipo === 'check') {
+    const esSi = valor === 'true';
+    const esNo = valor === 'false';
     return (
-      <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
-        <input type="checkbox" checked={valor === 'true'}
-          onChange={e => onChange(campo.id, e.target.checked ? 'true' : 'false')}
-          className="w-5 h-5 cursor-pointer" />
+      <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
         <span className="text-base">{campo.etiqueta}</span>
+        <div className="flex gap-2">
+          <button type="button"
+            onClick={() => onChange(campo.id, esSi ? '' : 'true')}
+            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esSi ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            SI
+          </button>
+          <button type="button"
+            onClick={() => onChange(campo.id, esNo ? '' : 'false')}
+            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esNo ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            NO
+          </button>
+        </div>
       </div>
     );
   }
