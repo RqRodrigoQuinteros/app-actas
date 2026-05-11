@@ -121,12 +121,23 @@ function RenderCampoRepetible({ campo, valor, onChange }) {
     );
   }
   if (campo.tipo === 'check') {
+    const esSi = valor === 'true';
+    const esNo = valor === 'false';
     return (
-      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
-        <input type="checkbox" checked={valor === 'true'}
-          onChange={e => onChange(e.target.checked ? 'true' : 'false')}
-          className="w-5 h-5 cursor-pointer" />
+      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
         <span className="text-base">{campo.etiqueta}</span>
+        <div className="flex gap-2">
+          <button type="button"
+            onClick={() => onChange(esSi ? '' : 'true')}
+            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${esSi ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            SI
+          </button>
+          <button type="button"
+            onClick={() => onChange(esNo ? '' : 'false')}
+            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${esNo ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            NO
+          </button>
+        </div>
       </div>
     );
   }
@@ -373,9 +384,14 @@ export default function EditarActa() {
       setActa(a);
       setDatos({
         expediente: a.expediente || '',
+        expediente_papel: a.expediente_papel || '',
         establecimiento_nombre: a.establecimiento_nombre || '',
         establecimiento_direccion: a.establecimiento_direccion || '',
         establecimiento_localidad: a.establecimiento_localidad || '',
+        propietario: a.propietario || '',
+        director_tecnico: [a.director_tecnico_nombre || '', a.director_tecnico_apellido || ''].filter(Boolean).join(' '),
+        director_tecnico_dni: a.director_tecnico_dni || '',
+        director_tecnico_matricula: a.director_tecnico_matricula || '',
         responsable_nombre: a.responsable_nombre || '',
         responsable_dni: a.responsable_dni || '',
         responsable_caracter: a.responsable_caracter || '',
@@ -467,6 +483,8 @@ export default function EditarActa() {
       // 1. Guardar acta base
       await actasAPI.update(id, {
         ...datos,
+        director_tecnico_nombre: datos.director_tecnico || '',
+        director_tecnico_apellido: '',
         fotos_urls: fotosUrls,
         firma_inspector_base64: firmaInspector,
         firma_responsable_base64: firmaResponsable,
@@ -615,19 +633,46 @@ export default function EditarActa() {
                 <label className="label-field">Localidad</label>
                 <input className="input-field" value={datos.establecimiento_localidad} onChange={e => setDatos(p => ({ ...p, establecimiento_localidad: e.target.value }))} />
               </div>
-              <div>
-                <label className="label-field">Expediente</label>
-                <input className="input-field" value={datos.expediente} onChange={e => setDatos(p => ({ ...p, expediente: e.target.value }))} placeholder="0425-xxxxxx/20xx" />
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="label-field">Expediente Digital</label>
+                  <input className="input-field" value={datos.expediente} onChange={e => setDatos(p => ({ ...p, expediente: e.target.value }))} placeholder="0425-xxxxxx/20xx" />
+                </div>
+                <div className="flex-1">
+                  <label className="label-field">Expediente Papel</label>
+                  <input className="input-field" value={datos.expediente_papel} onChange={e => setDatos(p => ({ ...p, expediente_papel: e.target.value }))} placeholder="0425-xxxxxx/20xx" />
+                </div>
               </div>
 
               <hr className="border-gray-200" />
 
               <div>
-                <label className="label-field">Responsable *</label>
+                <label className="label-field">Propietario</label>
+                <input className="input-field" value={datos.propietario} onChange={e => setDatos(p => ({ ...p, propietario: e.target.value }))} placeholder="Nombre del propietario" />
+              </div>
+              <div>
+                <label className="label-field">Director Técnico</label>
+                <input className="input-field" value={datos.director_tecnico} onChange={e => setDatos(p => ({ ...p, director_tecnico: e.target.value }))} placeholder="Nombre y apellido" />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="label-field">DNI Director Técnico</label>
+                  <input className="input-field" type="number" inputMode="numeric" value={datos.director_tecnico_dni} onChange={e => setDatos(p => ({ ...p, director_tecnico_dni: e.target.value }))} />
+                </div>
+                <div className="flex-1">
+                  <label className="label-field">Matrícula</label>
+                  <input className="input-field" value={datos.director_tecnico_matricula} onChange={e => setDatos(p => ({ ...p, director_tecnico_matricula: e.target.value }))} />
+                </div>
+              </div>
+
+              <hr className="border-gray-200" />
+
+              <div>
+                <label className="label-field">Responsable presente *</label>
                 <input className="input-field" value={datos.responsable_nombre} onChange={e => setDatos(p => ({ ...p, responsable_nombre: e.target.value }))} />
               </div>
               <div>
-                <label className="label-field">DNI</label>
+                <label className="label-field">DNI Responsable</label>
                 <input className="input-field" type="number" inputMode="numeric" value={datos.responsable_dni} onChange={e => setDatos(p => ({ ...p, responsable_dni: e.target.value }))} />
               </div>
               <div>
