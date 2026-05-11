@@ -22,11 +22,24 @@ export const calcularTotalesDeCamas = (respuestas = {}, secciones = []) => {
   const totales = {};
 
   seccionesConCampos.forEach((seccion) => {
-    const camposCamas = seccion.campos.filter(esCampoCamas);
     const camposTotal = seccion.campos.filter(esCampoTotalCamas);
-    if (camposTotal.length === 0 || camposCamas.length === 0) return;
+    if (camposTotal.length === 0) return;
 
-    const suma = camposCamas.reduce((acc, campo) => {
+    // Primero buscar campos con "camas" en el nombre (comportamiento geriátricos)
+    let camposASumar = seccion.campos.filter(esCampoCamas);
+
+    // Fallback: si no hay campos con "camas" en el nombre, sumar todos los numéricos
+    // anteriores al primer campo total de la sección (comportamiento clínicas y similares)
+    if (camposASumar.length === 0) {
+      const idxPrimerTotal = seccion.campos.findIndex(esCampoTotalCamas);
+      camposASumar = seccion.campos
+        .slice(0, idxPrimerTotal)
+        .filter(c => c.tipo === 'numero');
+    }
+
+    if (camposASumar.length === 0) return;
+
+    const suma = camposASumar.reduce((acc, campo) => {
       const valor = respuestas[campo.id];
       const numero = Number(valor);
       return acc + (Number.isFinite(numero) ? numero : 0);
