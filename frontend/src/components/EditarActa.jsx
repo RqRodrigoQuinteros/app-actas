@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
@@ -341,6 +341,8 @@ export default function EditarActa() {
 
   // Respuestas dinámicas
   const [respuestas, setRespuestas] = useState({});       // { campo_id: valor }
+  const [totalesManuales, setTotalesManuales] = useState(() => new Set());
+  const totalesManualesRef = useRef(new Set());
   const [seccionesExtra, setSeccionesExtra] = useState({}); // secciones repetibles
   const [seccionesActivas, setSeccionesActivas] = useState([]);
 
@@ -447,11 +449,25 @@ export default function EditarActa() {
     }
   };
 
+  const handleManualTotal = (campoId, esManual) => {
+    const next = new Set(totalesManualesRef.current);
+    if (esManual) next.add(campoId); else next.delete(campoId);
+    totalesManualesRef.current = next;
+    setTotalesManuales(new Set(next));
+    if (!esManual) {
+      setRespuestas(prev => ({ ...prev, ...calcularTotalesDeCamas(prev, template?.secciones || []) }));
+    }
+  };
+
   const handleRespuesta = (campoId, valor) => {
     setRespuestas(prev => {
       const next = { ...prev, [campoId]: valor };
       if (!template?.secciones?.length) return next;
-      return { ...next, ...calcularTotalesDeCamas(next, template.secciones) };
+      const calculados = calcularTotalesDeCamas(next, template.secciones);
+      const filtrados = Object.fromEntries(
+        Object.entries(calculados).filter(([id]) => !totalesManualesRef.current.has(parseInt(id)))
+      );
+      return { ...next, ...filtrados };
     });
   };
   const handleInstancias = (seccionId, nuevas) => setSeccionesExtra(prev => ({ ...prev, [seccionId]: nuevas }));
@@ -788,6 +804,8 @@ export default function EditarActa() {
                     respuestas={respuestas}
                     onChange={handleRespuesta}
                     flotaInstancias={flotaInstancias}
+                    totalesManuales={totalesManuales}
+                    onManualTotal={handleManualTotal}
                   />
 
                   {seccionesRepetibles.map(sec => (

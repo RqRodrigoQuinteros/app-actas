@@ -6,7 +6,7 @@ import { esCampoTotalCamas } from '../utils/actaHelpers';
 import { evaluarFormula } from '../utils/evaluarFormula';
 
 // ── Renderizador de un campo individual ────────────────────────────────────────
-function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos = [], index = 0 }) {
+function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos = [], index = 0, totalesManuales = new Set(), onManualTotal = () => {} }) {
   const valor = respuestas[campo.id] ?? '';
 
   const getCantidadDeclaradaAnterior = () => {
@@ -233,19 +233,43 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
 
   if (campo.tipo === 'numero') {
     const esTotal = esCampoTotalCamas(campo);
+    const estaManual = esTotal && totalesManuales.has(campo.id);
     return (
       <div className="flex flex-col">
         <label className="text-sm text-gray-600 mb-1">
           {campo.etiqueta}
-          {esTotal && (
+          {esTotal && !estaManual && (
             <span className="ml-2 text-xs text-gray-500">(calculado automáticamente)</span>
           )}
+          {estaManual && (
+            <span className="ml-2 text-xs text-orange-500">(edición manual)</span>
+          )}
         </label>
-        <input type="number" inputMode="numeric" value={valor}
-          onChange={e => onChange(campo.id, e.target.value)}
-          placeholder={campo.placeholder || ''}
-          readOnly={esTotal}
-          className={`p-3 border rounded-lg ${esTotal ? 'border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed' : 'border-gray-300 bg-white'}`} />
+        <div className={esTotal ? 'flex gap-2' : ''}>
+          <input type="number" inputMode="numeric" value={valor}
+            onChange={e => onChange(campo.id, e.target.value)}
+            placeholder={campo.placeholder || ''}
+            readOnly={esTotal && !estaManual}
+            className={`p-3 border rounded-lg ${esTotal ? 'flex-1' : 'w-full'} ${
+              esTotal && !estaManual
+                ? 'border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed'
+                : estaManual
+                ? 'border-orange-300 bg-white'
+                : 'border-gray-300 bg-white'
+            }`} />
+          {esTotal && (
+            <button type="button"
+              onClick={() => onManualTotal(campo.id, !estaManual)}
+              title={estaManual ? 'Volver a cálculo automático' : 'Editar manualmente'}
+              style={{
+                padding: '0 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '18px',
+                background: estaManual ? '#fed7aa' : '#e5e7eb',
+                border: estaManual ? '1px solid #f97316' : '1px solid #d1d5db',
+              }}>
+              {estaManual ? '🔒' : '✏️'}
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -285,7 +309,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
 }
 
 // ── Subsección colapsable anidada ───────────────────────────────────────────────
-function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) {
+function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [], totalesManuales = new Set(), onManualTotal = () => {} }) {
   const [isOpen, setIsOpen] = useState(true);
   const campos = subseccion.campos || [];
   const tieneTablasUnidades = campos.some(c => c.tipo === 'tabla_unidades');
@@ -339,6 +363,8 @@ function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) 
               flotaInstancias={flotaInstancias}
               campos={campos}
               index={idx}
+              totalesManuales={totalesManuales}
+              onManualTotal={onManualTotal}
             />
           ))}
           {subseccion.texto_posterior && (
@@ -351,7 +377,7 @@ function Subseccion({ subseccion, respuestas, onChange, flotaInstancias = [] }) 
 }
 
 // ── Componente principal ────────────────────────────────────────────────────────
-export default function SeccionDinamica({ secciones = [], respuestas = {}, onChange, flotaInstancias = [] }) {
+export default function SeccionDinamica({ secciones = [], respuestas = {}, onChange, flotaInstancias = [], totalesManuales = new Set(), onManualTotal = () => {} }) {
   const [openSections, setOpenSections] = useState(
     () => Object.fromEntries(secciones.map((s, i) => [s.id, i === 0]))
   );
@@ -445,6 +471,8 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
                     flotaInstancias={flotaInstancias}
                     campos={campos}
                     index={campoIdx}
+                    totalesManuales={totalesManuales}
+                    onManualTotal={onManualTotal}
                   />
                 ))}
 
@@ -456,6 +484,8 @@ export default function SeccionDinamica({ secciones = [], respuestas = {}, onCha
                     respuestas={respuestas}
                     onChange={onChange}
                     flotaInstancias={flotaInstancias}
+                    totalesManuales={totalesManuales}
+                    onManualTotal={onManualTotal}
                   />
                 ))}
 

@@ -11,43 +11,25 @@ const esCampoCamas = (campo) => {
 };
 
 export const calcularTotalesDeCamas = (respuestas = {}, secciones = []) => {
-  const seccionesConCampos = secciones.map((seccion) => ({
-    ...seccion,
-    campos: [
-      ...(seccion.campos || []),
-      ...((seccion.subsecciones || []).flatMap(sub => sub.campos || [])),
-    ],
-  }));
-
   const totales = {};
 
-  seccionesConCampos.forEach((seccion) => {
-    const camposTotal = seccion.campos.filter(esCampoTotalCamas);
+  // Procesa un scope (sección o subsección) de forma independiente:
+  // suma solo los campos "camas" que estén en el mismo scope que el campo total.
+  const procesarScope = (campos) => {
+    const camposTotal = campos.filter(esCampoTotalCamas);
     if (camposTotal.length === 0) return;
-
-    // Primero buscar campos con "camas" en el nombre (comportamiento geriátricos)
-    let camposASumar = seccion.campos.filter(esCampoCamas);
-
-    // Fallback: si no hay campos con "camas" en el nombre, sumar todos los numéricos
-    // anteriores al primer campo total de la sección (comportamiento clínicas y similares)
-    if (camposASumar.length === 0) {
-      const idxPrimerTotal = seccion.campos.findIndex(esCampoTotalCamas);
-      camposASumar = seccion.campos
-        .slice(0, idxPrimerTotal)
-        .filter(c => c.tipo === 'numero');
-    }
-
+    const camposASumar = campos.filter(esCampoCamas);
     if (camposASumar.length === 0) return;
-
-    const suma = camposASumar.reduce((acc, campo) => {
-      const valor = respuestas[campo.id];
-      const numero = Number(valor);
-      return acc + (Number.isFinite(numero) ? numero : 0);
+    const suma = camposASumar.reduce((acc, c) => {
+      const n = Number(respuestas[c.id]);
+      return acc + (Number.isFinite(n) ? n : 0);
     }, 0);
+    camposTotal.forEach(ct => { totales[ct.id] = String(suma); });
+  };
 
-    camposTotal.forEach((campoTotal) => {
-      totales[campoTotal.id] = String(suma);
-    });
+  secciones.forEach(seccion => {
+    procesarScope(seccion.campos || []);
+    (seccion.subsecciones || []).forEach(sub => procesarScope(sub.campos || []));
   });
 
   return totales;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, pdfAPI, templatesAPI } from '../utils/api';
@@ -402,6 +402,8 @@ export default function NuevaActa() {
 
   // Respuestas campos normales: { campo_id: valor }
   const [respuestas, setRespuestas] = useState({});
+  const [totalesManuales, setTotalesManuales] = useState(() => new Set());
+  const totalesManualesRef = useRef(new Set());
 
   // Geriátrico — en funcionamiento
   const [enFuncionamiento, setEnFuncionamiento] = useState('');
@@ -506,11 +508,25 @@ export default function NuevaActa() {
       .finally(() => setLoadingTemplate(false));
   }, [datos.tipologia]);
 
+  const handleManualTotal = (campoId, esManual) => {
+    const next = new Set(totalesManualesRef.current);
+    if (esManual) next.add(campoId); else next.delete(campoId);
+    totalesManualesRef.current = next;
+    setTotalesManuales(new Set(next));
+    if (!esManual) {
+      setRespuestas(prev => ({ ...prev, ...calcularTotalesDeCamas(prev, template?.secciones || []) }));
+    }
+  };
+
   const handleRespuesta = (campoId, valor) => {
     setRespuestas(prev => {
       const next = { ...prev, [campoId]: valor };
       if (!template?.secciones?.length) return next;
-      return { ...next, ...calcularTotalesDeCamas(next, template.secciones) };
+      const calculados = calcularTotalesDeCamas(next, template.secciones);
+      const filtrados = Object.fromEntries(
+        Object.entries(calculados).filter(([id]) => !totalesManualesRef.current.has(parseInt(id)))
+      );
+      return { ...next, ...filtrados };
     });
   };
 
@@ -1038,6 +1054,8 @@ export default function NuevaActa() {
                 respuestas={respuestas}
                 onChange={handleRespuesta}
                 flotaInstancias={flotaInstancias}
+                totalesManuales={totalesManuales}
+                onManualTotal={handleManualTotal}
               />
 
               {/* Secciones repetibles */}
