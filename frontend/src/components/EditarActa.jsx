@@ -497,8 +497,10 @@ export default function EditarActa() {
     setGuardadoOk(false);
     try {
       // 1. Guardar acta base
+      // eslint-disable-next-line no-unused-vars
+      const { director_tecnico, ...datosSinCampoVirtual } = datos;
       await actasAPI.update(id, {
-        ...datos,
+        ...datosSinCampoVirtual,
         director_tecnico_nombre: datos.director_tecnico || '',
         director_tecnico_apellido: '',
         fotos_urls: fotosUrls,
