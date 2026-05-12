@@ -148,12 +148,16 @@ VITE_API_URL=http://localhost:3000
 - [x] Secciones repetibles (ej: UTI, UCO, unidades móviles)
 - [x] Subsecciones dentro de secciones repetibles
 - [x] Ítems SI/NO con botones grandes optimizados para tablet
+- [x] Campos `check` con botones SI/NO (mismo comportamiento visual que si_no)
 - [x] Valores NO resaltados en rojo (formulario y PDF)
-- [x] Tabla por unidad con checkboxes dinámicos (tipologías de móviles)
-- [x] Flota vehicular con texto libre vinculada a tablas de unidades
+- [x] Tabla por unidad (tipologías de móviles): botones SI/NO por unidad con etiqueta de flota
+- [x] Flota vehicular con texto libre (marca, modelo, dominio) vinculada a tabla de unidades
+- [x] PDF por unidad muestra SI/NO por ítem (solo ítems respondidos, nulos se omiten)
+- [x] Campo `total_camas` calculado automáticamente sumando campos "camas" del mismo scope
+- [x] Override manual del total con botón ✏️; botón 🔒 vuelve al cálculo automático
 - [x] Subida de fotos desde galería o cámara directa (con compresión automática)
 - [x] Firma digital con el dedo (inspector y responsable)
-- [x] Edición de actas existentes (datos, fotos, firmas, formulario dinámico)
+- [x] Edición de actas existentes: datos, fotos, firmas, formulario dinámico, expediente digital/papel, propietario, director técnico (nombre unificado), DNI y matrícula
 - [x] Generación de PDF con formato oficial del Ministerio
 - [x] Secciones vacías omitidas automáticamente del PDF
 - [x] Fotos incluidas en el PDF
@@ -170,4 +174,4 @@ VITE_API_URL=http://localhost:3000
 
 ## Licencia
 
-Copyright © 2025 Rodrigo Gabriel Quinteros. Todos los derechos reservados.
+Copyright © 2026 Rodrigo Gabriel Quinteros. Todos los derechos reservados.
