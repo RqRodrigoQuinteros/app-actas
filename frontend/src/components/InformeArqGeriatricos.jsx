@@ -182,17 +182,24 @@ const GENERALES_VACÍO = {
   expDigital: "", expPapel: "", fojasOrdenes: "",
   nombreEst: "", arquitecto: "", direccion: "", barrio: "",
   departamento: "", metros2: "", cantCamas: "", fecha: "",
-  cantUTI: "", cantUCO: "", cantUCI: "", cantUTIP: "", cantUTIN: "",
+  cantUTIGral: "", cantUTIAisladas: "",
+  cantUCOGral: "", cantUCOAisladas: "",
+  cantUCIGral: "", cantUCIAisladas: "",
+  cantUTIPGral: "", cantUTIPAisladas: "",
+  cantUTINGral: "", cantUTINAisladas: "",
   pileta: "", ascensor: "", instalacionesDeportivas: "",
-  habMunicipal: "", nomenclaturaCatastral:"",
+  habMunicipal: "", nomenclaturaCatastral: "",
   verificarInsp: "", observaciones: "", conclusion: "",
   // Radiofísica
   rad_convencional: "", rad_acelerador: "", rad_ortopanto: "", rad_tomografia: "",
   rad_litotricia: "", rad_laser: "", rad_hemodinamia: "", rad_pet: "",
   rad_resonancia: "", rad_densitometria: "", hemoterapia: "",
   // Otros
-  otro_laboratorio: "", otro_hemodialisis: "", cantUnidadesHemodialisis: "",
-  otro_oncologicos: "", cantUnidadesOncologicos: "", otro_pileta: "",
+  otro_laboratorio: "", otro_hemodialisis: "",
+  cantUnidadesHemodialisis: "", cantUnidadesHemodialisisAisladas: "",
+  otro_oncologicos: "",
+  cantUnidadesOncologicosGral: "", cantUnidadesOncologicosAisladas: "",
+  otro_pileta: "",
 };
 
 // ─── CAMPO INDIVIDUAL ─────────────────────────────────────────────────────────
