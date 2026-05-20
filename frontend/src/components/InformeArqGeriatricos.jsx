@@ -89,11 +89,7 @@ const SECCIONES = [
   {
     titulo: "Nomenclatura Catastral",
     campos: [
-      { id: "circ",        label: "Circunscripción", placeholder: "1" },
-      { id: "seccion",     label: "Sección",         placeholder: "2" },
-      { id: "manzana",     label: "Manzana",         placeholder: "226" },
-      { id: "parcela",     label: "Parcela",         placeholder: "21" },
-      { id: "loteOficial", label: "Lote Oficial",    placeholder: "-" },
+      { id: "nomenclaturaCatastral",        label: "Nomenclatura Catastral", placeholder: "Circ. 1 - Sec. 2 - Mz. 226 - Parc. 21" },
     ]
   },
   {
@@ -181,8 +177,7 @@ const GENERALES_VACÍO = {
   departamento: "", metros2: "", cantCamas: "", fecha: "",
   cantUTI: "", cantUCO: "", cantUCI: "", cantUTIP: "", cantUTIN: "",
   pileta: "", ascensor: "", instalacionesDeportivas: "",
-  habMunicipal: "", circ: "", seccion: "",
-  manzana: "", parcela: "", loteOficial: "",
+  habMunicipal: "", nomenclaturaCatastral:"",
   verificarInsp: "", observaciones: "", conclusion: "",
   // Radiofísica
   rad_convencional: "", rad_acelerador: "", rad_ortopanto: "", rad_tomografia: "",
@@ -963,12 +958,12 @@ export default function InformeArqGeriatricos() {
                 </div>
               ))}
             </div>
-            {(generales.circ || generales.manzana) && (
-              <p style={{ marginTop: "10px", fontSize: "13px" }}>
-                <span style={{ fontWeight: 600, color: "#6b7280" }}>Nomenclatura Catastral: </span>
-                {[generales.circ && `CIRC: ${generales.circ}`, generales.seccion && `SEC: ${generales.seccion}`, generales.manzana && `MZ: ${generales.manzana}`, generales.parcela && `PARC: ${generales.parcela}`].filter(Boolean).join(" — ")}
-              </p>
-            )}
+            {generales.nomenclaturaCatastral && (
+  <p style={{ marginTop: "10px", fontSize: "13px" }}>
+    <span style={{ fontWeight: 600, color: "#6b7280" }}>Nomenclatura Catastral: </span>
+    {generales.nomenclaturaCatastral}
+  </p>
+)}
             {generales.observaciones && (
               <p style={{ marginTop: "10px", fontSize: "13px" }}><span style={{ fontWeight: 600, color: "#6b7280" }}>Observaciones: </span>{generales.observaciones}</p>
             )}
