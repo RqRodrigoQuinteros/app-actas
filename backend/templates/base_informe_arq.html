@@ -134,14 +134,9 @@
     {{#if cantUTIP}}<p><strong>Unidades UTIP:</strong> {{cantUTIP}}</p>{{/if}}
     {{#if cantUTIN}}<p><strong>Unidades UTIN:</strong> {{cantUTIN}}</p>{{/if}}
     {{#if circ}}
-    <p class="catastral">
-      <strong>Nomenclatura Catastral:</strong><br>
-      {{#if circ}}CIRC:{{circ}}{{/if}}
-      {{#if seccion}} - SECCION:{{seccion}}{{/if}}
-      {{#if manzana}} - MANZANA:{{manzana}}{{/if}}<br>
-      {{#if parcela}}PARCELA:{{parcela}}{{/if}}
-      {{#if loteOficial}} - LOTE OFICIAL: {{loteOficial}}{{/if}}
-    </p>
+    {{#if nomenclaturaCatastral}}
+<p class="catastral">{{nomenclaturaCatastral}}</p>
+{{/if}}
     {{/if}}
     {{#if pileta}}<p><strong>Pileta:</strong> {{pileta}}</p>{{/if}}
     {{#if ascensor}}<p><strong>Ascensor:</strong> {{ascensor}}</p>{{/if}}
