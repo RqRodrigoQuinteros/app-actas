@@ -127,17 +127,18 @@
     {{#if expPapel}}<p><strong>Expte. Papel N°:</strong> {{expPapel}}</p>{{/if}}
     {{#if expDigital}}<p><strong>Expte. Digital N°:</strong> {{expDigital}}</p>{{/if}}
     {{#if metros2}}<p><strong>Metros cuadrados:</strong> {{metros2}} m²</p>{{/if}}
-    {{#if cantCamas}}<p><strong>Cantidad de camas:</strong> {{cantCamas}}</p>{{/if}}
-    {{#if cantUTI}}<p><strong>Unidades UTI:</strong> {{cantUTI}}</p>{{/if}}
-    {{#if cantUCO}}<p><strong>Unidades UCO:</strong> {{cantUCO}}</p>{{/if}}
-    {{#if cantUCI}}<p><strong>Unidades UCI:</strong> {{cantUCI}}</p>{{/if}}
-    {{#if cantUTIP}}<p><strong>Unidades UTIP:</strong> {{cantUTIP}}</p>{{/if}}
-    {{#if cantUTIN}}<p><strong>Unidades UTIN:</strong> {{cantUTIN}}</p>{{/if}}
-    {{#if circ}}
-    {{#if nomenclaturaCatastral}}
-<p class="catastral">{{nomenclaturaCatastral}}</p>
-{{/if}}
-    {{/if}}
+    {{#if cantCamas}}<p><strong>Cantidad de camas (Declaradas):</strong> {{cantCamas}}</p>{{/if}}
+    {{#if cantUTIGral}}<p><strong>Unidades UTI Generales:</strong> {{cantUTIGral}}</p>{{/if}}
+    {{#if cantUTIAisladas}}<p><strong>Unidades UTI Aisladas:</strong> {{cantUTIAisladas}}</p>{{/if}}
+    {{#if cantUCOGral}}<p><strong>Unidades UCO Generales:</strong> {{cantUCOGral}}</p>{{/if}}
+    {{#if cantUCOAisladas}}<p><strong>Unidades UCO Aisladas:</strong> {{cantUCOAisladas}}</p>{{/if}}
+    {{#if cantUCIGral}}<p><strong>Unidades UCI Generales:</strong> {{cantUCIGral}}</p>{{/if}}
+    {{#if cantUCIAisladas}}<p><strong>Unidades UCI Aisladas:</strong> {{cantUCIAisladas}}</p>{{/if}}
+    {{#if cantUTIPGral}}<p><strong>Unidades UTIP Generales:</strong> {{cantUTIPGral}}</p>{{/if}}
+    {{#if cantUTIPAisladas}}<p><strong>Unidades UTIP Aisladas:</strong> {{cantUTIPAisladas}}</p>{{/if}}
+    {{#if cantUTINGral}}<p><strong>Unidades UTIN Generales:</strong> {{cantUTINGral}}</p>{{/if}}
+    {{#if cantUTINAisladas}}<p><strong>Unidades UTIN Aisladas:</strong> {{cantUTINAisladas}}</p>{{/if}}
+    {{#if nomenclaturaCatastral}}<p class="catastral"><strong>Nomenclatura Catastral:</strong> {{nomenclaturaCatastral}}</p>{{/if}}
     {{#if pileta}}<p><strong>Pileta:</strong> {{pileta}}</p>{{/if}}
     {{#if ascensor}}<p><strong>Ascensor:</strong> {{ascensor}}</p>{{/if}}
     {{#if instalacionesDeportivas}}<p><strong>Instalaciones Deportivas:</strong> {{instalacionesDeportivas}}</p>{{/if}}
@@ -168,9 +169,11 @@
   <table class="tabla-campos">
     {{#if otro_laboratorio}}<tr><td>Laboratorio</td><td>{{otro_laboratorio}}</td></tr>{{/if}}
     {{#if otro_hemodialisis}}<tr><td>Hemodiálisis</td><td>{{otro_hemodialisis}}</td></tr>{{/if}}
-    {{#if cantUnidadesHemodialisis}}<tr><td>Cant. unidades en Hemodiálisis</td><td>{{cantUnidadesHemodialisis}}</td></tr>{{/if}}
+    {{#if cantUnidadesHemodialisisGral}}<tr><td>Cant. unidades en Hemodiálisis Generales</td><td>{{cantUnidadesHemodialisis}}</td></tr>{{/if}}
+    {{#if cantUnidadesHemodialisisAisladas}}<tr><td>Cant. unidades en Hemodiálisis Aislados</td><td>{{cantUnidadesHemodialisisAisladas}}</td></tr>{{/if}}
     {{#if otro_oncologicos}}<tr><td>Oncológicos</td><td>{{otro_oncologicos}}</td></tr>{{/if}}
-    {{#if cantUnidadesOncologicos}}<tr><td>Cant. unidades Oncológicas</td><td>{{cantUnidadesOncologicos}}</td></tr>{{/if}}
+    {{#if cantUnidadesOncologicosGral}}<tr><td>Cant. unidades Oncológicas Generales</td><td>{{cantUnidadesOncologicosGral}}</td></tr>{{/if}}
+    {{#if cantUnidadesOncologicosAisladas}}<tr><td>Cant. unidades Oncológicas Aisladas</td><td>{{cantUnidadesOncologicosAisladas}}</td></tr>{{/if}}
     {{#if otro_pileta}}<tr><td>Pileta</td><td>{{otro_pileta}}</td></tr>{{/if}}
   </table>
   {{/if}}
