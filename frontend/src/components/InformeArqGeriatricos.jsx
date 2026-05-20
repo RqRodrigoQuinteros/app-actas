@@ -118,8 +118,8 @@ const SECCIONES = [
     campos: [
       { id: "otro_laboratorio",       label: "Laboratorio",                           tipo: "sino" },
       { id: "otro_hemodialisis",      label: "Hemodiálisis",                          tipo: "sino" },
-      { id: "cantUnidadesHemodialisis", label: "Cant. unidades en Hemodiálisis Generales",      tipo: "numero", placeholder: "0" },
-      { id: "cantUnidadesHemodialisis", label: "Cant. unidades en Hemodiálisis Aislados",      tipo: "numero", placeholder: "0" },
+      { id: "cantUnidadesHemodialisisGral", label: "Cant. unidades en Hemodiálisis Generales",      tipo: "numero", placeholder: "0" },
+      { id: "cantUnidadesHemodialisisAisladas", label: "Cant. unidades en Hemodiálisis Aislados",      tipo: "numero", placeholder: "0" },
       { id: "otro_oncologicos",       label: "Oncológicos",                           tipo: "sino" },
       { id: "cantUnidadesOncologicosGral", label: "Cant. unidades Oncológicas Generales",           tipo: "numero", placeholder: "0" },
       { id: "cantUnidadesOncologicosAisladas", label: "Cant. unidades Oncológicas Aisladas",           tipo: "numero", placeholder: "0" },
