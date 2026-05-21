@@ -56,6 +56,8 @@ const SECCIONES = [
     titulo: "Auditor",
     campos: [
       { id: "arquitecto", label: "Nombre del Arquitecto", tipo: "select" },
+      { id: "fecha", label: "Fecha", tipo: "date", placeholder: "dd/mm/aaaa" },
+
     ]
   },
   {
@@ -71,6 +73,7 @@ const SECCIONES = [
     campos: [
       { id: "nombreEst",   label: "Nombre del establecimiento", placeholder: "Nombre...", fullWidth: true },
       { id: "direccion",   label: "Dirección",                  placeholder: "Av. Italia N° 1537" },
+      { id: "nomenclaturaCatastral",        label: "Nomenclatura Catastral", placeholder: "Circ. 1 - Sec. 2 - Mz. 226 - Parc. 21" },
       { id: "barrio",      label: "Barrio / Localidad",         placeholder: "Río Cuarto" },
       { id: "departamento",label: "Departamento",               placeholder: "RÍO CUARTO" },
       { id: "metros2",     label: "Metros cuadrados",           placeholder: "m²" },
@@ -85,16 +88,9 @@ const SECCIONES = [
       { id: "cantUTIPAisladas",   label: "Cant. unidades UTIP Aisladas",         tipo: "numero", placeholder: "0" },
       { id: "cantUTINGral",   label: "Cant. unidades UTIN Generales",         tipo: "numero", placeholder: "0" },
       { id: "cantUTINAisladas",   label: "Cant. unidades UTIN Aisladas",         tipo: "numero", placeholder: "0" },
-      { id: "fecha", label: "Fecha", tipo: "date", placeholder: "dd/mm/aaaa" },
       { id: "pileta",      label: "Pileta",                     tipo: "select", opciones: ["Si", "Si, de uso para el establecimiento", "No"] },
       { id: "ascensor",    label: "Ascensor",                   tipo: "sino" },
       { id: "instalacionesDeportivas", label: "Instalaciones Deportivas", tipo: "select", opciones: ["Si","Si, de uso del establecimiento", "No"] },
-    ]
-  },
-  {
-    titulo: "Nomenclatura Catastral",
-    campos: [
-      { id: "nomenclaturaCatastral",        label: "Nomenclatura Catastral", placeholder: "Circ. 1 - Sec. 2 - Mz. 226 - Parc. 21" },
     ]
   },
   {
