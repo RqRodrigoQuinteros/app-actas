@@ -419,6 +419,7 @@ function TabTipologias() {
   function FormCampo({ campo, seccionId, onClose }) {
     const [form, setForm] = useState({
       etiqueta: campo?.etiqueta || '',
+      subtitulo: campo?.subtitulo || '',
       tipo: campo?.tipo || 'si_no',
       opciones: campo?.opciones ? campo.opciones.join('\n') : '',
       requerido: campo?.requerido || false,
@@ -455,6 +456,7 @@ function TabTipologias() {
       try {
         const payload = {
           etiqueta: form.etiqueta.trim(),
+          subtitulo: form.subtitulo.trim() || null,
           tipo: form.tipo,
           requerido: form.requerido,
           placeholder: form.placeholder || null,
@@ -550,6 +552,12 @@ function TabTipologias() {
             </div>
           )}
 
+          <div>
+            <label style={S.label}>Subtítulo (opcional)</label>
+            <input style={S.input} value={form.subtitulo}
+              onChange={e => setForm(f => ({ ...f, subtitulo: e.target.value }))}
+              placeholder="Texto breve que aparece debajo de la etiqueta" />
+          </div>
           <div>
             <label style={S.label}>Placeholder (hint para el inspector)</label>
             <input style={S.input} value={form.placeholder}
@@ -843,7 +851,14 @@ function TabTipologias() {
                       <span style={{ fontSize: '11px', color: '#9ca3af', minWidth: '18px' }}>
                         {cidx + 1}
                       </span>
-                      <span style={{ flex: 1 }}>{campo.etiqueta}</span>
+                      <span style={{ flex: 1 }}>
+                        <div>{campo.etiqueta}</div>
+                        {campo.subtitulo && (
+                          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                            {campo.subtitulo}
+                          </div>
+                        )}
+                      </span>
                       <span style={S.tipoBadge(campo.tipo)}>
                         {TIPOS_CAMPO.find(t => t.value === campo.tipo)?.label || campo.tipo}
                       </span>
@@ -925,7 +940,14 @@ function TabTipologias() {
                       {(sub.campos || []).map((campo, cidx) => (
                         <div key={campo.id} style={{ ...S.campoRow, paddingLeft: '8px' }}>
                           <span style={{ fontSize: '11px', color: '#9ca3af', minWidth: '18px' }}>{cidx + 1}</span>
-                          <span style={{ flex: 1 }}>{campo.etiqueta}</span>
+                          <span style={{ flex: 1 }}>
+                            <div>{campo.etiqueta}</div>
+                            {campo.subtitulo && (
+                              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                                {campo.subtitulo}
+                              </div>
+                            )}
+                          </span>
                           <span style={S.tipoBadge(campo.tipo)}>{TIPOS_CAMPO.find(t => t.value === campo.tipo)?.label || campo.tipo}</span>
                           {campo.requerido && <span style={{ fontSize: '10px', color: '#dc2626', fontWeight: 700 }}>REQ</span>}
                           {cidx > 0 && (

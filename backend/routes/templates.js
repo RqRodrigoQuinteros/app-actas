@@ -453,7 +453,7 @@ router.delete('/secciones/:id', soloSupervisor, async (req, res) => {
 router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => {
   try {
     const { seccionId } = req.params;
-    const { etiqueta, tipo, opciones, requerido, placeholder, token, orden, formula } = req.body;
+    const { etiqueta, subtitulo, tipo, opciones, requerido, placeholder, token, orden, formula } = req.body;
 
 
     if (!etiqueta || !token) {
@@ -487,6 +487,7 @@ router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => 
       .insert({
         seccion_id: parseInt(seccionId),
         etiqueta,
+        subtitulo: subtitulo || null,
         tipo: tipo || 'si_no',
         opciones: opciones || null,
         requerido: requerido || false,
@@ -517,10 +518,11 @@ router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => 
 router.put('/campos/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
-    const { etiqueta, tipo, opciones, requerido, placeholder, token, orden, formula } = req.body;
+    const { etiqueta, subtitulo, tipo, opciones, requerido, placeholder, token, orden, formula } = req.body;
 
     const updates = {};
     if (etiqueta !== undefined) updates.etiqueta = etiqueta;
+    if (subtitulo !== undefined) updates.subtitulo = subtitulo || null;
     if (tipo !== undefined) updates.tipo = tipo;
     if (opciones !== undefined) updates.opciones = opciones;
     if (requerido !== undefined) updates.requerido = requerido;
@@ -603,7 +605,7 @@ router.get('/actas/:actaId/respuestas', async (req, res) => {
 
     const { data, error } = await supabase
       .from('actas_respuestas')
-      .select('*, campo:template_campos(etiqueta, tipo, token, orden, seccion:template_secciones(titulo, orden))')
+      .select('*, campo:template_campos(etiqueta, subtitulo, tipo, token, orden, seccion:template_secciones(titulo, orden))')
       .eq('acta_id', actaId);
 
     if (error) throw error;

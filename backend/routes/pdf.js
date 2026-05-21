@@ -378,14 +378,23 @@ router.post('/geriatrico', authenticateToken, async (req, res) => {
     const TITULOS_TIPOLOGIA = {
       'Geriátricos': { tituloInforme: 'Evaluación Técnica Geriátricos', subtituloInforme: 'Fiscalización Edilicia' },
     };
-    const tipNombre = datos.tipologia_nombre || 'Geriátricos';
+    const tipNombre = (datos.tipologia_nombre || '').trim();
+    if (!tipNombre) {
+      return res.status(400).json({ error: 'La tipología del informe es requerida' });
+    }
+
+    const tipNombreNormalizado = tipNombre
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
     const titulos = TITULOS_TIPOLOGIA[tipNombre] || {
       tituloInforme: `Evaluación Técnica — ${tipNombre}`,
       subtituloInforme: 'Fiscalización Edilicia',
     };
     const datosConTitulos = { ...datos, ...titulos };
 
-    const esGeriatrico = tipNombre === 'Geriátricos';
+    const esGeriatrico = tipNombreNormalizado.includes('geriatrico');
     let buffer;
     if (esGeriatrico) {
       buffer = toBuffer(await generarInformeGeriatricoPDF(datosConTitulos, logoMinisterio, logoCordoba, logoMembrete));

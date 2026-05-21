@@ -5,6 +5,12 @@ import { useState } from 'react';
 import { esCampoTotalCamas } from '../utils/actaHelpers';
 import { evaluarFormula } from '../utils/evaluarFormula';
 
+const renderCampoSubtitulo = (campo) => campo.subtitulo ? (
+  <div className="text-xs text-gray-500 mt-1" style={{ lineHeight: 1.4 }}>
+    {campo.subtitulo}
+  </div>
+) : null;
+
 // ── Renderizador de un campo individual ────────────────────────────────────────
 function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos = [], index = 0, totalesManuales = new Set(), onManualTotal = () => {} }) {
   const valor = respuestas[campo.id] ?? '';
@@ -56,6 +62,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
         <span style={{ fontSize: '13px', color: '#374151', display: 'block', marginBottom: '6px' }}>
           {campo.etiqueta}
         </span>
+        {renderCampoSubtitulo(campo)}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {checks.map((val, idx) => {
             const flota = flotaInstancias[idx] || {};
@@ -131,6 +138,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     return (
       <div className="p-3 border rounded-lg bg-white">
         <div className="font-medium text-sm text-gray-700 mb-2">{campo.etiqueta}</div>
+        {renderCampoSubtitulo(campo)}
         <div style={{ display: 'grid', gap: '10px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <label className="flex flex-col text-sm text-gray-600">
@@ -182,7 +190,10 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     const esNo = valor === 'NO';
     return (
       <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-        <span className="text-base">{campo.etiqueta}</span>
+        <div>
+          <div className="text-base">{campo.etiqueta}</div>
+          {renderCampoSubtitulo(campo)}
+        </div>
         <div className="flex gap-2">
           <button type="button"
             onClick={() => onChange(campo.id, esSi ? '' : 'SI')}
@@ -204,7 +215,10 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     const esNo = valor === 'false';
     return (
       <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-        <span className="text-base">{campo.etiqueta}</span>
+        <div>
+          <div className="text-base">{campo.etiqueta}</div>
+          {renderCampoSubtitulo(campo)}
+        </div>
         <div className="flex gap-2">
           <button type="button"
             onClick={() => onChange(campo.id, esSi ? '' : 'true')}
@@ -225,6 +239,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     return (
       <div className="flex flex-col">
         <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+        {renderCampoSubtitulo(campo)}
         <textarea value={valor} onChange={e => onChange(campo.id, e.target.value)}
           placeholder={campo.placeholder || ''} className="p-3 border border-gray-300 rounded-lg" rows={3} />
       </div>
@@ -245,6 +260,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
             <span className="ml-2 text-xs text-orange-500">(edición manual)</span>
           )}
         </label>
+        {renderCampoSubtitulo(campo)}
         <div className={esTotal ? 'flex gap-2' : ''}>
           <input type="number" inputMode="numeric" value={valor}
             onChange={e => onChange(campo.id, e.target.value)}
@@ -278,6 +294,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     return (
       <div className="flex flex-col">
         <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+        {renderCampoSubtitulo(campo)}
         <input type="date" value={valor} onChange={e => onChange(campo.id, e.target.value)}
           className="p-3 border border-gray-300 rounded-lg" />
       </div>
@@ -289,6 +306,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     return (
       <div className="flex flex-col">
         <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+        {renderCampoSubtitulo(campo)}
         <select value={valor} onChange={e => onChange(campo.id, e.target.value)}
           className="p-3 border border-gray-300 rounded-lg bg-white">
           <option value="">Seleccionar...</option>
@@ -302,6 +320,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
   return (
     <div className="flex flex-col">
       <label className="text-sm text-gray-600 mb-1">{campo.etiqueta}</label>
+      {renderCampoSubtitulo(campo)}
       <input type="text" value={valor} onChange={e => onChange(campo.id, e.target.value)}
         placeholder={campo.placeholder || ''} className="p-3 border border-gray-300 rounded-lg" />
     </div>
