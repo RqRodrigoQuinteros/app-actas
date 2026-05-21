@@ -376,7 +376,7 @@ router.post('/geriatrico', authenticateToken, async (req, res) => {
 
     // Títulos dinámicos según tipología
     const TITULOS_TIPOLOGIA = {
-      'Geriátricos': { tituloInforme: 'Evaluación Técnica Geriátricos', subtituloInforme: 'Fiscalización Edilicia' },
+      'Geriátricos': { tituloInforme: 'Evaluación Técnica Geriátricos', subtituloInforme: 'Fiscalización Edilicia - Ley 7872, Dec. 657/09 - Res. 394/09' },
     };
     const tipNombre = (datos.tipologia_nombre || '').trim();
     if (!tipNombre) {
@@ -389,8 +389,8 @@ router.post('/geriatrico', authenticateToken, async (req, res) => {
       .replace(/[\u0300-\u036f]/g, '');
 
     const titulos = TITULOS_TIPOLOGIA[tipNombre] || {
-      tituloInforme: `Evaluación Técnica — ${tipNombre}`,
-      subtituloInforme: 'Fiscalización Edilicia',
+      tituloInforme: `Evaluación Técnica Arquitectura`,
+      subtituloInforme: 'Fiscalización Edilicia - Dec. 33/08 - Res. 1226/2025',
     };
     const datosConTitulos = { ...datos, ...titulos };
 
