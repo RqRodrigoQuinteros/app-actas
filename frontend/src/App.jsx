@@ -11,6 +11,7 @@ import InformeArqGeriatricos from './components/InformeArqGeriatricos';
 import AdminTemplates from './components/AdminTemplates';
 import AdminLogin from './components/AdminLogin';
 import EditarActa from './components/EditarActa';
+import RodrigoAdmin from './components/RodrigoAdmin';
 
 function ProtectedRoute({ children, roles }) {
   const { usuario, loading } = useAuth();
@@ -99,11 +100,11 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      <Route path="/informe/:id" element={
-        <ProtectedRoute roles={['arquitecto', 'supervisor']}>
-          <InformeArqGeriatricos />
-        </ProtectedRoute>
-      } />
+       <Route path="/informe/:id" element={
+         <ProtectedRoute roles={['arquitecto', 'supervisor', 'admin']}>
+           <InformeArqGeriatricos />
+         </ProtectedRoute>
+       } />
 
       <Route path="/informe/geriatricos/nuevo" element={
         <ProtectedRoute roles={['arquitecto']}>
@@ -111,18 +112,24 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      <Route path="/informe/geriatricos/:id" element={
-        <ProtectedRoute roles={['arquitecto', 'supervisor']}>
-          <InformeArqGeriatricos />
-        </ProtectedRoute>
-      } />
+       <Route path="/informe/geriatricos/:id" element={
+         <ProtectedRoute roles={['arquitecto', 'supervisor', 'admin']}>
+           <InformeArqGeriatricos />
+         </ProtectedRoute>
+       } />
 
-      <Route path="/admin/templates" element={
-        <ProtectedRoute roles={['admin']}>
-          <AdminTemplates />
-        </ProtectedRoute>
-      } />
-    </Routes>
+       <Route path="/admin/templates" element={
+         <ProtectedRoute roles={['admin']}>
+           <AdminTemplates />
+         </ProtectedRoute>
+       } />
+
+       <Route path="/rodrigoAdmin" element={
+         <ProtectedRoute roles={['admin']}>
+           <RodrigoAdmin />
+         </ProtectedRoute>
+       } />
+     </Routes>
   );
 }
 

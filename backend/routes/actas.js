@@ -365,7 +365,7 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Acta no encontrada' });
     }
 
-    const puedeEliminar = rol === 'supervisor' || (rol === 'inspector' && acta.inspector_id === userId);
+    const puedeEliminar = rol === 'supervisor' || rol === 'admin' || (rol === 'inspector' && acta.inspector_id === userId);
 
     if (!puedeEliminar) {
       return res.status(403).json({ error: 'No puedes eliminar esta acta' });
