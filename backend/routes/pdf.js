@@ -222,12 +222,19 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
     if (rol === 'inspector' && acta.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
+    // 1. Obtener la ley_marco de esta tipología específica
+    const { data: tipData } = await supabase
+      .from('template_tipologia')
+      .select('ley_marco')
+      .ilike('nombre', acta.establecimiento_tipologia)
+      .single();
 
     const actaEnriquecida = await enriquecerConRespuestas(acta);
     const actaCompleta = {
       ...actaEnriquecida,
       inspector_nombre: acta.inspector?.nombre || '',
       inspector_dni: acta.inspector?.dni || '',
+      ley_marco: tipData?.ley_marco || '' // <-- 2. AGREGAR AL OBJETO
     };
 
     const logoMembrete = cargarLogoBase64('img6.jpg');
