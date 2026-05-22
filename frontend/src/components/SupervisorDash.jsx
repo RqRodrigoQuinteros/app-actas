@@ -38,6 +38,21 @@ const TIPOLOGIA_COLORS = {
   geriatrico: '#7c3aed', otro: '#6b7280',
 };
 
+const detectarTipoInforme = (informe) => {
+  const nombreTipologia = informe.datos_formulario?.tipologia_nombre;
+  if (nombreTipologia) {
+    return nombreTipologia.toLowerCase().includes('geriátrico') ? 'geriatrico' : nombreTipologia;
+  }
+  return informe.datos_formulario?.generales?.tipologia
+    || informe.datos_formulario?.tipo
+    || informe.tipo
+    || 'geriatrico';
+};
+
+const esGeriatrico = (tipo) => {
+  return String(tipo).toLowerCase().includes('geriatr') || tipo === 'geriatrico';
+};
+
 const FERIADOS_2026 = [
   '2026-01-01', '2026-02-24', '2026-02-25', '2026-03-24',
   '2026-04-02', '2026-05-01', '2026-05-25', '2026-06-20',
@@ -191,36 +206,36 @@ export default function SupervisorDash() {
     catch (err) { console.error('Error toggling CIDI:', err); }
   };
 
-  const generarPDFInforme = async (informe) => {
-    setPdfCargando(informe.id);
-    try {
-      const tipo = informe.tipo || informe.datos_formulario?.tipo || 'geriatrico';
-      let response;
-      if (tipo === 'geriatrico') {
-        const df = { ...(informe.datos_formulario?.generales || {}) };
-        if (!df.nombreEst) df.nombreEst = informe.establecimiento_nombre || '';
-        const checks = informe.datos_formulario?.checks || {};
-        const obsArt = informe.datos_formulario?.observaciones || {};
-        const articulosObservados = Object.keys(checks)
-          .filter(nro => checks[nro])
-          .map(nro => ({ nro, desc: '', obs: obsArt[nro] || '' }));
-        response = await api.post('/pdf/geriatrico', {
-          ...df,
-          articulosObservados,
-          tipologia_nombre: informe.datos_formulario?.tipologia_nombre || 'Geriátricos',
-        }, { responseType: 'blob' });
-      } else {
-        response = await api.post(`/pdf/informe/${informe.id}`, {}, { responseType: 'blob' });
-      }
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `informe_${informe.establecimiento_nombre || informe.id}.pdf`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch { alert('Error al generar el PDF.'); }
-    finally { setPdfCargando(null); }
-  };
+   const generarPDFInforme = async (informe) => {
+     setPdfCargando(informe.id);
+     try {
+       const tipo = detectarTipoInforme(informe);
+       let response;
+       if (esGeriatrico(tipo)) {
+         const df = { ...(informe.datos_formulario?.generales || {}) };
+         if (!df.nombreEst) df.nombreEst = informe.establecimiento_nombre || '';
+         const checks = informe.datos_formulario?.checks || {};
+         const obsArt = informe.datos_formulario?.observaciones || {};
+         const articulosObservados = Object.keys(checks)
+           .filter(nro => checks[nro])
+           .map(nro => ({ nro, desc: '', obs: obsArt[nro] || '' }));
+         response = await api.post('/pdf/geriatrico', {
+           ...df,
+           articulosObservados,
+           tipologia_nombre: informe.datos_formulario?.tipologia_nombre || 'Geriátricos',
+         }, { responseType: 'blob' });
+       } else {
+         response = await api.post(`/pdf/informe/${informe.id}`, {}, { responseType: 'blob' });
+       }
+       const url = window.URL.createObjectURL(new Bl([response.data], { type: 'application/pdf' }));
+       const a = document.createElement('a');
+       a.href = url;
+       a.download = `informe_${informe.establecimiento_nombre || informe.id}.pdf`;
+       document.body.appendChild(a); a.click(); document.body.removeChild(a);
+       window.URL.revokeObjectURL(url);
+     } catch { alert('Error al generar el PDF.'); }
+     finally { setPdfCargando(null); }
+   };
 
   const actasConVencimiento = actas.map((acta) => {
     const emplazamientoValor = acta.emplazamiento_valor;
@@ -271,60 +286,74 @@ export default function SupervisorDash() {
   const proximasCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'proxima').length;
   const alDiaCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'alDia').length;
 
-  const informesFiltrados = informes.filter(inf => {
-    if (filtrosInformes.arquitecto_id && inf.arquitecto_id !== filtrosInformes.arquitecto_id) return false;
-    if (filtrosInformes.tipo && (inf.tipo || 'geriatrico') !== filtrosInformes.tipo) return false;
-    if (filtrosInformes.estado && inf.estado !== filtrosInformes.estado) return false;
-    return true;
-  });
+   const informesFiltrados = informes.filter(inf => {
+     if (filtrosInformes.arquitecto_id && inf.arquitecto_id !== filtrosInformes.arquitecto_id) return false;
+     if (filtrosInformes.tipo) {
+       const tipoDetectado = detectarTipoInforme(inf);
+       if (filtrosInformes.tipo === 'geriatrico') {
+         if (!esGeriatrico(tipoDetectado)) return false;
+       } else {
+         if (esGeriatrico(tipoDetectado)) return false;
+       }
+     }
+     if (filtrosInformes.estado && inf.estado !== filtrosInformes.estado) return false;
+     return true;
+   });
 
-  const renderActaRow = (acta, i) => {
-    const emplazamientoValor = acta.emplazamiento_valor;
-    const emplazamientoTipo = acta.emplazamiento_tipo || '';
-    const dueText = emplazamientoValor !== undefined && emplazamientoValor !== null ? `${emplazamientoValor} ${emplazamientoTipo}`.trim() : '-';
-    
-    let rowBgStyle = {};
-    let statusIndicator = null;
-    
-    if (acta.vencimientoStatus === 'vencida') {
-      rowBgStyle = { backgroundColor: '#fef2f2' }; 
-      statusIndicator = <span className="ml-2 text-red-600 font-bold text-xs" title="Plazo Vencido">⚠️ VENCIDA</span>;
-    } else if (acta.vencimientoStatus === 'proxima') {
-      rowBgStyle = { backgroundColor: '#fffbeb' }; 
-      statusIndicator = <span className="ml-2 text-amber-600 font-bold text-xs" title="Próxima a vencer">⏳ CRÍTICA</span>;
-    }
+   const renderActaRow = (acta, i) => {
+     const emplazamientoValor = acta.emplazamiento_valor;
+     const emplazamientoTipo = acta.emplazamiento_tipo || '';
+     const dueText = emplazamientoValor !== undefined && emplazamientoValor !== null ? `${emplazamientoValor} ${emplazamientoTipo}`.trim() : '-';
+     
+     let rowBgStyle = {};
+     let statusIndicator = null;
+     
+     if (acta.vencimientoStatus === 'vencida') {
+       rowBgStyle = { backgroundColor: '#fef2f2' }; 
+       statusIndicator = <span className="ml-2 text-red-600 font-bold text-xs" title="Plazo Vencido">⚠️ VENCIDA</span>;
+     } else if (acta.vencimientoStatus === 'proxima') {
+       rowBgStyle = { backgroundColor: '#fffbeb' }; 
+       statusIndicator = <span className="ml-2 text-amber-600 font-bold text-xs" title="Próxima a vencer">⏳ CRÍTICA</span>;
+     }
 
-    return (
-      <tr 
-        key={acta.id} 
-        style={{ ...rowBgStyle, borderTop: i > 0 ? '1px solid #f3f4f6' : 'none', transition: 'background-color 0.15s' }} 
-        className="hover:bg-gray-100"
-      >
-        <td className="p-3 text-base">{formatDateDDMMYYYY(acta.created_at || acta.fecha)}</td>
-        <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || acta.inspector?.username || '-'}</td>
-        <td className="p-3">
-          <div className="flex items-center">
-            <div className="text-sm font-medium text-gray-900">{acta.establecimiento_nombre || 'Sin nombre'}</div>
-            {statusIndicator}
-          </div>
-          <div className="text-xs text-gray-400">{acta.expediente}</div>
-        </td>
-        <td className="p-3 text-xs text-gray-500">
-          <span style={S.badge('#2563eb')}>
-            {acta.establecimiento_tipologia || 'General'}
-          </span>
-        </td>
-        <td className="p-3 text-sm font-medium">
-          <div>{dueText}</div>
-          {acta.dueDate && (
-            <div className="text-xs text-gray-400 font-normal">
-              Vence: {formatDateDDMMYYYY(acta.dueDate)}
-            </div>
-          )}
-        </td>
-      </tr>
-    );
-  };
+     return (
+       <tr 
+         key={acta.id} 
+         style={{ ...rowBgStyle, borderTop: i > 0 ? '1px solid #f3f4f6' : 'none', transition: 'background-color 0.15s' }} 
+         className="hover:bg-gray-100"
+       >
+         <td className="p-3 text-base">{formatDateDDMMYYYY(acta.created_at || acta.fecha)}</td>
+         <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || acta.inspector?.username || '-'}</td>
+         <td className="p-3">
+           <div className="flex items-center">
+             <div className="text-sm font-medium text-gray-900">{acta.establecimiento_nombre || 'Sin nombre'}</div>
+             {statusIndicator}
+           </div>
+           <div className="text-xs text-gray-400">{acta.expediente}</div>
+         </td>
+         <td className="p-3 text-xs text-gray-500">
+           <span style={S.badge('#2563eb')}>
+             {acta.establecimiento_tipologia || 'General'}
+           </span>
+         </td>
+         <td className="p-3 text-sm font-medium">
+           <div>{dueText}</div>
+           {acta.dueDate && (
+             <div className="text-xs text-gray-400 font-normal">
+               Vence: {formatDateDDMMYYYY(acta.dueDate)}
+             </div>
+           )}
+         </td>
+         <td className="p-3">
+           <button
+             onClick={() => navigate(`/acta/${acta.id}`)}
+             className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200">
+             Ver
+           </button>
+         </td>
+       </tr>
+     );
+   };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -448,16 +477,16 @@ export default function SupervisorDash() {
             ) : (
               <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
                 <table className="w-full">
-                  <thead>
-                    <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                      {['Fecha creada', 'Inspector', 'Establecimiento', 'Tipología', 'Plazo Emplazamiento'].map(h => (
-                        <th key={h} className="p-3 text-left text-sm font-bold text-gray-500 uppercase tracking-wide">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {actasFiltradas.map(renderActaRow)}
-                  </tbody>
+                   <thead>
+                     <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                       {['Fecha creada', 'Inspector', 'Establecimiento', 'Tipología', 'Plazo Emplazamiento', 'Acciones'].map(h => (
+                         <th key={h} className="p-3 text-left text-sm font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                       ))}
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {actasFiltradas.map(renderActaRow)}
+                   </tbody>
                 </table>
               </div>
             )}
@@ -482,15 +511,16 @@ export default function SupervisorDash() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label style={S.filterLabel}>Tipología</label>
-                  <select value={filtrosInformes.tipo}
-                    onChange={e => setFiltrosInformes(p => ({ ...p, tipo: e.target.value }))}
-                    style={S.filterInput}>
-                    <option value="">Todas</option>
-                    <option value="geriatrico">Geriátrico</option>
-                  </select>
-                </div>
+                 <div>
+                   <label style={S.filterLabel}>Tipología</label>
+                   <select value={filtrosInformes.tipo}
+                     onChange={e => setFiltrosInformes(p => ({ ...p, tipo: e.target.value }))}
+                     style={S.filterInput}>
+                     <option value="">Todas</option>
+                     <option value="geriatrico">Geriátrico</option>
+                     <option value="otro">Otras tipologías</option>
+                   </select>
+                 </div>
                 <div>
                   <label style={S.filterLabel}>Estado</label>
                   <select value={filtrosInformes.estado}
@@ -519,46 +549,48 @@ export default function SupervisorDash() {
                     </tr>
                   </thead>
                   <tbody>
-                    {informesFiltrados.map((inf, i) => {
-                      const tipo = inf.tipo || inf.datos_formulario?.tipo || 'geriatrico';
-                      const cargandoEste = pdfCargando === inf.id;
-                      return (
-                        <tr key={inf.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }}
-                          className="hover:bg-gray-50">
-                          <td className="p-3 text-sm">{inf.fecha || '-'}</td>
-                          <td className="p-3 text-sm font-medium">{inf.arquitecto?.nombre || '-'}</td>
-                          <td className="p-3">
-                            <div className="text-sm font-medium">{inf.establecimiento_nombre || 'Sin nombre'}</div>
-                            <div className="text-xs text-gray-400">{inf.expediente}</div>
-                          </td>
-                          <td className="p-3">
-                            <span style={S.badge(TIPOLOGIA_COLORS[tipo] || '#6b7280')}>
-                              {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <span style={S.badge(ESTADO_COLORS[inf.estado] || '#6b7280')}>
-                              {inf.estado?.toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <button
-                                onClick={() => navigate(`/informe/geriatricos/${inf.id}`)}
-                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200">
-                                Ver
-                              </button>
-                              <button
-                                onClick={() => generarPDFInforme(inf)}
-                                disabled={cargandoEste}
-                                className={`px-3 py-1 rounded text-xs font-medium text-white ${cargandoEste ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'}`}>
-                                {cargandoEste ? '...' : 'PDF'}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                     {informesFiltrados.map((inf, i) => {
+                       const tipo = detectarTipoInforme(inf);
+                       const esGer = esGeriatrico(tipo);
+                       const displayTipo = inf.datos_formulario?.tipologia_nombre || tipo;
+                       const cargandoEste = pdfCargando === inf.id;
+                       return (
+                         <tr key={inf.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }}
+                           className="hover:bg-gray-50">
+                           <td className="p-3 text-sm">{inf.fecha || '-'}</td>
+                           <td className="p-3 text-sm font-medium">{inf.arquitecto?.nombre || '-'}</td>
+                           <td className="p-3">
+                             <div className="text-sm font-medium">{inf.establecimiento_nombre || 'Sin nombre'}</div>
+                             <div className="text-xs text-gray-400">{inf.expediente}</div>
+                           </td>
+                           <td className="p-3">
+                             <span style={S.badge(esGer ? TIPOLOGIA_COLORS.geriatrico : '#1a5fa8')}>
+                               {displayTipo.charAt(0).toUpperCase() + displayTipo.slice(1)}
+                             </span>
+                           </td>
+                           <td className="p-3">
+                             <span style={S.badge(ESTADO_COLORS[inf.estado] || '#6b7280')}>
+                               {inf.estado?.toUpperCase()}
+                             </span>
+                           </td>
+                           <td className="p-3">
+                             <div style={{ display: 'flex', gap: '6px' }}>
+                               <button
+                                 onClick={() => navigate(`/informe/${inf.id}`)}
+                                 className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200">
+                                 Ver
+                               </button>
+                               <button
+                                 onClick={() => generarPDFInforme(inf)}
+                                 disabled={cargandoEste}
+                                 className={`px-3 py-1 rounded text-xs font-medium text-white ${cargandoEste ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'}`}>
+                                 {cargandoEste ? '...' : 'PDF'}
+                               </button>
+                             </div>
+                           </td>
+                         </tr>
+                       );
+                     })}
                   </tbody>
                 </table>
               </div>
