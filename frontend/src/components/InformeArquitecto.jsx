@@ -49,8 +49,8 @@ export default function InformeArquitecto() {
     // Filtro por tipología
     if (filtroTipologia) {
       resultado = resultado.filter(i => {
-        const tipo = i.tipo || i.datos_formulario?.tipo || '';
-        return tipo === filtroTipologia;
+        const tipoDetectado = detectarTipo(i);
+        return tipoDetectado === filtroTipologia;
       });
     }
     
@@ -71,12 +71,17 @@ export default function InformeArquitecto() {
     navigate('/informe/nuevo', { state: { tipologia_id: tipologia.id, tipologia_nombre: tipologia.nombre } });
   };
 
-  // Detecta el tipo del informe mirando tipo, datos_formulario.tipo, o el nombre del establecimiento
+  // Detecta el tipo del informe - prioriza tipologia_nombre guardado en datos_formulario (el valor real)
+  // informe.tipo solo se usa como fallback para informes antiguos
   const detectarTipo = (informe) => {
-    return informe.tipo
+    const nombreTipologia = informe.datos_formulario?.tipologia_nombre;
+    if (nombreTipologia) {
+      return nombreTipologia.toLowerCase().includes('geriátrico') ? 'geriatrico' : nombreTipologia;
+    }
+    return informe.datos_formulario?.generales?.tipologia
       || informe.datos_formulario?.tipo
-      || informe.datos_formulario?.generales?.tipologia
-      || 'geriatrico'; // fallback: si no tiene tipo guardado, asumir geriátrico (los primeros que se crearon)
+      || informe.tipo
+      || 'geriatrico';
   };
 
   const editarInforme = (informe) => {

@@ -751,11 +751,14 @@ export default function InformeArqGeriatricos() {
 
   // Cargar items de tipología desde la BD (por id o por nombre seleccionado)
   useEffect(() => {
+    let cancelled = false;
+
     const cargarItems = async () => {
       try {
         let arts;
         if (tipologiaId) {
           const r = await informesTemplatesAPI.getItems(tipologiaId);
+          if (cancelled) return;
           arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
         } else if (tipologiaNombre) {
           const localMatch = findTipologiaMatch(tipologiaNombre);
@@ -763,9 +766,11 @@ export default function InformeArqGeriatricos() {
             setTipologiaId(localMatch.id);
             setTipologiaNombre(localMatch.nombre);
             const itemsRes = await informesTemplatesAPI.getItems(localMatch.id);
+            if (cancelled) return;
             arts = (itemsRes.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
           } else {
             const r = await informesTemplatesAPI.getTipologiaPorNombre(tipologiaNombre);
+            if (cancelled) return;
             if (r.data) {
               setTipologiaId(r.data.id);
               setTipologiaNombre(r.data.nombre);
@@ -776,23 +781,32 @@ export default function InformeArqGeriatricos() {
           }
         } else {
           const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
-          setTipologiaId(r.data.id);
-          if (!tipologiaNombre) setTipologiaNombre(r.data.nombre);
-          arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
+          if (cancelled) return;
+          if (r.data) {
+            setTipologiaId(r.data.id);
+            setTipologiaNombre(r.data.nombre);
+            arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
+          } else {
+            arts = [];
+          }
         }
+        if (cancelled) return;
         const lista = arts && arts.length > 0 ? arts : ARTICULOS_FALLBACK;
         setArticulos(lista);
         setChecks(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, false])), ...prev }));
         setObsArt(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, ""])), ...prev }));
       } catch {
+        if (cancelled) return;
         setArticulos(ARTICULOS_FALLBACK);
         setChecks(prev => ({ ...Object.fromEntries(ARTICULOS_FALLBACK.map(a => [a.nro, false])), ...prev }));
         setObsArt(prev => ({ ...Object.fromEntries(ARTICULOS_FALLBACK.map(a => [a.nro, ""])), ...prev }));
       } finally {
-        setLoadingArticulos(false);
+        if (!cancelled) setLoadingArticulos(false);
       }
     };
     cargarItems();
+
+    return () => { cancelled = true; };
   }, [tipologiaId, tipologiaNombre]);
 
   useEffect(() => {

@@ -79,7 +79,8 @@ router.post('/', async (req, res) => {
       expediente,
       fecha,
       datos_formulario,
-      observaciones
+      observaciones,
+      tipo
     } = req.body;
 
     const { data, error } = await supabase
@@ -93,7 +94,8 @@ router.post('/', async (req, res) => {
         fecha,
         datos_formulario,
         observaciones,
-        estado: 'borrador'
+        estado: 'borrador',
+        tipo
       })
       .select()
       .single();
