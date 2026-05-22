@@ -68,7 +68,7 @@ export default function InformeArquitecto() {
 
   const crearNuevo = (tipologia) => {
     setModalNuevo(false);
-    navigate('/informe/geriatricos/nuevo', { state: { tipologia_id: tipologia.id, tipologia_nombre: tipologia.nombre } });
+    navigate('/informe/nuevo', { state: { tipologia_id: tipologia.id, tipologia_nombre: tipologia.nombre } });
   };
 
   // Detecta el tipo del informe mirando tipo, datos_formulario.tipo, o el nombre del establecimiento
@@ -82,10 +82,10 @@ export default function InformeArquitecto() {
   const editarInforme = (informe) => {
     const tipo = detectarTipo(informe);
     if (tipo === 'geriatrico') {
-      navigate(`/informe/geriatricos/${informe.id}`);
+      navigate(`/informe/${informe.id}`);
     } else {
       // Expandir acá para otras tipologías
-      navigate(`/informe/geriatricos/${informe.id}`);
+      navigate(`/informe/${informe.id}`);
     }
   };
 
@@ -119,7 +119,11 @@ export default function InformeArquitecto() {
             df.fecha = `${d}/${m}/${y}`;
           }
         }
-        response = await api.post('/pdf/geriatrico', { ...df, articulosObservados }, { responseType: 'blob' });
+        response = await api.post('/pdf/geriatrico', {
+          ...df,
+          articulosObservados,
+          tipologia_nombre: informe.datos_formulario?.tipologia_nombre || 'Geriátricos',
+        }, { responseType: 'blob' });
       } else {
         response = await api.post(`/pdf/informe/${informe.id}`, {}, { responseType: 'blob' });
       }
@@ -152,6 +156,18 @@ export default function InformeArquitecto() {
       ));
     } catch {
       alert('Error al actualizar CIDI');
+    }
+  };
+
+  const eliminarInforme = async (informeId) => {
+    if (!confirm('¿Querés eliminar este informe? Esta acción no se puede deshacer.')) return;
+    try {
+      await informesAPI.remove(informeId);
+      setInformesOriginal(prev => prev.filter(inf => inf.id !== informeId));
+      setInformes(prev => prev.filter(inf => inf.id !== informeId));
+    } catch (err) {
+      console.error('Error eliminando informe:', err);
+      alert('Error al eliminar el informe. Intentá de nuevo.');
     }
   };
 
@@ -329,6 +345,12 @@ export default function InformeArquitecto() {
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"
                       >
                         ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => eliminarInforme(informe.id)}
+                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200"
+                      >
+                        🗑️ Eliminar
                       </button>
                       <button
                         onClick={() => generarPDF(informe)}

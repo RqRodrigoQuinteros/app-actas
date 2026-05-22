@@ -55,6 +55,7 @@ const SECCIONES = [
   {
     titulo: "Auditor",
     campos: [
+      { id: "tipologia", label: "Tipología", tipo: "select" },
       { id: "arquitecto", label: "Nombre del Arquitecto", tipo: "select" },
       { id: "fecha", label: "Fecha", tipo: "date", placeholder: "dd/mm/aaaa" },
 
@@ -176,7 +177,7 @@ const ARTICULOS_FALLBACK = [
 
 const GENERALES_VACÍO = {
   expDigital: "", expPapel: "", fojasOrdenes: "",
-  nombreEst: "", arquitecto: "", direccion: "", barrio: "",
+  nombreEst: "", tipologia: "", arquitecto: "", direccion: "", barrio: "",
   departamento: "", metros2: "", cantCamas: "", fecha: "",
   cantUTIGral: "", cantUTIAisladas: "",
   cantUCOGral: "", cantUCOAisladas: "",
@@ -486,6 +487,20 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
     g !== '__sin_grupo__' && Object.keys(subs).some(sg => sg !== '__sin_subgrupo__')
   );
 
+  const EXCLUDED_GROUPS = ['Documentacion', 'Documentación', 'Requisitos generales'];
+  const normalize = (value) =>
+    (value || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const isExcludedGroup = (group) =>
+    EXCLUDED_GROUPS.some(excluded => normalize(excluded) === normalize(group));
+  const groupOptions = grupos
+    .map(([g]) => g)
+    .filter(g => g !== '__sin_grupo__' && !isExcludedGroup(g));
+
+  const [selectedGrupo, setSelectedGrupo] = useState('');
+  const gruposFiltrados = selectedGrupo
+    ? grupos.filter(([g]) => g === selectedGrupo || isExcludedGroup(g))
+    : grupos;
+
   const [openGrupos, setOpenGrupos] = useState(() => {
     const initial = {};
     grupos.forEach(([g, subs]) => {
@@ -520,9 +535,37 @@ function ArticulosStep({ articulos, loadingArticulos, checks, obsArt, totalCheck
         <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontSize: "14px" }}>
           Cargando artículos...
         </div>
+      ) : (!esGeriatrico && groupOptions.length > 0) ? (
+        <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <label style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#374151" }}>
+            Filtrar por grupo:
+          </label>
+          <select
+            value={selectedGrupo}
+            onChange={(e) => setSelectedGrupo(e.target.value)}
+            style={{
+              padding: "10px 12px",
+              borderRadius: "8px",
+              border: "1.5px solid #d1d5db",
+              background: "#fff",
+              fontSize: "14px",
+              color: "#111827",
+            }}
+          >
+            <option value="">Todos los grupos</option>
+            {groupOptions.map((grupo) => (
+              <option key={grupo} value={grupo}>{grupo}</option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+      {loadingArticulos ? (
+        <div style={{ textAlign: "center", padding: "24px", color: "#9ca3af", fontSize: "14px" }}>
+          Cargando artículos...
+        </div>
       ) : tieneGrupos && !esGeriatrico ? (
         // Renderizado con acordeón por grupo y subgrupo (solo para no-geriátricos)
-        grupos.map(([grupoNombre, subgrupos]) => {
+        gruposFiltrados.map(([grupoNombre, subgrupos]) => {
           const isGrupoOpen = openGrupos[grupoNombre]?.expanded ?? true;
           const labelGrupo = grupoNombre === '__sin_grupo__' ? 'Sin sección' : grupoNombre;
           const subgruposList = Object.entries(subgrupos);
@@ -660,14 +703,24 @@ export default function InformeArqGeriatricos() {
   const esNuevo = !id;
 
   const [step, setStep] = useState(0);
-  const [generales, setGenerales] = useState(GENERALES_VACÍO);
+  const [generales, setGenerales] = useState({ ...GENERALES_VACÍO, tipologia: location.state?.tipologia_nombre || '' });
   const [checks, setChecks]   = useState({});
   const [obsArt, setObsArt]   = useState({});
   const [articulos, setArticulos]     = useState([]);
+  const [tipologias, setTipologias]   = useState([]);
   const [tipologiaId, setTipologiaId] = useState(location.state?.tipologia_id || null);
   const [tipologiaNombre, setTipologiaNombre] = useState(location.state?.tipologia_nombre || null);
   const [loadingArticulos, setLoadingArticulos] = useState(true);
   const [arquitectos, setArquitectos] = useState([]);
+
+  const normalizeString = (value) =>
+    (value || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const findTipologiaMatch = (nombre) =>
+    tipologias.find(t => normalizeString(t.nombre) === normalizeString(nombre));
+
+  const isGeriatricoName = (nombre) =>
+    normalizeString(nombre).includes('geriatr');
 
   const [guardando, setGuardando]       = useState(false);
   const [generandoPDF, setGenerandoPDF] = useState(false);
@@ -689,7 +742,14 @@ export default function InformeArqGeriatricos() {
     cargarArquitectos();
   }, []);
 
-  // Cargar items de tipología desde la BD (por id o por nombre "Geriátricos")
+  // Cargar tipologías de informes de arquitecto
+  useEffect(() => {
+    informesTemplatesAPI.getTipologias()
+      .then(res => setTipologias(res.data || []))
+      .catch(() => setTipologias([]));
+  }, []);
+
+  // Cargar items de tipología desde la BD (por id o por nombre seleccionado)
   useEffect(() => {
     const cargarItems = async () => {
       try {
@@ -697,13 +757,30 @@ export default function InformeArqGeriatricos() {
         if (tipologiaId) {
           const r = await informesTemplatesAPI.getItems(tipologiaId);
           arts = (r.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
+        } else if (tipologiaNombre) {
+          const localMatch = findTipologiaMatch(tipologiaNombre);
+          if (localMatch) {
+            setTipologiaId(localMatch.id);
+            setTipologiaNombre(localMatch.nombre);
+            const itemsRes = await informesTemplatesAPI.getItems(localMatch.id);
+            arts = (itemsRes.data || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
+          } else {
+            const r = await informesTemplatesAPI.getTipologiaPorNombre(tipologiaNombre);
+            if (r.data) {
+              setTipologiaId(r.data.id);
+              setTipologiaNombre(r.data.nombre);
+              arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
+            } else {
+              arts = [];
+            }
+          }
         } else {
           const r = await informesTemplatesAPI.getTipologiaPorNombre('Geriátricos');
           setTipologiaId(r.data.id);
           if (!tipologiaNombre) setTipologiaNombre(r.data.nombre);
           arts = (r.data.items || []).map(it => ({ nro: it.nro, desc: it.descripcion, grupo: it.grupo || null, subgrupo: it.subgrupo || null, refs: it.refs || null }));
         }
-        const lista = arts.length > 0 ? arts : ARTICULOS_FALLBACK;
+        const lista = arts && arts.length > 0 ? arts : ARTICULOS_FALLBACK;
         setArticulos(lista);
         setChecks(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, false])), ...prev }));
         setObsArt(prev => ({ ...Object.fromEntries(lista.map(a => [a.nro, ""])), ...prev }));
@@ -716,7 +793,32 @@ export default function InformeArqGeriatricos() {
       }
     };
     cargarItems();
-  }, [tipologiaId]);
+  }, [tipologiaId, tipologiaNombre]);
+
+  useEffect(() => {
+    if (!tipologiaId && tipologiaNombre && tipologias.length > 0) {
+      const match = findTipologiaMatch(tipologiaNombre);
+      if (match) setTipologiaId(match.id);
+    }
+  }, [tipologiaId, tipologiaNombre, tipologias]);
+
+  useEffect(() => {
+    if (!generales.tipologia) return;
+    if (isGeriatricoName(generales.tipologia)) return;
+    const match = findTipologiaMatch(generales.tipologia);
+    if (match) {
+      setTipologiaId(match.id);
+      setTipologiaNombre(match.nombre);
+    } else {
+      setTipologiaNombre(generales.tipologia);
+    }
+  }, [generales.tipologia, tipologias]);
+
+  useEffect(() => {
+    if (!tipologiaNombre) return;
+    if (isGeriatricoName(tipologiaNombre)) return;
+    setGenerales(g => ({ ...g, tipologia: tipologiaNombre }));
+  }, [tipologiaNombre]);
 
   // Cargar informe existente
   useEffect(() => {
@@ -727,6 +829,7 @@ export default function InformeArqGeriatricos() {
           setGenerales({ ...GENERALES_VACÍO, ...(df.generales || {}) });
           if (df.tipologia_id) setTipologiaId(df.tipologia_id);
           if (df.tipologia_nombre) setTipologiaNombre(df.tipologia_nombre);
+          else if (df.generales?.tipologia) setTipologiaNombre(df.generales.tipologia);
           if (df.checks) setChecks(prev => ({ ...prev, ...df.checks }));
           if (df.observaciones) setObsArt(prev => ({ ...prev, ...df.observaciones }));
         })
@@ -737,6 +840,8 @@ export default function InformeArqGeriatricos() {
 
   const articulosObservados = articulos.filter(a => checks[a.nro]).map(a => ({ ...a, obs: obsArt[a.nro] || "" }));
   const totalChecked = articulosObservados.length;
+  const selectedTipologia = tipologiaNombre?.trim() || generales.tipologia?.trim() || '';
+  const esGeriatrico = isGeriatricoName(selectedTipologia);
 
   const setGen   = (fid, val) => setGenerales(g => ({ ...g, [fid]: val }));
   const setCheck = (nro, val) => setChecks(c => ({ ...c, [nro]: val }));
@@ -744,21 +849,38 @@ export default function InformeArqGeriatricos() {
 
   const guardar = async () => {
     setGuardando(true); setErrorMsg("");
+    const tipologiaSeleccionada = selectedTipologia;
+    const tipoInforme = tipologiaSeleccionada.toLowerCase().includes('geriátrico')
+      ? 'geriatrico'
+      : (tipologiaSeleccionada || 'otro');
+
+    const generalesConTipologia = {
+      ...generales,
+      tipologia: tipologiaSeleccionada,
+    };
+
     const payload = {
       establecimiento_nombre: generales.nombreEst || "",
       establecimiento_direccion: generales.direccion || "",
       establecimiento_localidad: generales.barrio || "",
       expediente: generales.expDigital || generales.expPapel || "",
       fecha: generales.fecha || new Date().toISOString().split('T')[0],
-      datos_formulario: { generales, checks, observaciones: obsArt, tipo: "geriatrico", tipologia_id: tipologiaId, tipologia_nombre: tipologiaNombre },
+      datos_formulario: {
+        generales: generalesConTipologia,
+        checks,
+        observaciones: obsArt,
+        tipo: tipoInforme,
+        tipologia_id: tipologiaId,
+        tipologia_nombre: tipologiaSeleccionada,
+      },
       observaciones: generales.observaciones || "",
-      tipo: "geriatrico",
+      tipo: tipoInforme,
     };
     try {
       if (esNuevo) {
         const res = await informesAPI.create(payload);
         setGuardadoOk(true);
-        setTimeout(() => navigate(`/informe/geriatricos/${res.data.id}`, { replace: true }), 600);
+        setTimeout(() => navigate(`/informe/${res.data.id}`, { replace: true }), 600);
       } else {
         await informesAPI.update(id, payload);
         setGuardadoOk(true);
@@ -775,7 +897,7 @@ export default function InformeArqGeriatricos() {
         ...generales,
         fecha: formatDate(generales.fecha),
         articulosObservados,
-        tipologia_nombre: tipologiaNombre || 'Geriátricos',
+        tipologia_nombre: selectedTipologia,
       }, { responseType: "blob" });
       const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
       const link = document.createElement("a");
@@ -819,7 +941,7 @@ export default function InformeArqGeriatricos() {
             </button>
             <span style={{ color: "#d1d5db" }}>/</span>
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", background: "#f3e8ff", padding: "2px 9px", borderRadius: "20px", letterSpacing: "0.05em" }}>
-              {(tipologiaNombre || 'GERIÁTRICOS').toUpperCase()}
+              {(selectedTipologia || 'GERIÁTRICOS').toUpperCase()}
             </span>
           </div>
           <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>
@@ -873,7 +995,7 @@ export default function InformeArqGeriatricos() {
         <div>
           {SECCIONES
             .filter(sec => {
-              if ((tipologiaNombre || '').toLowerCase().includes('geriátrico')) {
+              if (esGeriatrico) {
                 return sec.titulo !== 'Radiofísica' && sec.titulo !== 'Otros';
               }
               return true;
@@ -883,15 +1005,17 @@ export default function InformeArqGeriatricos() {
               <p style={S.sectionTitle}>{sec.titulo}</p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 {sec.campos.map(c => (
+                c.id === 'tipologia' && esGeriatrico ? null : (
                   <div key={c.id} style={{ gridColumn: (c.textarea || c.fullWidth || c.tipo === "conclusion") ? "1 / -1" : "auto" }}>
                     <Campo 
                       c={c} 
                       valor={generales[c.id]} 
                       onChange={v => setGen(c.id, v)}
-                      opciones={c.id === "arquitecto" ? arquitectos : c.opciones}
+                      opciones={c.id === "arquitecto" ? arquitectos : c.id === "tipologia" ? tipologias.map(t => t.nombre) : c.opciones}
                     />
                   </div>
-                ))}
+                )
+              ))}
               </div>
             </div>
           ))}
@@ -910,7 +1034,7 @@ export default function InformeArqGeriatricos() {
           totalChecked={totalChecked}
           setCheck={setCheck} setObs={setObs}
           onBack={() => setStep(0)} onNext={() => setStep(2)}
-          esGeriatrico={(tipologiaNombre || '').toLowerCase().includes('geriátrico')}
+          esGeriatrico={esGeriatrico}
         />
       )}
 
@@ -946,7 +1070,7 @@ export default function InformeArqGeriatricos() {
         <div>
           {/* Cabecera del informe */}
           <div style={S.card}>
-            <p style={{ ...S.sectionTitle, marginBottom: "16px" }}>Evaluación Técnica {tipologiaNombre || 'Geriátricos'} — Fiscalización Edilicia</p>
+            <p style={{ ...S.sectionTitle, marginBottom: "16px" }}>Evaluación Técnica {selectedTipologia || 'Geriátricos'} — Fiscalización Edilicia</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 32px", fontSize: "13px" }}>
               {[
                 ["Auditor Arquitectura", generales.arquitecto],

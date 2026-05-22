@@ -93,6 +93,18 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
+      <Route path="/informe/nuevo" element={
+        <ProtectedRoute roles={['arquitecto']}>
+          <InformeArqGeriatricos />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/informe/:id" element={
+        <ProtectedRoute roles={['arquitecto', 'supervisor']}>
+          <InformeArqGeriatricos />
+        </ProtectedRoute>
+      } />
+
       <Route path="/informe/geriatricos/nuevo" element={
         <ProtectedRoute roles={['arquitecto']}>
           <InformeArqGeriatricos />
