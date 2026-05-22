@@ -106,20 +106,17 @@ const getVencimientoStatus = (acta) => {
 export default function SupervisorDash() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState('actas'); // 'actas' | 'informes'
+  const [tab, setTab] = useState('actas'); 
 
   // ── ACTAS ─────────────────────────────────────────────────────────────────
   const [actas, setActas] = useState([]);
   const [loadingActas, setLoadingActas] = useState(true);
   const [inspectores, setInspectores] = useState([]);
   
-  // Se quitó el campo 'estado' y se agregó 'tipologia' a los filtros de actas
   const [filtrosActas, setFiltrosActas] = useState({
     inspector_id: '', tipologia: '', fechaDesde: '', fechaHasta: '',
   });
   const [vencimientoFilter, setVencimientoFilter] = useState('all');
-
-  // Listado de tipologías recolectadas dinámicamente de las actas para el select
   const [tipologiasActas, setTipologiasActas] = useState([]);
 
   // ── INFORMES ──────────────────────────────────────────────────────────────
@@ -131,15 +128,12 @@ export default function SupervisorDash() {
   });
   const [pdfCargando, setPdfCargando] = useState(null);
 
-  useEffect(() => { loadActas(); }, [filtrosActas]);
+  useEffect(() => { loadActas(); }, [filtrosActas.fechaDesde, filtrosActas.fechaHasta, filtrosActas.inspector_id]);
   useEffect(() => { loadInformes(); }, []);
 
   const loadActas = async () => {
     setLoadingActas(true);
     try {
-      // Omitir filtros locales de frontend para enviarle los correctos a Supabase
-      // Quitamos 'tipologia' de los parámetros de URL si tu backend no lo procesa directo, 
-      // ya que realizamos el filtrado dinámico en cascada en el frontend más abajo.
       const paramsApi = {
         inspector_id: filtrosActas.inspector_id,
         fechaDesde: filtrosActas.fechaDesde,
@@ -151,15 +145,22 @@ export default function SupervisorDash() {
       );
       
       const response = await actasAPI.getAll(params);
-      setActas(response.data);
+      const dataActas = response.data || [];
+      setActas(dataActas);
       
-      // Extraer inspectores únicos
-      const uniqInspectores = [...new Map(response.data.map(a => [a.inspector_id, a.inspector])).values()]
-        .filter(Boolean);
-      setInspectores(uniqInspectores);
+      // CORRECCIÓN AQUÍ: Extraer inspectores únicos asegurando que tengan ID válido desde la relación o la raíz
+      const mapInspectores = new Map();
+      dataActas.forEach(a => {
+        const idIns = a.inspector_id || a.inspector?.id;
+        const objIns = a.inspector;
+        if (idIns && objIns && !mapInspectores.has(idIns)) {
+          mapInspectores.set(idIns, { id: idIns, nombre: objIns.nombre || objIns.username || 'Inspector' });
+        }
+      });
+      setInspectores(Array.from(mapInspectores.values()));
 
-      // Extraer tipologías únicas de las actas de forma dinámica para llenar el desplegable
-      const uniqTipologias = [...new Set(response.data.map(a => a.establecimiento_tipologia).filter(Boolean))];
+      // Extraer tipologías únicas
+      const uniqTipologias = [...new Set(dataActas.map(a => a.establecimiento_tipologia).filter(Boolean))];
       setTipologiasActas(uniqTipologias);
       
     } catch (err) {
@@ -205,7 +206,7 @@ export default function SupervisorDash() {
           .map(nro => ({ nro, desc: '', obs: obsArt[nro] || '' }));
         response = await api.post('/pdf/geriatrico', {
           ...df,
-          artículosObservados,
+          articulosObservados,
           tipologia_nombre: informe.datos_formulario?.tipologia_nombre || 'Geriátricos',
         }, { responseType: 'blob' });
       } else {
@@ -221,7 +222,6 @@ export default function SupervisorDash() {
     finally { setPdfCargando(null); }
   };
 
-  // Procesar vencimientos de todas las actas base
   const actasConVencimiento = actas.map((acta) => {
     const emplazamientoValor = acta.emplazamiento_valor;
     const emplazamientoTipo = acta.emplazamiento_tipo;
@@ -230,19 +230,22 @@ export default function SupervisorDash() {
     return { ...acta, dueDate, vencimientoStatus };
   });
 
-  // Filtros aplicados en cascada completa en frontend (Inspector, Tipología, Fechas y KPI Vencimiento)
+  // Filtrado dinámico robusto en cascada
   const actasFiltradas = actasConVencimiento.filter((acta) => {
-    // 1. Filtro KPI de Tarjeta Superior
+    // 1. Filtro KPI
     if (vencimientoFilter && vencimientoFilter !== 'all') {
       if (acta.vencimientoStatus !== vencimientoFilter) return false;
     }
     
-    // 2. Filtro desplegable de Inspector
-    if (filtrosActas.inspector_id && String(acta.inspector_id) !== String(filtrosActas.inspector_id)) {
-      return false;
+    // 2. CORRECCIÓN CRÍTICA: Compara contra acta.inspector_id o contra acta.inspector.id de forma segura
+    if (filtrosActas.inspector_id) {
+      const idDelActa = String(acta.inspector_id || acta.inspector?.id || '');
+      if (idDelActa !== String(filtrosActas.inspector_id)) {
+        return false;
+      }
     }
 
-    // 3. Filtro desplegable de Tipología (Reemplazó al Estado)
+    // 3. Filtro por Tipología
     if (filtrosActas.tipologia && acta.establecimiento_tipologia !== filtrosActas.tipologia) {
       return false;
     }
@@ -280,16 +283,15 @@ export default function SupervisorDash() {
     const emplazamientoTipo = acta.emplazamiento_tipo || '';
     const dueText = emplazamientoValor !== undefined && emplazamientoValor !== null ? `${emplazamientoValor} ${emplazamientoTipo}`.trim() : '-';
     
-    // Alertas visuales condicionales según el estado de vencimiento del acta
     let rowBgStyle = {};
     let statusIndicator = null;
     
     if (acta.vencimientoStatus === 'vencida') {
-      rowBgStyle = { backgroundColor: '#fef2f2' }; // Fondo rojo muy suave
-      statusIndicator = <span className="ml-2 text-red-600 font-bold" title="Plazo Vencido">⚠️ VENCIDA</span>;
+      rowBgStyle = { backgroundColor: '#fef2f2' }; 
+      statusIndicator = <span className="ml-2 text-red-600 font-bold text-xs" title="Plazo Vencido">⚠️ VENCIDA</span>;
     } else if (acta.vencimientoStatus === 'proxima') {
-      rowBgStyle = { backgroundColor: '#fffbeb' }; // Fondo amarillo muy suave
-      statusIndicator = <span className="ml-2 text-amber-600 font-bold" title="Próxima a vencer">⏳ CRÍTICA</span>;
+      rowBgStyle = { backgroundColor: '#fffbeb' }; 
+      statusIndicator = <span className="ml-2 text-amber-600 font-bold text-xs" title="Próxima a vencer">⏳ CRÍTICA</span>;
     }
 
     return (
@@ -299,7 +301,7 @@ export default function SupervisorDash() {
         className="hover:bg-gray-100"
       >
         <td className="p-3 text-base">{formatDateDDMMYYYY(acta.created_at || acta.fecha)}</td>
-        <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || '-'}</td>
+        <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || acta.inspector?.username || '-'}</td>
         <td className="p-3">
           <div className="flex items-center">
             <div className="text-sm font-medium text-gray-900">{acta.establecimiento_nombre || 'Sin nombre'}</div>
@@ -359,7 +361,7 @@ export default function SupervisorDash() {
         {/* ── TAB ACTAS ── */}
         {tab === 'actas' && (
           <>
-            {/* Filtros actas modificados (Se quitó el Estado y se agregó la Tipología) */}
+            {/* Filtros actas */}
             <div className="card mb-5">
               <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros Actas</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -370,7 +372,7 @@ export default function SupervisorDash() {
                     style={S.filterInput}>
                     <option value="">Todos</option>
                     {inspectores.map(ins => (
-                      <option key={ins?.id} value={ins?.id}>{ins?.nombre}</option>
+                      <option key={ins.id} value={ins.id}>{ins.nombre}</option>
                     ))}
                   </select>
                 </div>
@@ -400,7 +402,7 @@ export default function SupervisorDash() {
               </div>
             </div>
 
-            {/* Panel superior de KPIs de vencimiento */}
+            {/* Panel superior de KPIs */}
             <div className="grid gap-4 mb-5 sm:grid-cols-3">
               <button
                 type="button"
