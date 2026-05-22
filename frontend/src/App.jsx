@@ -129,11 +129,11 @@ function AppRoutes() {
        <Route path="/rodrigoAdmin" element={
          loading ? (
            <div className="flex items-center justify-center min-h-screen">
-             <p className="text-xl text-gray-500">Cargando...</p>
+             <p className="text-xl text-gray-400">Cargando...</p>
            </div>
          ) : usuario?.rol === 'admin' ? (
            <RodrigoAdmin />
-         ) : usuario?.rol ? (
+         ) : usuario ? (
            <Navigate to="/" replace />
          ) : (
            <Navigate to="/rodrigoAdmin-login" replace />

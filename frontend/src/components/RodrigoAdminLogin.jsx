@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function RodrigoAdminLogin() {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,14 +15,10 @@ export default function RodrigoAdminLogin() {
     setError('');
     setLoading(true);
 
-    console.log('Intentando login con:', { dni, rol: 'admin', passwordLength: password?.length });
-
     try {
-      const usuario = await login(dni, 'admin', password);
-      console.log('Login exitoso:', usuario);
-      window.location.href = '/rodrigoAdmin';
+      await login(dni, 'admin', password);
+      navigate('/rodrigoAdmin');
     } catch (err) {
-      console.error('Error login:', err);
       const msgBackend = err.response?.data?.error;
       const msgNetwork = err.message || err.toString();
       setError(msgBackend || `Error: ${msgNetwork}`);
