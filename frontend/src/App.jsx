@@ -13,6 +13,7 @@ import AdminLogin from './components/AdminLogin';
 import EditarActa from './components/EditarActa';
 import RodrigoAdmin from './components/RodrigoAdmin';
 import RodrigoAdminLogin from './components/RodrigoAdminLogin';
+import RodrigoAdminTest from './components/RodrigoAdminTest';
 
 function ProtectedRoute({ children, roles, loginPath }) {
   const { usuario, loading } = useAuth();
@@ -124,11 +125,7 @@ function AppRoutes() {
          </ProtectedRoute>
        } />
 
-        <Route path="/rodrigoAdmin" element={
-          <ProtectedRoute roles={['admin', 'supervisor']} loginPath="/rodrigoAdmin-login">
-            <RodrigoAdmin />
-          </ProtectedRoute>
-        } />
+         <Route path="/rodrigoAdmin" element={<RodrigoAdmin />} />
      </Routes>
   );
 }

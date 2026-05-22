@@ -1,7 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { actasAPI, informesAPI } from '../utils/api';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Cliente axios DEDICADO para RodrigoAdmin - SIN interceptores que redirijan
+const rodriApi = axios.create({
+  baseURL: `${API_URL}/api`,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Agregar token a requests DESDE NUESTRA PROPIA CLAVE
+rodriApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('rodri_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// NO redirigir automáticamente en 401/403 - manejarlo manualmente
+rodriApi.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
+);
 
 const ESTADO_COLORS = {
   borrador: '#d97706',
@@ -30,10 +50,70 @@ const detectarTipoInforme = (informe) => {
     || 'geriatrico';
 };
 
+// Usamos CLAVES SEPARADAS para no conflictuar con otras sesiones
+const RODRI_TOKEN_KEY = 'rodri_token';
+const RODRI_USER_KEY = 'rodri_usuario';
+
+const getStoredRodri = () => {
+  try {
+    const stored = localStorage.getItem(RODRI_USER_KEY);
+    const token = localStorage.getItem(RODRI_TOKEN_KEY);
+    if (stored && token) {
+      return JSON.parse(stored);
+    }
+  } catch {}
+  return null;
+};
+
+const setRodriAuth = (token, usuario) => {
+  localStorage.setItem(RODRI_TOKEN_KEY, token);
+  localStorage.setItem(RODRI_USER_KEY, JSON.stringify(usuario));
+};
+
+const clearRodriAuth = () => {
+  localStorage.removeItem(RODRI_TOKEN_KEY);
+  localStorage.removeItem(RODRI_USER_KEY);
+};
+
+// Funciones API dedicadas
+const rodriLogin = async (dni, rol, password) => {
+  const res = await rodriApi.post('/auth/login', { dni, rol, password });
+  return res.data;
+};
+
+const rodriGetActas = async () => {
+  const res = await rodriApi.get('/actas');
+  return res.data;
+};
+
+const rodriGetInformes = async () => {
+  const res = await rodriApi.get('/informes');
+  return res.data;
+};
+
+const rodriDeleteActa = async (id) => {
+  const res = await rodriApi.delete(`/actas/${id}`);
+  return res.data;
+};
+
+const rodriDeleteInforme = async (id) => {
+  const res = await rodriApi.delete(`/informes/${id}`);
+  return res.data;
+};
+
 export default function RodrigoAdmin() {
-  const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState('actas');
+
+  // Auth state
+  const [authChecked, setAuthChecked] = useState(false);
+  const [usuarioAuth, setUsuarioAuth] = useState(null);
+
+  // Login form state
+  const [loginDni, setLoginDni] = useState('00000000');
+  const [loginPassword, setLoginPassword] = useState('Admin2026');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   // ── ACTAS ─────────────────────────────────────────────────────────────────
   const [actas, setActas] = useState([]);
@@ -53,7 +133,7 @@ export default function RodrigoAdmin() {
 
   // ── GLOBAL ─────────────────────────────────────────────────────────────────
   const [eliminando, setEliminando] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null); // { tipo: 'acta'|'informe', id, nombre }
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   // ── UNICOS PARA FILTROS ────────────────────────────────────────────────────
   const inspectoresUnicos = [...new Map(
@@ -64,20 +144,20 @@ export default function RodrigoAdmin() {
     informesOriginal.map(i => [i.arquitecto_id, i.arquitecto])
   ).values()].filter(Boolean).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
-  useEffect(() => {
-    loadActas();
-    loadInformes();
-  }, []);
-
+  // ── LOAD DATA ──────────────────────────────────────────────────────────────
   const loadActas = async () => {
     setLoadingActas(true);
     try {
-      const response = await actasAPI.getAll({});
-      const data = response.data || [];
-      setActas(data);
-      setActasOriginal(data);
+      const data = await rodriGetActas();
+      setActas(data || []);
+      setActasOriginal(data || []);
     } catch (err) {
       console.error('Error cargando actas:', err);
+      // Si error 401/403, limpiar auth
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        clearRodriAuth();
+        setUsuarioAuth(null);
+      }
     } finally {
       setLoadingActas(false);
     }
@@ -86,16 +166,35 @@ export default function RodrigoAdmin() {
   const loadInformes = async () => {
     setLoadingInformes(true);
     try {
-      const response = await informesAPI.getAll();
-      const data = response.data || [];
-      setInformes(data);
-      setInformesOriginal(data);
+      const data = await rodriGetInformes();
+      setInformes(data || []);
+      setInformesOriginal(data || []);
     } catch (err) {
       console.error('Error cargando informes:', err);
     } finally {
       setLoadingInformes(false);
     }
   };
+
+  // ── AUTH CHECK ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    console.log('=== RodrigoAdmin MONTADO ===');
+    const stored = getStoredRodri();
+    console.log('RodrigoAuth stored:', stored);
+    
+    if (stored && (stored.rol === 'admin' || stored.rol === 'supervisor')) {
+      console.log('Auth VALIDO, cargando datos...');
+      setUsuarioAuth(stored);
+      loadActas();
+      loadInformes();
+    } else {
+      console.log('Auth NO valido o inexistente. Mostrando login.');
+      if (stored) {
+        clearRodriAuth();
+      }
+    }
+    setAuthChecked(true);
+  }, []);
 
   // ── FILTRADO DINAMICO ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -133,8 +232,52 @@ export default function RodrigoAdmin() {
     if (filtroEstadoInforme) {
       resultado = resultado.filter(i => i.estado === filtroEstadoInforme);
     }
-    setInformes(resultado);
-  }, [busquedaInformes, filtroArquitecto, filtroEstadoInforme, informesOriginal]);
+     setInformes(resultado);
+   }, [busquedaInformes, filtroArquitecto, filtroEstadoInforme, informesOriginal]);
+
+   // ── LOGIN ──────────────────────────────────────────────────────────────────
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginLoading(true);
+
+    console.log('[RodrigoAdmin] Login attempt:', { dni: loginDni });
+
+    try {
+      let data;
+      try {
+        data = await rodriLogin(loginDni, 'admin', loginPassword);
+      } catch (errAdmin) {
+        try {
+          data = await rodriLogin(loginDni, 'supervisor', loginPassword);
+        } catch {
+          throw errAdmin;
+        }
+      }
+
+      console.log('[RodrigoAdmin] Login OK:', data.usuario);
+
+      const { token, usuario } = data;
+      setRodriAuth(token, usuario);
+      setUsuarioAuth(usuario);
+
+      loadActas();
+      loadInformes();
+    } catch (err) {
+      console.error('[RodrigoAdmin] Login error:', err);
+      const msgBackend = err.response?.data?.error;
+      const msgNetwork = err.message || err.toString();
+      setLoginError(msgBackend || `Error: ${msgNetwork}`);
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    clearRodriAuth();
+    setUsuarioAuth(null);
+    setLoginError('');
+  };
 
   // ── ELIMINAR ───────────────────────────────────────────────────────────────
   const handleConfirmarEliminar = async () => {
@@ -144,10 +287,10 @@ export default function RodrigoAdmin() {
     setEliminando(id);
     try {
       if (tipo === 'acta') {
-        await actasAPI.remove(id);
+        await rodriDeleteActa(id);
         await loadActas();
       } else {
-        await informesAPI.remove(id);
+        await rodriDeleteInforme(id);
         await loadInformes();
       }
     } catch (err) {
@@ -163,6 +306,91 @@ export default function RodrigoAdmin() {
     setConfirmDelete({ tipo, id, nombre });
   };
 
+  // ── LOGIN SCREEN ──────────────────────────────────────────────────────────
+  if (!authChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="text-5xl mb-4">🔐</div>
+          <p className="text-xl text-gray-500">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!usuarioAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-700 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: '64px', height: '64px', borderRadius: '18px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              marginBottom: '16px',
+              fontSize: '32px'
+            }}>
+              🔧
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">RodrigoAdmin</h1>
+            <p className="text-slate-400">Panel de Super Administración</p>
+          </div>
+
+          <div className="card">
+            <h2 className="text-xl font-bold text-center mb-6">Iniciar Sesión</h2>
+
+            <form onSubmit={handleLogin}>
+              <div className="mb-4">
+                <label className="label-field">DNI</label>
+                <input
+                  type="text"
+                  value={loginDni}
+                  onChange={(e) => setLoginDni(e.target.value)}
+                  className="input-field"
+                  placeholder="Ingrese su DNI"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="label-field">Contraseña</label>
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="input-field"
+                  placeholder="Ingrese su contraseña"
+                  required
+                />
+              </div>
+
+              {loginError && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center text-sm">
+                  {loginError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="btn-primary disabled:opacity-50 w-full"
+              >
+                {loginLoading ? 'Ingresando...' : 'Ingresar'}
+              </button>
+            </form>
+
+            <div className="mt-4 p-3 bg-slate-50 rounded-lg text-center">
+              <p className="text-xs text-slate-500">Credenciales por defecto:</p>
+              <p className="text-xs font-mono text-slate-600 mt-1">DNI: 00000000 | Pass: Admin2026</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── DASHBOARD ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── MODAL CONFIRMACION ELIMINAR ────────────────────────────────────── */}
@@ -225,7 +453,7 @@ export default function RodrigoAdmin() {
             </div>
             <h1 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>RodrigoAdmin</h1>
             <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>
-              {usuario?.nombre} • {usuario?.rol}
+              {usuarioAuth?.nombre} • {usuarioAuth?.rol}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -248,7 +476,7 @@ export default function RodrigoAdmin() {
               👁 Supervisor
             </button>
             <button
-              onClick={logout}
+              onClick={handleLogout}
               style={{
                 padding: '8px 14px', fontSize: '12px', fontWeight: 600,
                 borderRadius: '8px', border: 'none', cursor: 'pointer',
@@ -384,7 +612,7 @@ export default function RodrigoAdmin() {
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    {/* Header: fecha + inspector */}
+                    {/* Header: fecha + estado */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <div style={{
                         fontSize: '11px', fontWeight: 700, color: '#6366f1',
@@ -581,7 +809,7 @@ export default function RodrigoAdmin() {
                         e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      {/* Header: fecha + tipologia */}
+                      {/* Header: fecha + estado */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div style={{
                           fontSize: '11px', fontWeight: 700, color: '#374151',

@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function RodrigoAdminLogin() {
   const { login } = useAuth();
-  const [dni, setDni] = useState('');
-  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const [dni, setDni] = useState('00000000');
+  const [password, setPassword] = useState('Admin2026');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,7 +25,7 @@ export default function RodrigoAdminLogin() {
           throw errAdmin;
         }
       }
-      window.location.href = '/rodrigoAdmin';
+      navigate('/rodrigoAdmin');
     } catch (err) {
       const msgBackend = err.response?.data?.error;
       const msgNetwork = err.message || err.toString();

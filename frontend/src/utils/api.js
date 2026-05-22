@@ -13,21 +13,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      const path = window.location.pathname;
-      const esLoginPage = path === '/login' || path === '/supervisor-login';
-      if (!esLoginPage) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuario');
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+ api.interceptors.response.use(
+   (response) => response,
+   (error) => {
+     if (error.response?.status === 401 || error.response?.status === 403) {
+       const path = window.location.pathname;
+       const esLoginPage = path === '/login' 
+         || path === '/supervisor-login' 
+         || path === '/admin'
+         || path === '/rodrigoAdmin'
+         || path === '/rodrigoAdmin-login';
+       
+       if (!esLoginPage) {
+         localStorage.removeItem('token');
+         localStorage.removeItem('usuario');
+         window.location.href = '/login';
+       }
+     }
+     return Promise.reject(error);
+   }
+ );
 
 export const authAPI = {
   login: (dni, rol, password) => api.post('/auth/login', { dni, rol, password }),
