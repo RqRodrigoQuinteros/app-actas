@@ -281,9 +281,10 @@ function TabTipologias() {
   const seleccionar = (tip) => cargarDetalle(tip.id);
 
   // ── Nueva tipología ──────────────────────────────────────────────────────
-  function FormNuevaTipologia({ onClose }) {
+ function FormNuevaTipologia({ onClose }) {
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
+    const [leyMarco, setLeyMarco] = useState(''); // <-- 1. NUEVO ESTADO
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
 
@@ -291,9 +292,14 @@ function TabTipologias() {
       if (!nombre.trim()) return setError('El nombre es requerido');
       setGuardando(true);
       try {
-        await templatesAPI.crearTipologia({ nombre: nombre.trim(), descripcion });
+        await templatesAPI.crearTipologia({ 
+          nombre: nombre.trim(), 
+          descripcion,
+          ley_marco: leyMarco.trim() // <-- 2. ENVIAR AL BACKEND
+        });
         await cargarTipologias();
         onClose();
+      // ... resto del catch y finally
       } catch (e) {
         setError(e.response?.data?.error || 'Error al crear');
       } finally {
@@ -318,6 +324,10 @@ function TabTipologias() {
           <button style={S.btn('blue')} onClick={guardar} disabled={guardando}>
             {guardando ? 'Creando...' : 'Crear tipología'}
           </button>
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={S.label}>Ley / Marco Legal del Encabezado (Opcional)</label>
+          <input style={S.input} value={leyMarco} onChange={e => setLeyMarco(e.target.value)} placeholder="Ej: Ley N° 8432" />
         </div>
       </>
     );
