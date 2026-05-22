@@ -594,6 +594,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         responsable_nombre: acta.responsable_nombre || '',
         responsable_dni: acta.responsable_dni || '',
         responsable_caracter: acta.responsable_caracter || '',
+        ley_marco: acta.ley_marco || '', // <-- AGREGAR ESTA LÍNEA
         seccionesHTML,
         observaciones: acta.observaciones || '',
         show_emplazamiento: !/^equipamiento$/i.test((acta.establecimiento_tipologia || acta.tipologia || '').trim()),
