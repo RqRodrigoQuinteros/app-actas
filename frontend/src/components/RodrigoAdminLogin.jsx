@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function RodrigoAdminLogin() {
   const { login } = useAuth();
-  const navigate = useNavigate();
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,8 +14,16 @@ export default function RodrigoAdminLogin() {
     setLoading(true);
 
     try {
-      await login(dni, 'admin', password);
-      navigate('/rodrigoAdmin');
+      try {
+        await login(dni, 'admin', password);
+      } catch (errAdmin) {
+        try {
+          await login(dni, 'supervisor', password);
+        } catch (errSuper) {
+          throw errAdmin;
+        }
+      }
+      window.location.href = '/rodrigoAdmin';
     } catch (err) {
       const msgBackend = err.response?.data?.error;
       const msgNetwork = err.message || err.toString();

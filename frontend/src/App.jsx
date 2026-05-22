@@ -14,22 +14,20 @@ import EditarActa from './components/EditarActa';
 import RodrigoAdmin from './components/RodrigoAdmin';
 import RodrigoAdminLogin from './components/RodrigoAdminLogin';
 
-function ProtectedRoute({ children, roles }) {
+function ProtectedRoute({ children, roles, loginPath }) {
   const { usuario, loading } = useAuth();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-xl">Cargando...</p>
+        <p className="text-xl text-gray-400">Cargando...</p>
       </div>
     );
   }
 
   if (!usuario) {
-    if (roles?.includes('admin')) {
-      return <Navigate to="/admin" replace />;
-    }
-    return <Navigate to="/login" replace />;
+    const redirectTo = loginPath || (roles?.includes('admin') ? '/admin' : '/login');
+    return <Navigate to={redirectTo} replace />;
   }
 
   if (roles && !roles.includes(usuario.rol)) {
@@ -126,19 +124,11 @@ function AppRoutes() {
          </ProtectedRoute>
        } />
 
-       <Route path="/rodrigoAdmin" element={
-         loading ? (
-           <div className="flex items-center justify-center min-h-screen">
-             <p className="text-xl text-gray-400">Cargando...</p>
-           </div>
-         ) : usuario?.rol === 'admin' ? (
-           <RodrigoAdmin />
-         ) : usuario ? (
-           <Navigate to="/" replace />
-         ) : (
-           <Navigate to="/rodrigoAdmin-login" replace />
-         )
-       } />
+        <Route path="/rodrigoAdmin" element={
+          <ProtectedRoute roles={['admin', 'supervisor']} loginPath="/rodrigoAdmin-login">
+            <RodrigoAdmin />
+          </ProtectedRoute>
+        } />
      </Routes>
   );
 }
