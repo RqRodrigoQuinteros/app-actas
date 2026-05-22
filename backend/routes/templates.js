@@ -187,7 +187,8 @@ router.get('/tipologias/por-nombre/:nombre', async (req, res) => {
 // Crea una tipología nueva (solo supervisor)
 router.post('/tipologias', soloSupervisor, async (req, res) => {
   try {
-    const { nombre, descripcion } = req.body;
+    // Extraer ley_marco del body
+    const { nombre, descripcion, ley_marco } = req.body; 
 
     if (!nombre) {
       return res.status(400).json({ error: 'nombre es requerido' });
@@ -195,7 +196,7 @@ router.post('/tipologias', soloSupervisor, async (req, res) => {
 
     const { data, error } = await supabase
       .from('template_tipologia')
-      .insert({ nombre, descripcion })
+      .insert({ nombre, descripcion, ley_marco }) // <-- AGREGAR AQUÍ
       .select()
       .single();
 
