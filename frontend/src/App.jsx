@@ -40,7 +40,7 @@ function ProtectedRoute({ children, roles }) {
 }
 
 function AppRoutes() {
-  const { usuario } = useAuth();
+  const { usuario, loading } = useAuth();
 
   return (
     <Routes>
@@ -127,11 +127,17 @@ function AppRoutes() {
        } />
 
        <Route path="/rodrigoAdmin" element={
-         usuario?.rol === 'admin'
-           ? <RodrigoAdmin />
-           : usuario?.rol
-             ? <Navigate to="/" replace />
-             : <Navigate to="/rodrigoAdmin-login" replace />
+         loading ? (
+           <div className="flex items-center justify-center min-h-screen">
+             <p className="text-xl text-gray-500">Cargando...</p>
+           </div>
+         ) : usuario?.rol === 'admin' ? (
+           <RodrigoAdmin />
+         ) : usuario?.rol ? (
+           <Navigate to="/" replace />
+         ) : (
+           <Navigate to="/rodrigoAdmin-login" replace />
+         )
        } />
      </Routes>
   );

@@ -13,11 +13,17 @@ export default function RodrigoAdminLogin() {
     setError('');
     setLoading(true);
 
+    console.log('Intentando login con:', { dni, rol: 'admin', passwordLength: password?.length });
+
     try {
-      await login(dni, 'admin', password);
+      const usuario = await login(dni, 'admin', password);
+      console.log('Login exitoso:', usuario);
       window.location.href = '/rodrigoAdmin';
     } catch (err) {
-      setError(err.response?.data?.error || 'Credenciales inválidas');
+      console.error('Error login:', err);
+      const msgBackend = err.response?.data?.error;
+      const msgNetwork = err.message || err.toString();
+      setError(msgBackend || `Error: ${msgNetwork}`);
     } finally {
       setLoading(false);
     }
