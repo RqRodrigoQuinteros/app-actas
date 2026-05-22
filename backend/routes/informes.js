@@ -186,4 +186,36 @@ router.patch('/:id/cidi', async (req, res) => {
   }
 });
 
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rol, id: userId } = req.user;
+
+    const { data: existingInforme } = await supabase
+      .from('informes')
+      .select('arquitecto_id')
+      .eq('id', id)
+      .single();
+
+    if (!existingInforme) {
+      return res.status(404).json({ error: 'Informe no encontrado' });
+    }
+
+    if (rol === 'arquitecto' && existingInforme.arquitecto_id !== userId) {
+      return res.status(403).json({ error: 'No tienes acceso a este informe' });
+    }
+
+    const { error } = await supabase
+      .from('informes')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    res.json({ message: 'Informe eliminado' });
+  } catch (err) {
+    console.error('Error deleting informe:', err);
+    res.status(500).json({ error: 'Error al eliminar informe' });
+  }
+});
+
 module.exports = router;

@@ -69,6 +69,7 @@ export const informesAPI = {
   create: (data) => api.post('/informes', data),
   update: (id, data) => api.put(`/informes/${id}`, data),
   toggleCidi: (id) => api.patch(`/informes/${id}/cidi`),
+  remove: (id) => api.delete(`/informes/${id}`),
 };
 
 export default api;

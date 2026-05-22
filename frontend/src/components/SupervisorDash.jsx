@@ -38,6 +38,71 @@ const TIPOLOGIA_COLORS = {
   geriatrico: '#7c3aed', otro: '#6b7280',
 };
 
+const FERIADOS_2026 = [
+  '2026-01-01', '2026-02-24', '2026-02-25', '2026-03-24',
+  '2026-04-02', '2026-05-01', '2026-05-25', '2026-06-20',
+  '2026-07-09', '2026-08-17', '2026-10-12', '2026-12-08', '2026-12-25',
+];
+
+const formatDateISO = (dateValue) => {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const formatDateDDMMYYYY = (dateValue) => {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return '-';
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+const isHoliday = (date) => FERIADOS_2026.includes(formatDateISO(date));
+
+const addBusinessDays = (startDate, days) => {
+  const current = new Date(startDate);
+  let added = 0;
+  while (added < Number(days)) {
+    current.setDate(current.getDate() + 1);
+    const day = current.getDay();
+    const iso = formatDateISO(current);
+    if (day === 0 || day === 6 || isHoliday(iso)) {
+      continue;
+    }
+    added += 1;
+  }
+  return current;
+};
+
+const calculateDueDate = (createdAt, emplazamientoTipo, emplazamientoValor) => {
+  if (!createdAt || !emplazamientoTipo || emplazamientoValor == null) return null;
+  const start = new Date(createdAt);
+  if (Number.isNaN(start.getTime())) return null;
+  const tipo = String(emplazamientoTipo).trim().toUpperCase();
+  const valor = Number(emplazamientoValor);
+  if (tipo === 'HORAS') {
+    return new Date(start.getTime() + valor * 60 * 60 * 1000);
+  }
+  if (tipo === 'DÍAS' || tipo === 'DIAS') {
+    return addBusinessDays(start, valor);
+  }
+  return null;
+};
+
+const getVencimientoStatus = (acta) => {
+  const dueDate = calculateDueDate(acta.created_at || acta.fecha, acta.emplazamiento_tipo, acta.emplazamiento_valor);
+  if (!dueDate) return 'alDia';
+  const now = new Date();
+  if (dueDate < now) return 'vencida';
+  const next72h = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+  return dueDate <= next72h ? 'proxima' : 'alDia';
+};
+
 export default function SupervisorDash() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
@@ -50,6 +115,7 @@ export default function SupervisorDash() {
   const [filtrosActas, setFiltrosActas] = useState({
     inspector_id: '', estado: '', fechaDesde: '', fechaHasta: '',
   });
+  const [vencimientoFilter, setVencimientoFilter] = useState('all');
 
   // ── INFORMES ──────────────────────────────────────────────────────────────
   const [informes, setInformes] = useState([]);
@@ -117,7 +183,11 @@ export default function SupervisorDash() {
         const articulosObservados = Object.keys(checks)
           .filter(nro => checks[nro])
           .map(nro => ({ nro, desc: '', obs: obsArt[nro] || '' }));
-        response = await api.post('/pdf/geriatrico', { ...df, articulosObservados }, { responseType: 'blob' });
+        response = await api.post('/pdf/geriatrico', {
+          ...df,
+          articulosObservados,
+          tipologia_nombre: informe.datos_formulario?.tipologia_nombre || 'Geriátricos',
+        }, { responseType: 'blob' });
       } else {
         response = await api.post(`/pdf/informe/${informe.id}`, {}, { responseType: 'blob' });
       }
@@ -132,12 +202,70 @@ export default function SupervisorDash() {
   };
 
   // Filtros aplicados en frontend para informes (ya los trae todos)
+  const actasConVencimiento = actas.map((acta) => {
+    const dueDate = calculateDueDate(acta.created_at || acta.fecha, acta.emplazamiento_tipo, acta.emplazamiento_valor);
+    const vencimientoStatus = getVencimientoStatus(acta);
+    return { ...acta, dueDate, vencimientoStatus };
+  });
+
+  const actasFiltradas = actasConVencimiento.filter((acta) => {
+    if (vencimientoFilter && vencimientoFilter !== 'all') {
+      return acta.vencimientoStatus === vencimientoFilter;
+    }
+    return true;
+  });
+
+  const vencidasCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'vencida').length;
+  const proximasCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'proxima').length;
+  const alDiaCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'alDia').length;
+
   const informesFiltrados = informes.filter(inf => {
     if (filtrosInformes.arquitecto_id && inf.arquitecto_id !== filtrosInformes.arquitecto_id) return false;
     if (filtrosInformes.tipo && (inf.tipo || 'geriatrico') !== filtrosInformes.tipo) return false;
     if (filtrosInformes.estado && inf.estado !== filtrosInformes.estado) return false;
     return true;
   });
+
+  const renderActaRow = (acta, i) => {
+    const isVencida = acta.vencimientoStatus === 'vencida';
+    const isProxima = acta.vencimientoStatus === 'proxima';
+    const rowClasses = `hover:bg-gray-50 ${isVencida ? 'bg-red-50' : isProxima ? 'bg-yellow-50' : ''}`;
+
+    return (
+      <tr key={acta.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }} className={rowClasses}>
+        <td className="p-3 text-sm">{acta.fecha || '-'}</td>
+        <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || '-'}</td>
+        <td className="p-3">
+          <div className="text-sm font-medium">{acta.establecimiento_nombre || 'Sin nombre'}</div>
+          <div className="text-xs text-gray-400">{acta.expediente}</div>
+          <div className="mt-2 text-xs font-semibold">
+            {isVencida && <span className="mr-2">⚠️ Vencida</span>}
+            {isProxima && <span className="mr-2">⚠️ Próxima</span>}
+            {acta.dueDate && (
+              <span className={isVencida ? 'text-red-700' : isProxima ? 'text-amber-700' : 'text-emerald-700'}>
+                Vence: {formatDateDDMMYYYY(acta.dueDate)}
+              </span>
+            )}
+          </div>
+        </td>
+        <td className="p-3 text-xs text-gray-500">{acta.establecimiento_tipologia || '-'}</td>
+        <td className="p-3">
+          <span style={S.badge(ESTADO_COLORS[acta.estado] || '#6b7280')}>
+            {acta.estado?.toUpperCase()}
+          </span>
+        </td>
+        <td className="p-3">
+          <button onClick={() => toggleCidi(acta.id)}
+            className={`px-3 py-1 rounded text-xs font-semibold ${acta.subido_cidi ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+            {acta.subido_cidi ? 'Subido' : 'Pendiente'}
+          </button>
+        </td>
+        <td className="p-3">
+          <Link to={`/acta/${acta.id}`} className="text-blue-600 hover:underline text-sm">Ver</Link>
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -215,9 +343,46 @@ export default function SupervisorDash() {
               </div>
             </div>
 
+            {/* Panel superior de KPIs de vencimiento */}
+            <div className="grid gap-4 mb-5 sm:grid-cols-3">
+              <button
+                type="button"
+                onClick={() => setVencimientoFilter('vencida')}
+                className={`rounded-3xl p-5 text-left shadow-sm transition duration-150 ${vencimientoFilter === 'vencida' ? 'ring-2 ring-offset-2 ring-red-500 bg-red-50' : 'bg-white hover:bg-red-50'}`}>
+                <div className="text-xs uppercase tracking-widest font-semibold text-red-600">Actas Vencidas</div>
+                <div className="mt-3 text-3xl font-bold text-red-700">{vencidasCount}</div>
+                <div className="mt-2 text-sm text-red-500">Plazo expirado</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVencimientoFilter('proxima')}
+                className={`rounded-3xl p-5 text-left shadow-sm transition duration-150 ${vencimientoFilter === 'proxima' ? 'ring-2 ring-offset-2 ring-amber-500 bg-amber-50' : 'bg-white hover:bg-amber-50'}`}>
+                <div className="text-xs uppercase tracking-widest font-semibold text-amber-700">Próximas a Vencer</div>
+                <div className="mt-3 text-3xl font-bold text-amber-800">{proximasCount}</div>
+                <div className="mt-2 text-sm text-amber-600">Dentro de las próximas 72 horas</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVencimientoFilter('alDia')}
+                className={`rounded-3xl p-5 text-left shadow-sm transition duration-150 ${vencimientoFilter === 'alDia' ? 'ring-2 ring-offset-2 ring-emerald-500 bg-emerald-50' : 'bg-white hover:bg-emerald-50'}`}>
+                <div className="text-xs uppercase tracking-widest font-semibold text-emerald-700">En Plazo / Al día</div>
+                <div className="mt-3 text-3xl font-bold text-emerald-800">{alDiaCount}</div>
+                <div className="mt-2 text-sm text-emerald-600">Tiempo suficiente</div>
+              </button>
+            </div>
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <div className="text-sm text-gray-500">Filtro activo: <span className="font-semibold">{vencimientoFilter === 'all' ? 'Todos' : vencimientoFilter === 'vencida' ? 'Vencidas' : 'Próximas'}</span></div>
+              <button
+                type="button"
+                onClick={() => setVencimientoFilter('all')}
+                className="text-sm font-semibold text-blue-600 hover:text-blue-800">
+                Ver todas
+              </button>
+            </div>
+
             {loadingActas ? (
               <div className="text-center py-10 text-gray-400">Cargando actas...</div>
-            ) : actas.length === 0 ? (
+            ) : actasFiltradas.length === 0 ? (
               <div className="card text-center py-8 text-gray-400">No hay actas con los filtros seleccionados.</div>
             ) : (
               <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
@@ -230,32 +395,7 @@ export default function SupervisorDash() {
                     </tr>
                   </thead>
                   <tbody>
-                    {actas.map((acta, i) => (
-                      <tr key={acta.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }}
-                        className="hover:bg-gray-50">
-                        <td className="p-3 text-sm">{acta.fecha || '-'}</td>
-                        <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || '-'}</td>
-                        <td className="p-3">
-                          <div className="text-sm font-medium">{acta.establecimiento_nombre || 'Sin nombre'}</div>
-                          <div className="text-xs text-gray-400">{acta.expediente}</div>
-                        </td>
-                        <td className="p-3 text-xs text-gray-500">{acta.establecimiento_tipologia || '-'}</td>
-                        <td className="p-3">
-                          <span style={S.badge(ESTADO_COLORS[acta.estado] || '#6b7280')}>
-                            {acta.estado?.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="p-3">
-                          <button onClick={() => toggleCidi(acta.id)}
-                            className={`px-3 py-1 rounded text-xs font-semibold ${acta.subido_cidi ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                            {acta.subido_cidi ? 'Subido' : 'Pendiente'}
-                          </button>
-                        </td>
-                        <td className="p-3">
-                          <Link to={`/acta/${acta.id}`} className="text-blue-600 hover:underline text-sm">Ver</Link>
-                        </td>
-                      </tr>
-                    ))}
+                    {actasFiltradas.map(renderActaRow)}
                   </tbody>
                 </table>
               </div>

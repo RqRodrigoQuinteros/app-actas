@@ -6,6 +6,7 @@ export default function Login() {
   const { login } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [selectedDni, setSelectedDni] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,7 +29,13 @@ export default function Login() {
         return;
       }
 
-      const resultado = await login(usuario.dni, usuario.rol);
+      if (!password) {
+        setError('Ingresá la contraseña');
+        setLoading(false);
+        return;
+      }
+
+      const resultado = await login(usuario.dni, usuario.rol, password);
 
       if (resultado.rol === 'arquitecto') {
         window.location.href = '/informes';
@@ -88,6 +95,18 @@ export default function Login() {
                   </optgroup>
                 )}
               </select>
+            </div>
+
+            <div className="mb-6">
+              <label className="label-field">Contraseña</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-field"
+                placeholder="Ingresa tu DNI"
+                required
+              />
             </div>
 
             {error && (

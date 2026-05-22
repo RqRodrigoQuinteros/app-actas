@@ -11,12 +11,8 @@ router.post('/login', async (req, res) => {
   try {
     const { dni, rol, password } = req.body;
 
-    if (!dni || !rol) {
-      return res.status(400).json({ error: 'DNI y rol son requeridos' });
-    }
-
-    if ((rol === 'supervisor' || rol === 'admin') && !password) {
-      return res.status(400).json({ error: 'DNI y contraseña son requeridos' });
+    if (!dni || !rol || !password) {
+      return res.status(400).json({ error: 'DNI, rol y contraseña son requeridos' });
     }
 
     const { data: usuario, error } = await supabase
@@ -31,14 +27,15 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    if (rol === 'supervisor' || rol === 'admin') {
-      if (!usuario.password) {
-        return res.status(401).json({ error: 'Usuario sin contraseña configurada' });
-      }
-      const passwordValida = await bcrypt.compare(password, usuario.password);
-      if (!passwordValida) {
-        return res.status(401).json({ error: 'Credenciales inválidas' });
-      }
+    let passwordValida = false;
+    if (usuario.password) {
+      passwordValida = await bcrypt.compare(password, usuario.password);
+    } else {
+      passwordValida = password === usuario.dni;
+    }
+
+    if (!passwordValida) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
     const token = jwt.sign(
