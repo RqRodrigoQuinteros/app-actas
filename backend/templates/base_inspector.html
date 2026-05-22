@@ -184,16 +184,22 @@
     <em>Ministerio de Salud</em> de la Provincia de Córdoba, a los fines de efectuar
     inspección al Establecimiento <strong>{{establecimiento_nombre}}</strong> sito en
     {{establecimiento_direccion}}, Localidad: <strong>{{establecimiento_localidad}}</strong>,
-    se constituye en el lugar a fin de cumplir las exigencias de la Ley 6.222,
-    Decreto 033/08 y Resolución Ministerial N° 1226/2025, según el formulario de
-    Inspección provisto por la repartición.
+    se constituye en el lugar a fin de cumplir las exigencias de 
+    
+    {{#if ley_marco}}
+        <strong>{{ley_marco}}</strong>
+    {{else}}
+        la Ley 6.222, Decreto 033/08 y Resolución Ministerial N° 1226/2025
+    {{/if}}, 
+    
+    según el formulario de Inspección provisto por la repartición.
     {{#if responsable_nombre}}
     Se solicita la presencia del responsable del Establecimiento y se hace presente el/la Sr./Sra.
     <strong>{{responsable_nombre}}</strong> DNI <strong>{{responsable_dni}}</strong>
     en su carácter de <strong>{{responsable_caracter}}</strong>.
     {{/if}}
     Efectuada la inspección, se constata:
-  </p>
+</p>
 
   <div style="display: flex; justify-content: space-between; border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 6px 0; margin-bottom: 14px; gap: 20px;">
     <div style="flex: 1;">
