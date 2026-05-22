@@ -17,15 +17,21 @@ export default function VerActa() {
   useEffect(() => { loadActa(); }, [id]);
 
   const loadActa = async () => {
+    setLoading(true);
     try {
-      const [actaRes, respuestasRes] = await Promise.all([
-        actasAPI.getById(id),
-        templatesAPI.getRespuestas(id).catch(() => ({ data: [] })),
-      ]);
+      const actaRes = await actasAPI.getById(id);
       setActa(actaRes.data);
-      setRespuestas(respuestasRes.data || []);
     } catch (err) {
       console.error('Error cargando acta:', err);
+      setActa(null);
+    }
+
+    try {
+      const respuestasRes = await templatesAPI.getRespuestas(id);
+      setRespuestas(respuestasRes.data || []);
+    } catch (err) {
+      console.error('Error cargando respuestas:', err);
+      setRespuestas([]);
     } finally {
       setLoading(false);
     }
@@ -82,7 +88,6 @@ export default function VerActa() {
   const respuestasPorSeccion = () => {
     const mapa = {};
     for (const r of respuestas) {
-      if (!r.campo) continue;
       const seccionTitulo = r.campo?.seccion?.titulo || 'General';
       if (!mapa[seccionTitulo]) mapa[seccionTitulo] = [];
       mapa[seccionTitulo].push(r);
@@ -91,14 +96,15 @@ export default function VerActa() {
   };
 
   const renderValor = (r) => {
-    if (r.campo.tipo === 'si_no') {
+    const tipo = r.campo?.tipo;
+    if (tipo === 'si_no') {
       return (
         <span className={r.valor === 'SI' ? 'text-black font-semibold' : 'text-red-600 font-bold'}>
           {r.valor || '-'}
         </span>
       );
     }
-    if (r.campo.tipo === 'check') {
+    if (tipo === 'check') {
       return <span>{r.valor === 'true' ? '✓' : '✗'}</span>;
     }
     return <span className="font-medium text-sm">{r.valor || '-'}</span>;
@@ -204,7 +210,7 @@ export default function VerActa() {
               <div className="space-y-2">
                 {items.map(r => (
                   <div key={r.id} className="flex justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm">{r.campo.etiqueta}</span>
+                    <span className="text-sm">{r.campo?.etiqueta || r.campo?.token || 'Campo desconocido'}</span>
                     {renderValor(r)}
                   </div>
                 ))}

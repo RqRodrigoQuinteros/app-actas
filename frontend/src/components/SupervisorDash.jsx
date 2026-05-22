@@ -203,8 +203,10 @@ export default function SupervisorDash() {
 
   // Filtros aplicados en frontend para informes (ya los trae todos)
   const actasConVencimiento = actas.map((acta) => {
-    const dueDate = calculateDueDate(acta.created_at || acta.fecha, acta.emplazamiento_tipo, acta.emplazamiento_valor);
-    const vencimientoStatus = getVencimientoStatus(acta);
+    const emplazamientoValor = acta.emplazamiento_valor;
+    const emplazamientoTipo = acta.emplazamiento_tipo;
+    const dueDate = calculateDueDate(acta.created_at || acta.fecha, emplazamientoTipo, emplazamientoValor);
+    const vencimientoStatus = getVencimientoStatus({ ...acta, emplazamiento_valor: emplazamientoValor, emplazamiento_tipo: emplazamientoTipo });
     return { ...acta, dueDate, vencimientoStatus };
   });
 
@@ -227,42 +229,21 @@ export default function SupervisorDash() {
   });
 
   const renderActaRow = (acta, i) => {
-    const isVencida = acta.vencimientoStatus === 'vencida';
-    const isProxima = acta.vencimientoStatus === 'proxima';
-    const rowClasses = `hover:bg-gray-50 ${isVencida ? 'bg-red-50' : isProxima ? 'bg-yellow-50' : ''}`;
+    const emplazamientoValor = acta.emplazamiento_valor;
+    const emplazamientoTipo = acta.emplazamiento_tipo || '';
+    const dueText = emplazamientoValor !== undefined && emplazamientoValor !== null ? `${emplazamientoValor} ${emplazamientoTipo}`.trim() : '-';
+    const rowClasses = `hover:bg-gray-50`;
 
     return (
       <tr key={acta.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }} className={rowClasses}>
-        <td className="p-3 text-sm">{acta.fecha || '-'}</td>
+        <td className="p-3 text-base">{formatDateDDMMYYYY(acta.created_at || acta.fecha)}</td>
         <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || '-'}</td>
         <td className="p-3">
           <div className="text-sm font-medium">{acta.establecimiento_nombre || 'Sin nombre'}</div>
           <div className="text-xs text-gray-400">{acta.expediente}</div>
-          <div className="mt-2 text-xs font-semibold">
-            {isVencida && <span className="mr-2">⚠️ Vencida</span>}
-            {isProxima && <span className="mr-2">⚠️ Próxima</span>}
-            {acta.dueDate && (
-              <span className={isVencida ? 'text-red-700' : isProxima ? 'text-amber-700' : 'text-emerald-700'}>
-                Vence: {formatDateDDMMYYYY(acta.dueDate)}
-              </span>
-            )}
-          </div>
         </td>
         <td className="p-3 text-xs text-gray-500">{acta.establecimiento_tipologia || '-'}</td>
-        <td className="p-3">
-          <span style={S.badge(ESTADO_COLORS[acta.estado] || '#6b7280')}>
-            {acta.estado?.toUpperCase()}
-          </span>
-        </td>
-        <td className="p-3">
-          <button onClick={() => toggleCidi(acta.id)}
-            className={`px-3 py-1 rounded text-xs font-semibold ${acta.subido_cidi ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-            {acta.subido_cidi ? 'Subido' : 'Pendiente'}
-          </button>
-        </td>
-        <td className="p-3">
-          <Link to={`/acta/${acta.id}`} className="text-blue-600 hover:underline text-sm">Ver</Link>
-        </td>
+        <td className="p-3 text-sm font-medium">{dueText}</td>
       </tr>
     );
   };
@@ -389,8 +370,8 @@ export default function SupervisorDash() {
                 <table className="w-full">
                   <thead>
                     <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                      {['Fecha', 'Inspector', 'Establecimiento', 'Tipología', 'Estado', 'CIDI', 'Acciones'].map(h => (
-                        <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                      {['Fecha creada', 'Inspector', 'Establecimiento', 'Tipología', 'Fecha vencimiento'].map(h => (
+                        <th key={h} className="p-3 text-left text-sm font-bold text-gray-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
                   </thead>
