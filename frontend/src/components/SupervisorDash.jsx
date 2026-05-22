@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { actasAPI, informesAPI } from '../utils/api';
@@ -112,10 +112,15 @@ export default function SupervisorDash() {
   const [actas, setActas] = useState([]);
   const [loadingActas, setLoadingActas] = useState(true);
   const [inspectores, setInspectores] = useState([]);
+  
+  // Se quitó el campo 'estado' y se agregó 'tipologia' a los filtros de actas
   const [filtrosActas, setFiltrosActas] = useState({
-    inspector_id: '', estado: '', fechaDesde: '', fechaHasta: '',
+    inspector_id: '', tipologia: '', fechaDesde: '', fechaHasta: '',
   });
   const [vencimientoFilter, setVencimientoFilter] = useState('all');
+
+  // Listado de tipologías recolectadas dinámicamente de las actas para el select
+  const [tipologiasActas, setTipologiasActas] = useState([]);
 
   // ── INFORMES ──────────────────────────────────────────────────────────────
   const [informes, setInformes] = useState([]);
@@ -132,15 +137,31 @@ export default function SupervisorDash() {
   const loadActas = async () => {
     setLoadingActas(true);
     try {
-      // Omitir filtros con valor vacío para que Supabase no los interprete como filtros activos
+      // Omitir filtros locales de frontend para enviarle los correctos a Supabase
+      // Quitamos 'tipologia' de los parámetros de URL si tu backend no lo procesa directo, 
+      // ya que realizamos el filtrado dinámico en cascada en el frontend más abajo.
+      const paramsApi = {
+        inspector_id: filtrosActas.inspector_id,
+        fechaDesde: filtrosActas.fechaDesde,
+        fechaHasta: filtrosActas.fechaHasta
+      };
+      
       const params = Object.fromEntries(
-        Object.entries(filtrosActas).filter(([, v]) => v !== '' && v !== null && v !== undefined)
+        Object.entries(paramsApi).filter(([, v]) => v !== '' && v !== null && v !== undefined)
       );
+      
       const response = await actasAPI.getAll(params);
       setActas(response.data);
-      const uniq = [...new Map(response.data.map(a => [a.inspector_id, a.inspector])).values()]
+      
+      // Extraer inspectores únicos
+      const uniqInspectores = [...new Map(response.data.map(a => [a.inspector_id, a.inspector])).values()]
         .filter(Boolean);
-      setInspectores(uniq);
+      setInspectores(uniqInspectores);
+
+      // Extraer tipologías únicas de las actas de forma dinámica para llenar el desplegable
+      const uniqTipologias = [...new Set(response.data.map(a => a.establecimiento_tipologia).filter(Boolean))];
+      setTipologiasActas(uniqTipologias);
+      
     } catch (err) {
       console.error('Error cargando actas:', err);
     } finally {
@@ -176,7 +197,6 @@ export default function SupervisorDash() {
       let response;
       if (tipo === 'geriatrico') {
         const df = { ...(informe.datos_formulario?.generales || {}) };
-        // Fallback: si nombreEst está vacío, usar el campo top-level del informe
         if (!df.nombreEst) df.nombreEst = informe.establecimiento_nombre || '';
         const checks = informe.datos_formulario?.checks || {};
         const obsArt = informe.datos_formulario?.observaciones || {};
@@ -185,7 +205,7 @@ export default function SupervisorDash() {
           .map(nro => ({ nro, desc: '', obs: obsArt[nro] || '' }));
         response = await api.post('/pdf/geriatrico', {
           ...df,
-          articulosObservados,
+          artículosObservados,
           tipologia_nombre: informe.datos_formulario?.tipologia_nombre || 'Geriátricos',
         }, { responseType: 'blob' });
       } else {
@@ -201,7 +221,7 @@ export default function SupervisorDash() {
     finally { setPdfCargando(null); }
   };
 
-  // Filtros aplicados en frontend para informes (ya los trae todos)
+  // Procesar vencimientos de todas las actas base
   const actasConVencimiento = actas.map((acta) => {
     const emplazamientoValor = acta.emplazamiento_valor;
     const emplazamientoTipo = acta.emplazamiento_tipo;
@@ -210,10 +230,37 @@ export default function SupervisorDash() {
     return { ...acta, dueDate, vencimientoStatus };
   });
 
+  // Filtros aplicados en cascada completa en frontend (Inspector, Tipología, Fechas y KPI Vencimiento)
   const actasFiltradas = actasConVencimiento.filter((acta) => {
+    // 1. Filtro KPI de Tarjeta Superior
     if (vencimientoFilter && vencimientoFilter !== 'all') {
-      return acta.vencimientoStatus === vencimientoFilter;
+      if (acta.vencimientoStatus !== vencimientoFilter) return false;
     }
+    
+    // 2. Filtro desplegable de Inspector
+    if (filtrosActas.inspector_id && String(acta.inspector_id) !== String(filtrosActas.inspector_id)) {
+      return false;
+    }
+
+    // 3. Filtro desplegable de Tipología (Reemplazó al Estado)
+    if (filtrosActas.tipologia && acta.establecimiento_tipologia !== filtrosActas.tipologia) {
+      return false;
+    }
+
+    // 4. Filtro de Fecha Desde
+    if (filtrosActas.fechaDesde) {
+      const fechaActa = new Date(acta.created_at || acta.fecha);
+      const fDesde = new Date(filtrosActas.fechaDesde + 'T00:00:00');
+      if (fechaActa < fDesde) return false;
+    }
+
+    // 5. Filtro de Fecha Hasta
+    if (filtrosActas.fechaHasta) {
+      const fechaActa = new Date(acta.created_at || acta.fecha);
+      const fHasta = new Date(filtrosActas.fechaHasta + 'T23:59:59');
+      if (fechaActa > fHasta) return false;
+    }
+
     return true;
   });
 
@@ -232,18 +279,47 @@ export default function SupervisorDash() {
     const emplazamientoValor = acta.emplazamiento_valor;
     const emplazamientoTipo = acta.emplazamiento_tipo || '';
     const dueText = emplazamientoValor !== undefined && emplazamientoValor !== null ? `${emplazamientoValor} ${emplazamientoTipo}`.trim() : '-';
-    const rowClasses = `hover:bg-gray-50`;
+    
+    // Alertas visuales condicionales según el estado de vencimiento del acta
+    let rowBgStyle = {};
+    let statusIndicator = null;
+    
+    if (acta.vencimientoStatus === 'vencida') {
+      rowBgStyle = { backgroundColor: '#fef2f2' }; // Fondo rojo muy suave
+      statusIndicator = <span className="ml-2 text-red-600 font-bold" title="Plazo Vencido">⚠️ VENCIDA</span>;
+    } else if (acta.vencimientoStatus === 'proxima') {
+      rowBgStyle = { backgroundColor: '#fffbeb' }; // Fondo amarillo muy suave
+      statusIndicator = <span className="ml-2 text-amber-600 font-bold" title="Próxima a vencer">⏳ CRÍTICA</span>;
+    }
 
     return (
-      <tr key={acta.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }} className={rowClasses}>
+      <tr 
+        key={acta.id} 
+        style={{ ...rowBgStyle, borderTop: i > 0 ? '1px solid #f3f4f6' : 'none', transition: 'background-color 0.15s' }} 
+        className="hover:bg-gray-100"
+      >
         <td className="p-3 text-base">{formatDateDDMMYYYY(acta.created_at || acta.fecha)}</td>
         <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || '-'}</td>
         <td className="p-3">
-          <div className="text-sm font-medium">{acta.establecimiento_nombre || 'Sin nombre'}</div>
+          <div className="flex items-center">
+            <div className="text-sm font-medium text-gray-900">{acta.establecimiento_nombre || 'Sin nombre'}</div>
+            {statusIndicator}
+          </div>
           <div className="text-xs text-gray-400">{acta.expediente}</div>
         </td>
-        <td className="p-3 text-xs text-gray-500">{acta.establecimiento_tipologia || '-'}</td>
-        <td className="p-3 text-sm font-medium">{dueText}</td>
+        <td className="p-3 text-xs text-gray-500">
+          <span style={S.badge('#2563eb')}>
+            {acta.establecimiento_tipologia || 'General'}
+          </span>
+        </td>
+        <td className="p-3 text-sm font-medium">
+          <div>{dueText}</div>
+          {acta.dueDate && (
+            <div className="text-xs text-gray-400 font-normal">
+              Vence: {formatDateDDMMYYYY(acta.dueDate)}
+            </div>
+          )}
+        </td>
       </tr>
     );
   };
@@ -273,7 +349,7 @@ export default function SupervisorDash() {
         {/* TABS */}
         <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', borderRadius: '10px', padding: '4px', marginBottom: '20px', width: 'fit-content' }}>
           <button style={S.pill(tab === 'actas')} onClick={() => setTab('actas')}>
-            Actas de Inspección {!loadingActas && `(${actas.length})`}
+            Actas de Inspección {!loadingActas && `(${actasFiltradas.length})`}
           </button>
           <button style={S.pill(tab === 'informes')} onClick={() => setTab('informes')}>
             Informes de Arquitectura {!loadingInformes && `(${informesFiltrados.length})`}
@@ -283,9 +359,9 @@ export default function SupervisorDash() {
         {/* ── TAB ACTAS ── */}
         {tab === 'actas' && (
           <>
-            {/* Filtros actas */}
+            {/* Filtros actas modificados (Se quitó el Estado y se agregó la Tipología) */}
             <div className="card mb-5">
-              <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros</h2>
+              <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros Actas</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <label style={S.filterLabel}>Inspector</label>
@@ -299,14 +375,14 @@ export default function SupervisorDash() {
                   </select>
                 </div>
                 <div>
-                  <label style={S.filterLabel}>Estado</label>
-                  <select value={filtrosActas.estado}
-                    onChange={e => setFiltrosActas(p => ({ ...p, estado: e.target.value }))}
+                  <label style={S.filterLabel}>Tipología</label>
+                  <select value={filtrosActas.tipologia}
+                    onChange={e => setFiltrosActas(p => ({ ...p, tipologia: e.target.value }))}
                     style={S.filterInput}>
-                    <option value="">Todos</option>
-                    <option value="borrador">Borrador</option>
-                    <option value="firmado">Firmado</option>
-                    <option value="cerrado">Cerrado</option>
+                    <option value="">Todas</option>
+                    {tipologiasActas.map(tipo => (
+                      <option key={tipo} value={tipo}>{tipo}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -352,12 +428,14 @@ export default function SupervisorDash() {
               </button>
             </div>
             <div className="flex items-center justify-between mb-4 gap-3">
-              <div className="text-sm text-gray-500">Filtro activo: <span className="font-semibold">{vencimientoFilter === 'all' ? 'Todos' : vencimientoFilter === 'vencida' ? 'Vencidas' : 'Próximas'}</span></div>
+              <div className="text-sm text-gray-500">
+                Filtro de plazo activo: <span className="font-semibold">{vencimientoFilter === 'all' ? 'Todos' : vencimientoFilter === 'vencida' ? 'Vencidas' : vencimientoFilter === 'proxima' ? 'Próximas' : 'Al día'}</span>
+              </div>
               <button
                 type="button"
                 onClick={() => setVencimientoFilter('all')}
                 className="text-sm font-semibold text-blue-600 hover:text-blue-800">
-                Ver todas
+                Ver todas las alertas
               </button>
             </div>
 
@@ -370,7 +448,7 @@ export default function SupervisorDash() {
                 <table className="w-full">
                   <thead>
                     <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                      {['Fecha creada', 'Inspector', 'Establecimiento', 'Tipología', 'Fecha vencimiento'].map(h => (
+                      {['Fecha creada', 'Inspector', 'Establecimiento', 'Tipología', 'Plazo Emplazamiento'].map(h => (
                         <th key={h} className="p-3 text-left text-sm font-bold text-gray-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
@@ -389,7 +467,7 @@ export default function SupervisorDash() {
           <>
             {/* Filtros informes */}
             <div className="card mb-5">
-              <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros</h2>
+              <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros Informes</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
                   <label style={S.filterLabel}>Arquitecto</label>
