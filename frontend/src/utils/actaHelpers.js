@@ -7,14 +7,18 @@ export const esCampoTotalCamas = (campo) => {
 const esCampoCamas = (campo) => {
   if (!campo || campo.tipo !== 'numero') return false;
   const texto = `${campo.etiqueta || ''} ${campo.token || ''}`.toLowerCase();
-  return /\bcamas?\b/.test(texto) && !esCampoTotalCamas(campo);
+  return (/\bcamas?\b/.test(texto) || /\botras?\b/.test(texto)) && !esCampoTotalCamas(campo);
+};
+
+const obtenerMultiplicador = (campo) => {
+  const texto = `${campo.etiqueta || ''} ${campo.token || ''}`.toLowerCase();
+  const match = texto.match(/(\d+)\s*camas?\b/);
+  return match ? parseInt(match[1], 10) : 1;
 };
 
 export const calcularTotalesDeCamas = (respuestas = {}, secciones = []) => {
   const totales = {};
 
-  // Procesa un scope (sección o subsección) de forma independiente:
-  // suma solo los campos "camas" que estén en el mismo scope que el campo total.
   const procesarScope = (campos) => {
     const camposTotal = campos.filter(esCampoTotalCamas);
     if (camposTotal.length === 0) return;
@@ -22,7 +26,8 @@ export const calcularTotalesDeCamas = (respuestas = {}, secciones = []) => {
     if (camposASumar.length === 0) return;
     const suma = camposASumar.reduce((acc, c) => {
       const n = Number(respuestas[c.id]);
-      return acc + (Number.isFinite(n) ? n : 0);
+      const mult = obtenerMultiplicador(c);
+      return acc + (Number.isFinite(n) ? n * mult : 0);
     }, 0);
     camposTotal.forEach(ct => { totales[ct.id] = String(suma); });
   };

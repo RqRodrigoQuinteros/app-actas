@@ -488,7 +488,7 @@ router.post('/secciones/:seccionId/campos', soloSupervisor, async (req, res) => 
       .insert({
         seccion_id: parseInt(seccionId),
         etiqueta,
-        subtitulo: subtitulo || null,
+        ...(subtitulo ? { subtitulo } : {}),
         tipo: tipo || 'si_no',
         opciones: opciones || null,
         requerido: requerido || false,
@@ -523,7 +523,7 @@ router.put('/campos/:id', soloSupervisor, async (req, res) => {
 
     const updates = {};
     if (etiqueta !== undefined) updates.etiqueta = etiqueta;
-    if (subtitulo !== undefined) updates.subtitulo = subtitulo || null;
+    if (subtitulo !== undefined && subtitulo) updates.subtitulo = subtitulo;
     if (tipo !== undefined) updates.tipo = tipo;
     if (opciones !== undefined) updates.opciones = opciones;
     if (requerido !== undefined) updates.requerido = requerido;
@@ -599,14 +599,17 @@ router.delete('/campos/:id', soloSupervisor, async (req, res) => {
 // ============================================================
 
 // GET /api/templates/actas/:actaId/respuestas
-// Trae todas las respuestas de un acta
+// Trae todas las respuestas de un acta con datos del campo via JOIN (como el PDF)
 router.get('/actas/:actaId/respuestas', async (req, res) => {
   try {
     const { actaId } = req.params;
 
     const { data: respuestas, error } = await supabase
       .from('actas_respuestas')
-      .select('id, acta_id, campo_id, valor')
+      .select(`
+        id, acta_id, campo_id, valor,
+        campo:template_campos(id, etiqueta, tipo, token, orden, seccion_id)
+      `)
       .eq('acta_id', actaId);
 
     if (error) throw error;
@@ -614,35 +617,28 @@ router.get('/actas/:actaId/respuestas', async (req, res) => {
       return res.json([]);
     }
 
-    const campoIds = [...new Set(respuestas.map(r => r.campo_id).filter(Boolean))];
-    const { data: campos, error: camposError } = await supabase
-      .from('template_campos')
-      .select('id, etiqueta, subtitulo, tipo, token, orden, seccion_id')
-      .in('id', campoIds);
+    const seccionIds = [...new Set(respuestas
+      .map(r => r.campo?.seccion_id)
+      .filter(Boolean))];
 
-    if (camposError) throw camposError;
+    let seccionLookup = {};
+    if (seccionIds.length > 0) {
+      const { data: secciones, error: errSec } = await supabase
+        .from('template_secciones')
+        .select('id, titulo, orden')
+        .in('id', seccionIds);
 
-    const seccionIds = [...new Set((campos || []).map(c => c.seccion_id).filter(Boolean))];
-    const { data: secciones, error: seccionesError } = await supabase
-      .from('template_secciones')
-      .select('id, titulo, orden')
-      .in('id', seccionIds);
+      if (errSec) throw errSec;
+      seccionLookup = Object.fromEntries((secciones || []).map(s => [s.id, s]));
+    }
 
-    if (seccionesError) throw seccionesError;
-
-    const seccionLookup = Object.fromEntries((secciones || []).map(s => [s.id, s]));
-    const campoLookup = Object.fromEntries((campos || []).map(c => [c.id, c]));
-
-    const resultado = respuestas.map(r => {
-      const campo = campoLookup[r.campo_id];
-      return {
-        ...r,
-        campo: campo ? {
-          ...campo,
-          seccion: campo.seccion_id ? seccionLookup[campo.seccion_id] || null : null,
-        } : null,
-      };
-    });
+    const resultado = respuestas.map(r => ({
+      ...r,
+      campo: r.campo ? {
+        ...r.campo,
+        seccion: r.campo.seccion_id ? seccionLookup[r.campo.seccion_id] || null : null,
+      } : null,
+    }));
 
     res.json(resultado || []);
   } catch (err) {
