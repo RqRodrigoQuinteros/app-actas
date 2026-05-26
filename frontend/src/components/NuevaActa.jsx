@@ -174,6 +174,11 @@ function RenderCampoRepetible({ campo, valor, onChange }) {
             className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             NO
           </button>
+          <button type="button"
+            onClick={() => onChange(valor === 'N/A' ? '' : 'N/A')}
+            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'N/A' ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            N/A
+          </button>
         </div>
       </div>
     );
@@ -1139,7 +1144,10 @@ export default function NuevaActa() {
                   if (template && template.secciones?.length > 0) setPaso(4);
                   else setPaso(3);
                 }} className="btn-secondary">← Anterior</button>
-                <button onClick={() => setPaso(6)} className="btn-primary">Siguiente →</button>
+                <button onClick={async () => {
+                  await guardarBorrador();
+                  setPaso(6);
+                }} className="btn-primary">Siguiente →</button>
               </div>
             </div>
           )}

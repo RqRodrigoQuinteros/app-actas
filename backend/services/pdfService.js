@@ -257,11 +257,13 @@ handlebars.registerHelper('seccionWrapper', function(options) {
 });
 
 handlebars.registerHelper('siNo', function(value) {
+  if (value === 'N/A') return 'N/A';
   return value ? 'SI' : 'NO';
 });
 
 handlebars.registerHelper('valorClass', function(value) {
   const normalized = typeof value === 'string' ? value.toLowerCase().trim() : value;
+  if (normalized === 'n/a') return 'valor-na';
   const isNo = normalized === false || normalized === 'false' || normalized === '0' || normalized === 'no';
   return isNo ? 'valor-no' : '';
 });
@@ -271,6 +273,7 @@ handlebars.registerHelper('hasValue', function(value) {
 });
 
 handlebars.registerHelper('valorSiNo', function(value) {
+  if (value === 'N/A' || value === 'n/a') return 'N/A';
   if (value === true || value === 'true' || value === 'SI' || value === 'si') return 'SI';
   if (value === false || value === 'false' || value === 'NO' || value === 'no') return 'NO';
   return '';
@@ -364,6 +367,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         }
 
         const valorASiNo = (val) => {
+          if (val === 'N/A' || val === 'n/a') return { texto: 'N/A', esBool: false, esSi: false, esNa: true };
           if (val === true || val === 'true') return { texto: 'SI', esBool: true, esSi: true };
           if (val === false || val === 'false') return { texto: 'NO', esBool: true, esSi: false };
           return { texto: String(val), esBool: false, esSi: false };
@@ -477,8 +481,8 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
           const filas = camposNormales
             .filter(c => df[c.token] !== undefined && df[c.token] !== null && df[c.token] !== '')
             .map(c => {
-              const { texto, esBool, esSi } = valorASiNo(df[c.token]);
-              const clase = esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
+              const { texto, esBool, esSi, esNa } = valorASiNo(df[c.token]);
+              const clase = esNa ? 'valor-na' : esBool ? (esSi ? 'valor-si' : 'valor-no') : '';
               return `<tr><td style="width:70%;word-wrap:break-word">${c.etiqueta}</td><td class="${clase}" style="text-align:center;font-weight:bold;width:30%;min-width:80px">${texto}</td></tr>`;
             }).join('');
 

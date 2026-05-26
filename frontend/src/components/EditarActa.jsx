@@ -116,6 +116,11 @@ function RenderCampoRepetible({ campo, valor, onChange }) {
             className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             NO
           </button>
+          <button type="button"
+            onClick={() => onChange(valor === 'N/A' ? '' : 'N/A')}
+            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'N/A' ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            N/A
+          </button>
         </div>
       </div>
     );

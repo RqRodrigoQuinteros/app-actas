@@ -188,6 +188,7 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
   if (campo.tipo === 'si_no') {
     const esSi = valor === 'SI';
     const esNo = valor === 'NO';
+    const esNa = valor === 'N/A';
     return (
       <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
         <div>
@@ -204,6 +205,11 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
             onClick={() => onChange(campo.id, esNo ? '' : 'NO')}
             className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esNo ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             NO
+          </button>
+          <button type="button"
+            onClick={() => onChange(campo.id, esNa ? '' : 'N/A')}
+            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esNa ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            N/A
           </button>
         </div>
       </div>

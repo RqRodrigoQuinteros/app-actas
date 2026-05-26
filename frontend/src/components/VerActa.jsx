@@ -121,7 +121,11 @@ export default function VerActa() {
     if (tipo === 'si_no') {
       const texto = esSiNo(valor) || String(valor || '-');
       return (
-        <span className={texto === 'NO' ? 'text-red-600 font-bold' : 'text-black font-semibold'}>
+        <span className={
+          texto === 'NO' ? 'text-red-600 font-bold' :
+          texto === 'NO APLICA' ? 'text-gray-400 italic' :
+          'text-black font-semibold'
+        }>
           {texto}
         </span>
       );

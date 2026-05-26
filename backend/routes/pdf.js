@@ -67,7 +67,7 @@ async function enriquecerConRespuestas(acta) {
     for (const r of respuestas) {
       if (!r.campo?.token) continue;
       datosFormulario[r.campo.token] = r.campo.tipo === 'si_no'
-        ? (r.valor === 'SI' || r.valor === 'true')
+        ? (r.valor === 'SI' || r.valor === 'true' ? true : r.valor === 'N/A' ? 'N/A' : false)
         : r.valor;
     }
   }
@@ -182,7 +182,7 @@ async function enriquecerConRespuestas(acta) {
 
           const syntheticToken = `__rep_${secId}_${i}_${campoId}`;
           datosFormulario[syntheticToken] = (campo.tipo === 'si_no' || campo.tipo === 'check')
-            ? (valor === 'SI' || valor === 'true' || valor === true)
+            ? (valor === 'SI' || valor === 'true' || valor === true ? true : valor === 'N/A' ? 'N/A' : false)
             : valor;
 
           camposInstancia.push({
