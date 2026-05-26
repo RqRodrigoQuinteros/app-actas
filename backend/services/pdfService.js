@@ -276,6 +276,12 @@ handlebars.registerHelper('valorSiNo', function(value) {
   return '';
 });
 
+handlebars.registerHelper('inc', function(value) {
+  const num = Number(value);
+  if (Number.isNaN(num)) return value;
+  return num + 1;
+});
+
 const formatFechaTexto = (fechaStr) => {
   if (!fechaStr) return '';
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -618,8 +624,9 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         responsable_dni: acta.responsable_dni || '',
         responsable_caracter: acta.responsable_caracter || '',
         es_notificacion_geriatricos: acta.establecimiento_tipologia === 'Acta de Notificacion Geriatricos' || acta.establecimiento_tipologia === 'Geriatricos' || acta.establecimiento_tipologia === 'Geriátricos',
-        ley_marco: acta.ley_marco || '', // <-- AGREGAR ESTA LÍNEA
+        ley_marco: acta.ley_marco || '',
         seccionesHTML,
+        datos_formulario: acta.datos_formulario || {},
         observaciones: acta.observaciones || '',
         show_emplazamiento: !/^equipamiento$/i.test((acta.establecimiento_tipologia || acta.tipologia || '').trim()),
         emplazamiento_valor: acta.emplazamiento_valor || acta.emplazamiento_dias || 0,

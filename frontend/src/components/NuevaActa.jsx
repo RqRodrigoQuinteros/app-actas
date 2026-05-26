@@ -609,14 +609,18 @@ export default function NuevaActa() {
   const guardarBorrador = async () => {
     try {
       const payload = buildPayload();
-      if (actaId) {
-        await actasAPI.update(actaId, payload);
-        return actaId;
+      let idParaUsar = actaId;
+
+      if (idParaUsar) {
+        await actasAPI.update(idParaUsar, payload);
       } else {
         const response = await actasAPI.create(payload);
-        setActaId(response.data.id);
-        return response.data.id;
+        idParaUsar = response.data.id;
+        setActaId(idParaUsar);
       }
+
+      await guardarRespuestas(idParaUsar);
+      return idParaUsar;
     } catch (err) {
       console.error('Error guardando borrador:', err);
     }

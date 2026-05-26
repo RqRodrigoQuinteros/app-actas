@@ -16,11 +16,24 @@ export default function VerActa() {
 
   useEffect(() => { loadActa(); }, [id]);
 
+  const parseJSONField = (field) => {
+    if (typeof field !== 'string') return field;
+    try {
+      return JSON.parse(field);
+    } catch {
+      return field;
+    }
+  };
+
   const loadActa = async () => {
     setLoading(true);
     try {
       const actaRes = await actasAPI.getById(id);
-      setActa(actaRes.data);
+      const actaData = actaRes.data;
+      if (actaData) {
+        actaData.datos_formulario = parseJSONField(actaData.datos_formulario);
+      }
+      setActa(actaData);
     } catch (err) {
       console.error('Error cargando acta:', err);
       setActa(null);

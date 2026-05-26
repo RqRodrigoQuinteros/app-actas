@@ -411,7 +411,9 @@ export default function EditarActa() {
       setFirmaResponsable(a.firma_responsable_base64 || '');
 
       // Datos formulario estructurado
-      const df = a.datos_formulario || {};
+      const df = typeof a.datos_formulario === 'string'
+        ? (() => { try { return JSON.parse(a.datos_formulario); } catch { return {}; } })()
+        : (a.datos_formulario || {});
       setEnFuncionamiento(df.en_funcionamiento || '');
       setTestigos(df.testigos || []);
       const res = df.residentes || [];

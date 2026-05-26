@@ -218,6 +218,38 @@
     {{{seccionesHTML}}}
   </div>
 
+  {{#if datos_formulario.residentes}}
+  <div class="seccion">
+    <h3>Residentes</h3>
+    <table class="tabla-campos">
+      <thead>
+        <tr>
+          <th style="width:6%">N°</th>
+          <th>Nombre</th>
+          <th>DNI</th>
+          <th>Domicilio</th>
+          <th>Familiar responsable</th>
+          <th>Teléfono</th>
+          <th>Vínculo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each datos_formulario.residentes}}
+        <tr>
+          <td style="text-align:center">{{inc @index}}</td>
+          <td>{{nombre}}</td>
+          <td>{{dni}}</td>
+          <td>{{domicilio}}</td>
+          <td>{{familiar_nombre}}</td>
+          <td>{{familiar_telefono}}</td>
+          <td>{{vinculo}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
   {{#if observaciones}}
   <div class="observaciones">
     <strong>Observaciones:</strong><br>

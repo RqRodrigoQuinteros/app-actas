@@ -30,6 +30,17 @@ function toBuffer(pdfBuffer) {
   throw new Error('PDF generation returned invalid buffer');
 }
 
+function parseJSONField(value) {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return {};
+    }
+  }
+  return value || {};
+}
+
 // Enriquecer acta con respuestas dinámicas desde actas_respuestas
 async function enriquecerConRespuestas(acta) {
   console.log('[PDF] enriquecerConRespuestas - acta.id:', acta.id);
@@ -50,8 +61,8 @@ async function enriquecerConRespuestas(acta) {
     console.log('[PDF] ERROR en query respuestas:', error.message);
   }
 
-  // Construir { token: valor } para Handlebars
-  const datosFormulario = {};
+  // Construir { token: valor } para Handlebars, preservando campos existentes de datos_formulario
+  const datosFormulario = { ...parseJSONField(acta.datos_formulario) };
   if (respuestas && respuestas.length > 0) {
     for (const r of respuestas) {
       if (!r.campo?.token) continue;
@@ -116,7 +127,7 @@ async function enriquecerConRespuestas(acta) {
   console.log('[PDF] secciones_render count:', secciones_render.length);
 
   // Paso 3: procesar secciones repetibles (ej: UTIs) desde datos_formulario.secciones_extra
-  const seccionesExtraData = acta.datos_formulario?.secciones_extra || {};
+  const seccionesExtraData = parseJSONField(acta.datos_formulario).secciones_extra || {};
   const extraSeccionIds = Object.keys(seccionesExtraData).map(Number).filter(id => id > 0);
   console.log('[PDF] extraSeccionIds (repetibles):', extraSeccionIds);
 
@@ -344,6 +355,7 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
 
     const actaCompleta = {
       ...acta,
+      datos_formulario: parseJSONField(acta.datos_formulario),
       inspector_nombre: acta.inspector?.nombre || '',
       inspector_dni: acta.inspector?.dni || '',
     };
