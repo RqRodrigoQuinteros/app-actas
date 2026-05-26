@@ -604,13 +604,47 @@ router.get('/actas/:actaId/respuestas', async (req, res) => {
   try {
     const { actaId } = req.params;
 
-    const { data, error } = await supabase
+    const { data: respuestas, error } = await supabase
       .from('actas_respuestas')
-      .select('*, campo:template_campos(etiqueta, subtitulo, tipo, token, orden, seccion:template_secciones(titulo, orden))')
+      .select('id, acta_id, campo_id, valor')
       .eq('acta_id', actaId);
 
     if (error) throw error;
-    res.json(data || []);
+    if (!respuestas || respuestas.length === 0) {
+      return res.json([]);
+    }
+
+    const campoIds = [...new Set(respuestas.map(r => r.campo_id).filter(Boolean))];
+    const { data: campos, error: camposError } = await supabase
+      .from('template_campos')
+      .select('id, etiqueta, subtitulo, tipo, token, orden, seccion_id')
+      .in('id', campoIds);
+
+    if (camposError) throw camposError;
+
+    const seccionIds = [...new Set((campos || []).map(c => c.seccion_id).filter(Boolean))];
+    const { data: secciones, error: seccionesError } = await supabase
+      .from('template_secciones')
+      .select('id, titulo, orden')
+      .in('id', seccionIds);
+
+    if (seccionesError) throw seccionesError;
+
+    const seccionLookup = Object.fromEntries((secciones || []).map(s => [s.id, s]));
+    const campoLookup = Object.fromEntries((campos || []).map(c => [c.id, c]));
+
+    const resultado = respuestas.map(r => {
+      const campo = campoLookup[r.campo_id];
+      return {
+        ...r,
+        campo: campo ? {
+          ...campo,
+          seccion: campo.seccion_id ? seccionLookup[campo.seccion_id] || null : null,
+        } : null,
+      };
+    });
+
+    res.json(resultado || []);
   } catch (err) {
     console.error('Error obteniendo respuestas:', err);
     res.status(500).json({ error: 'Error al obtener respuestas' });
