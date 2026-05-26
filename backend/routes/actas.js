@@ -156,7 +156,11 @@ router.post('/', async (req, res) => {
       establecimiento_nombre,
       establecimiento_direccion,
       establecimiento_localidad,
-      establecimiento_tipologia
+      establecimiento_tipologia,
+      datos_formulario,
+      fotos_urls,
+      firma_inspector_base64,
+      firma_responsable_base64,
     } = req.body;
 
     const actaData = {
@@ -182,6 +186,10 @@ router.post('/', async (req, res) => {
       establecimiento_direccion,
       establecimiento_localidad,
       establecimiento_tipologia,
+      datos_formulario: datos_formulario || {},
+      fotos_urls: fotos_urls || [],
+      firma_inspector_base64: firma_inspector_base64 || null,
+      firma_responsable_base64: firma_responsable_base64 || null,
       estado: 'borrador'
     };
 

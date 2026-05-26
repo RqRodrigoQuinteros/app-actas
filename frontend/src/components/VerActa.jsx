@@ -97,17 +97,27 @@ export default function VerActa() {
 
   const renderValor = (r) => {
     const tipo = r.campo?.tipo;
+    const valor = r.valor;
+    const esSiNo = (v) => {
+      if (v === true || v === 'SI' || v === 'si' || v === 'True' || v === 'true') return 'SI';
+      if (v === false || v === 'NO' || v === 'no' || v === 'False' || v === 'false') return 'NO';
+      if (v === 'N/A' || v === 'NA' || v === 'NO APLICA' || v === 'No Aplica' || v === 'no aplica') return 'NO APLICA';
+      return null;
+    };
+
     if (tipo === 'si_no') {
+      const texto = esSiNo(valor) || String(valor || '-');
       return (
-        <span className={r.valor === 'SI' ? 'text-black font-semibold' : 'text-red-600 font-bold'}>
-          {r.valor || '-'}
+        <span className={texto === 'NO' ? 'text-red-600 font-bold' : 'text-black font-semibold'}>
+          {texto}
         </span>
       );
     }
     if (tipo === 'check') {
-      return <span>{r.valor === 'true' ? '✓' : '✗'}</span>;
+      const isChecked = valor === true || valor === 'true';
+      return <span>{isChecked ? '✓' : '✗'}</span>;
     }
-    return <span className="font-medium text-sm">{r.valor || '-'}</span>;
+    return <span className="font-medium text-sm">{valor || '-'}</span>;
   };
 
   if (loading) {

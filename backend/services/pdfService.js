@@ -395,11 +395,22 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
         // Detectar flota desde secciones_render ("Flota Vehicular #N")
         const flotasSections = secciones.filter(s => /flota vehicular/i.test(s.titulo));
-        const flotaParaTabla = flotasSections.map(sec => ({
-          marca:   df[(sec.campos.find(c => /marca/i.test(c.etiqueta))   || {}).token] || '',
-          modelo:  df[(sec.campos.find(c => /modelo/i.test(c.etiqueta))  || {}).token] || '',
-          dominio: df[(sec.campos.find(c => /dominio/i.test(c.etiqueta)) || {}).token] || '',
-        }));
+        const flotaParaTabla = flotasSections.map(sec => {
+          const marcaCampo = sec.campos.find(c => /marca/i.test(c.etiqueta));
+          const modeloCampo = sec.campos.find(c => /modelo/i.test(c.etiqueta));
+          const dominioCampo = sec.campos.find(c => /dominio/i.test(c.etiqueta));
+          const resto = (sec.campos || [])
+            .filter(c => !/marca/i.test(c.etiqueta) && !/modelo/i.test(c.etiqueta) && !/dominio/i.test(c.etiqueta))
+            .map(c => ({ etiqueta: c.etiqueta, valor: df[c.token] || '' }));
+
+          return {
+            marca: df[marcaCampo?.token] || '',
+            modelo: df[modeloCampo?.token] || '',
+            dominio: df[dominioCampo?.token] || '',
+            texto_posterior: sec.texto_posterior || '',
+            resto,
+          };
+        });
 
         // nUnidades: desde flota, o desde primer array bool encontrado
         let nUnidades = flotaParaTabla.length;
@@ -424,11 +435,23 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         // ── Flota combinada ────────────────────────────────────────────────────
         let flotaHTML = '';
         if (flotaParaTabla.length > 0) {
-          const filas = flotaParaTabla.map((f, i) => `
-            <tr>
-              <td style="text-align:center;width:8%">${i + 1}</td>
-              <td>${f.marca}</td><td>${f.modelo}</td><td>${f.dominio}</td>
-            </tr>`).join('');
+          const filas = flotaParaTabla.map((f, i) => {
+            const detalles = [];
+            if (f.texto_posterior) {
+              detalles.push(`<strong>Observaciones generales:</strong> ${f.texto_posterior}`);
+            }
+            f.resto.forEach(item => {
+              if (item.valor !== undefined && item.valor !== null && String(item.valor).trim() !== '') {
+                detalles.push(`<strong>${item.etiqueta}:</strong> ${item.valor}`);
+              }
+            });
+            return `
+              <tr>
+                <td style="text-align:center;width:8%">${i + 1}</td>
+                <td>${f.marca}</td><td>${f.modelo}</td><td>${f.dominio}</td>
+              </tr>
+              ${detalles.length > 0 ? `<tr><td colspan="4" style="padding:6px 8px;background:#fafafa;word-wrap:break-word">${detalles.join('<br/>')}</td></tr>` : ''}`;
+          }).join('');
           flotaHTML = `
             <div class="seccion">
               <h3>Flota Vehicular</h3>
@@ -740,6 +763,7 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
         responsable_dni: acta.responsable_dni || '',
         responsable_caracter: acta.responsable_caracter || '',
         observaciones: acta.observaciones || '',
+        datos_formulario: acta.datos_formulario || {},
         emplazamiento_valor: acta.emplazamiento_valor || acta.emplazamiento_dias || 0,
         emplazamiento_tipo: (() => {
           const tipo = acta.emplazamiento_tipo || 'HORAS';

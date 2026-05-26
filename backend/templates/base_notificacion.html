@@ -101,6 +101,38 @@
     </div>
   </div>
 
+  {{#if datos_formulario.residentes}}
+  <div class="seccion">
+    <h3>RESIDENTES</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre</th>
+          <th>DNI</th>
+          <th>Domicilio</th>
+          <th>Familiar Responsable</th>
+          <th>Teléfono</th>
+          <th>Vínculo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each datos_formulario.residentes}}
+        <tr>
+          <td>{{@index + 1}}</td>
+          <td>{{nombre}}</td>
+          <td>{{dni}}</td>
+          <td>{{domicilio}}</td>
+          <td>{{familiar_nombre}}</td>
+          <td>{{familiar_telefono}}</td>
+          <td>{{vinculo}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
   {{#if observaciones}}
   <div class="observaciones">
     <strong>Observaciones / Motivo de Notificación:</strong><br>
