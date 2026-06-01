@@ -409,7 +409,7 @@ router.post('/geriatrico', authenticateToken, async (req, res) => {
 
     const titulos = TITULOS_TIPOLOGIA[tipNombre] || {
       tituloInforme: `Evaluación Técnica Arquitectura`,
-      subtituloInforme: 'Fiscalización Edilicia - Dec. 33/08 - Res. 1226/2025',
+      subtituloInforme: 'Fiscalización Edilicia - Dec. 33/08 - Res. 567/2026',
     };
     const datosConTitulos = { ...datos, ...titulos };
 
