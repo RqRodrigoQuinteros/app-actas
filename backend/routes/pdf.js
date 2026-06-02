@@ -307,14 +307,20 @@ router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
 router.post('/informe/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
+    const { rol, id: userId } = req.user;
 
     const { data: informe, error } = await supabase
       .from('informes')
-      .select('*, arquitecto:usuarios!informes_arquitecto_id_fkey(nombre, dni)')
+      .select('*, arquitecto:usuarios!informes_arquitecto_id_fkey(nombre, dni), arquitecto_id')
       .eq('id', id)
       .single();
 
     if (error || !informe) return res.status(404).json({ error: 'Informe no encontrado' });
+
+    // Permisos: solo el arquitecto creador o supervisor pueden generar el PDF
+    if (rol === 'arquitecto' && informe.arquitecto_id !== userId) {
+      return res.status(403).json({ error: 'No tienes acceso a este informe' });
+    }
 
     const informeCompleto = {
       ...informe,
