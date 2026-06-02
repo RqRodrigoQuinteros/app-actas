@@ -104,6 +104,8 @@
     <p><strong>Auditor Arquitectura:</strong> {{arquitecto}}</p>
     <p><strong>Establecimiento:</strong> {{nombreEst}}</p>
     <p><strong>Ubicación:</strong> {{direccion}}</p>
+    {{#if barrio}}<p><strong>Barrio / Localidad:</strong> {{barrio}}</p>{{/if}}
+    {{#if departamento}}<p><strong>Departamento:</strong> {{departamento}}</p>{{/if}}
     <p><strong>Expte. Papel N°:</strong> {{expPapel}}</p>
     <p><strong>Expte. Digital N°</strong> {{expDigital}}</p>
     <p><strong>Metros cuadrados:</strong> {{#if metros2}}{{metros2}} m²{{else}}-{{/if}}</p>
