@@ -527,7 +527,7 @@ tipologia_nombre !== 'Geriátricos'
 
 ### Backend (`.env`)
 ```env
-PORT=3000
+PORT=3001
 SUPABASE_URL=https://xxxx.supabase.co
 SUPABASE_SERVICE_KEY=xxxx
 JWT_SECRET=xxxx_secreto_largo

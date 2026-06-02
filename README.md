@@ -118,7 +118,7 @@ npm run dev
 ### Backend (`backend/.env`)
 
 ```env
-PORT=3000
+PORT=3001
 SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_SERVICE_KEY=tu-service-key
 JWT_SECRET=tu-secreto-largo
@@ -131,7 +131,7 @@ DRIVE_ROOT_FOLDER_ID=id-carpeta-raiz-drive
 ### Frontend (`frontend/.env`)
 
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:3001
 ```
 
 ---
