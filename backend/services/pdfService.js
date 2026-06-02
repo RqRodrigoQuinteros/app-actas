@@ -710,6 +710,9 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
     establecimiento_nombre: informe.establecimiento_nombre || '',
     establecimiento_direccion: informe.establecimiento_direccion || '',
     establecimiento_localidad: informe.establecimiento_localidad || '',
+    // Soporta barrio/departamento que pueden estar en datos_formulario.generales
+    barrio: (informe.establecimiento_localidad) || (informe.datos_formulario && informe.datos_formulario.generales && informe.datos_formulario.generales.barrio) || (informe.datos_formulario && informe.datos_formulario.barrio) || '',
+    departamento: (informe.datos_formulario && informe.datos_formulario.generales && informe.datos_formulario.generales.departamento) || (informe.datos_formulario && informe.datos_formulario.departamento) || '',
     datos_formulario: informe.datos_formulario || {},
     observaciones: informe.observaciones || '',
     firma_arquitecto: informe.firma_arquitecto_base64 || '',
