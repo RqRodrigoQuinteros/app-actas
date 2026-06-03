@@ -511,8 +511,6 @@ export default function EditarActa() {
         director_tecnico_nombre: datos.director_tecnico || '',
         director_tecnico_apellido: '',
         fotos_urls: fotosUrls,
-        firma_inspector_base64: firmaInspector,
-        firma_responsable_base64: firmaResponsable,
         datos_formulario: {
           en_funcionamiento: enFuncionamiento || null,
           residentes: hayResidentes ? residentes : [],
@@ -520,6 +518,13 @@ export default function EditarActa() {
           secciones_extra: seccionesExtra,
         },
       });
+
+      if (firmaInspector || firmaResponsable) {
+        await actasAPI.firmar(id, {
+          firma_inspector_base64: firmaInspector,
+          firma_responsable_base64: firmaResponsable,
+        });
+      }
 
       // 2. Guardar respuestas dinámicas
       const listaRespuestas = Object.entries(respuestas)

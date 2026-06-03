@@ -669,10 +669,15 @@ export default function NuevaActa() {
 
       await actasAPI.update(idParaUsar, {
         ...buildPayload(),
-        firma_inspector_base64: datos.firma_inspector_base64,
-        firma_responsable_base64: datos.firma_responsable_base64,
         fotos_urls: datos.fotos_urls,
       });
+
+      if (datos.firma_inspector_base64 || datos.firma_responsable_base64) {
+        await actasAPI.firmar(idParaUsar, {
+          firma_inspector_base64: datos.firma_inspector_base64,
+          firma_responsable_base64: datos.firma_responsable_base64,
+        });
+      }
 
       let blob;
       let pdfFilenameFromServer = null;

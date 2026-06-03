@@ -41,6 +41,54 @@ function parseJSONField(value) {
   return value || {};
 }
 
+async function attachFirmasToActa(acta) {
+  if (!acta?.id) return acta;
+  try {
+    const { data, error } = await supabase
+      .from('actas_firmas')
+      .select('firma_base64, tipo')
+      .eq('acta_id', acta.id);
+
+    if (error) {
+      console.error('Error fetching firmas para acta PDF', acta.id, error);
+      return acta;
+    }
+
+    const firmas = (data || []).reduce((acc, item) => {
+      if (item.tipo === 'inspector') acc.firma_inspector_base64 = item.firma_base64 || null;
+      if (item.tipo === 'responsable') acc.firma_responsable_base64 = item.firma_base64 || null;
+      return acc;
+    }, { firma_inspector_base64: null, firma_responsable_base64: null });
+
+    return { ...acta, ...firmas };
+  } catch (err) {
+    console.error('Error attaching firmas para acta PDF', acta.id, err);
+    return acta;
+  }
+}
+
+async function attachFotosToActa(acta) {
+  if (!acta?.id) return acta;
+  try {
+    const { data, error } = await supabase
+      .from('actas_fotos')
+      .select('url')
+      .eq('acta_id', acta.id)
+      .order('orden', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching fotos para acta PDF', acta.id, error);
+      return acta;
+    }
+
+    const fotos_urls = (data || []).map(item => item.url).filter(Boolean);
+    return { ...acta, fotos_urls: fotos_urls.length ? fotos_urls : (acta.fotos_urls || []) };
+  } catch (err) {
+    console.error('Error attaching fotos para acta PDF', acta.id, err);
+    return { ...acta, fotos_urls: acta.fotos_urls || [] };
+  }
+}
+
 // Enriquecer acta con respuestas dinámicas desde actas_respuestas
 async function enriquecerConRespuestas(acta) {
   console.log('[PDF] enriquecerConRespuestas - acta.id:', acta.id);
@@ -233,6 +281,9 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
     if (rol === 'inspector' && acta.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
+
+    const actaConFirmas = await attachFirmasToActa(acta);
+    const actaConRecursos = await attachFotosToActa(actaConFirmas);
     // 1. Obtener la ley_marco de esta tipología específica
     const { data: tipData } = await supabase
       .from('template_tipologia')
@@ -240,11 +291,11 @@ router.post('/generar/:id', authenticateToken, async (req, res) => {
       .ilike('nombre', acta.establecimiento_tipologia)
       .single();
 
-    const actaEnriquecida = await enriquecerConRespuestas(acta);
+    const actaEnriquecida = await enriquecerConRespuestas(actaConRecursos);
     const actaCompleta = {
       ...actaEnriquecida,
-      inspector_nombre: acta.inspector?.nombre || '',
-      inspector_dni: acta.inspector?.dni || '',
+      inspector_nombre: actaConRecursos.inspector?.nombre || '',
+      inspector_dni: actaConRecursos.inspector?.dni || '',
       ley_marco: tipData?.ley_marco || '' // <-- 2. AGREGAR AL OBJETO
     };
 
@@ -282,11 +333,13 @@ router.post('/generar-base64/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
 
-    const actaEnriquecida = await enriquecerConRespuestas(acta);
+    const actaConFirmas = await attachFirmasToActa(acta);
+    const actaConRecursos = await attachFotosToActa(actaConFirmas);
+    const actaEnriquecida = await enriquecerConRespuestas(actaConRecursos);
     const actaCompleta = {
       ...actaEnriquecida,
-      inspector_nombre: acta.inspector?.nombre || '',
-      inspector_dni: acta.inspector?.dni || '',
+      inspector_nombre: actaConRecursos.inspector?.nombre || '',
+      inspector_dni: actaConRecursos.inspector?.dni || '',
     };
 
     const logoMembrete = cargarLogoBase64('img6.jpg');
@@ -359,11 +412,13 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
 
+    const actaConFirmas = await attachFirmasToActa(acta);
+    const actaConRecursos = await attachFotosToActa(actaConFirmas);
     const actaCompleta = {
-      ...acta,
-      datos_formulario: parseJSONField(acta.datos_formulario),
-      inspector_nombre: acta.inspector?.nombre || '',
-      inspector_dni: acta.inspector?.dni || '',
+      ...actaConRecursos,
+      datos_formulario: parseJSONField(actaConRecursos.datos_formulario),
+      inspector_nombre: actaConRecursos.inspector?.nombre || '',
+      inspector_dni: actaConRecursos.inspector?.dni || '',
     };
 
     const logoMembrete = cargarLogoBase64('img6.jpg');

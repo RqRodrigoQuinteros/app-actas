@@ -32,6 +32,98 @@ function removeMissingColumnsFromPayload(error, payload) {
   return removed;
 }
 
+async function fetchFirmas(actaId) {
+  try {
+    const { data, error } = await supabase
+      .from('actas_firmas')
+      .select('firma_base64, tipo')
+      .eq('acta_id', actaId);
+
+    if (error) {
+      console.error('Error fetching firmas for acta', actaId, error);
+      return {};
+    }
+
+    return (data || []).reduce((acc, item) => {
+      if (item.tipo === 'inspector') acc.firma_inspector_base64 = item.firma_base64 || null;
+      if (item.tipo === 'responsable') acc.firma_responsable_base64 = item.firma_base64 || null;
+      return acc;
+    }, { firma_inspector_base64: null, firma_responsable_base64: null });
+  } catch (err) {
+    console.error('Error fetching firmas for acta', actaId, err);
+    return {};
+  }
+}
+
+async function fetchFotos(actaId) {
+  try {
+    const { data, error } = await supabase
+      .from('actas_fotos')
+      .select('url')
+      .eq('acta_id', actaId)
+      .order('orden', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching fotos for acta', actaId, error);
+      return { fotos_urls: [] };
+    }
+
+    const fotos = (data || []).map((item) => item.url).filter(Boolean);
+    return { fotos_urls: fotos };
+  } catch (err) {
+    console.error('Error fetching fotos for acta', actaId, err);
+    return { fotos_urls: [] };
+  }
+}
+
+async function replaceFotos(actaId, urls) {
+  if (!Array.isArray(urls)) return;
+
+  const { error: deleteError } = await supabase
+    .from('actas_fotos')
+    .delete()
+    .eq('acta_id', actaId);
+
+  if (deleteError) throw deleteError;
+
+  if (urls.length === 0) return;
+
+  const rows = urls.map((url, index) => ({ acta_id: actaId, url, orden: index }));
+  const { error: insertError } = await supabase
+    .from('actas_fotos')
+    .insert(rows);
+
+  if (insertError) throw insertError;
+}
+
+async function upsertFirma(actaId, tipo, firmaBase64) {
+  if (!firmaBase64) return;
+
+  const { data: existing, error: selectError } = await supabase
+    .from('actas_firmas')
+    .select('id')
+    .eq('acta_id', actaId)
+    .eq('tipo', tipo)
+    .single();
+
+  if (selectError && selectError.code !== 'PGRST116') {
+    throw selectError;
+  }
+
+  if (existing && existing.id) {
+    const { error } = await supabase
+      .from('actas_firmas')
+      .update({ firma_base64: firmaBase64 })
+      .eq('id', existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from('actas_firmas')
+      .insert({ acta_id: actaId, tipo, firma_base64 });
+    if (error) throw error;
+  }
+}
+
 router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
@@ -124,7 +216,18 @@ router.get('/:id', async (req, res) => {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
 
-    res.json(data);
+    const firmas = await fetchFirmas(id);
+    const fotos = await fetchFotos(id);
+    const merged = {
+      ...data,
+      ...firmas,
+      ...fotos,
+    };
+    if ((!merged.fotos_urls || merged.fotos_urls.length === 0) && Array.isArray(data.fotos_urls)) {
+      merged.fotos_urls = data.fotos_urls;
+    }
+
+    res.json(merged);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener acta' });
   }
@@ -187,9 +290,6 @@ router.post('/', async (req, res) => {
       establecimiento_localidad,
       establecimiento_tipologia,
       datos_formulario: datos_formulario || {},
-      fotos_urls: fotos_urls || [],
-      firma_inspector_base64: firma_inspector_base64 || null,
-      firma_responsable_base64: firma_responsable_base64 || null,
       estado: 'borrador'
     };
 
@@ -198,6 +298,19 @@ router.post('/', async (req, res) => {
       .insert(actaData)
       .select()
       .single();
+
+    if (!insertResult.error && insertResult.data) {
+      const actaId = insertResult.data.id;
+      if (firma_inspector_base64) {
+        await upsertFirma(actaId, 'inspector', firma_inspector_base64);
+      }
+      if (firma_responsable_base64) {
+        await upsertFirma(actaId, 'responsable', firma_responsable_base64);
+      }
+      if (Array.isArray(fotos_urls)) {
+        await replaceFotos(actaId, fotos_urls);
+      }
+    }
 
     if (insertResult.error) {
       console.error('=== INSERT error:', insertResult.error.message);
@@ -244,7 +357,12 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'No se puede modificar un acta cerrada' });
     }
 
-    if (updates.datos_formulario || updates.firma_inspector_base64 || updates.firma_responsable_base64) {
+    const fotosUrls = Array.isArray(updates.fotos_urls) ? updates.fotos_urls : null;
+    delete updates.fotos_urls;
+    delete updates.firma_inspector_base64;
+    delete updates.firma_responsable_base64;
+
+    if (updates.datos_formulario) {
       updates.estado = 'borrador';
     }
 
@@ -254,6 +372,10 @@ router.put('/:id', async (req, res) => {
       .eq('id', id)
       .select()
       .single();
+
+    if (!updateResult.error && fotosUrls !== null) {
+      await replaceFotos(id, fotosUrls);
+    }
 
     if (updateResult.error && removeMissingColumnsFromPayload(updateResult.error, updates)) {
       updateResult = await supabase
@@ -265,7 +387,12 @@ router.put('/:id', async (req, res) => {
     }
 
     if (updateResult.error) throw updateResult.error;
-    res.json(updateResult.data);
+    const fotos = await fetchFotos(id);
+    const mergedData = { ...updateResult.data, ...fotos };
+    if ((!mergedData.fotos_urls || mergedData.fotos_urls.length === 0) && Array.isArray(updateResult.data.fotos_urls)) {
+      mergedData.fotos_urls = updateResult.data.fotos_urls;
+    }
+    res.json(mergedData);
   } catch (err) {
     console.error('Error updating acta:', err);
     res.status(500).json({ error: err.message || 'Error al actualizar acta' });
@@ -296,27 +423,30 @@ router.post('/:id/firmar', async (req, res) => {
       return res.status(400).json({ error: 'Esta acta ya está cerrada' });
     }
 
-    const updates = {};
     if (firma_inspector_base64) {
-      updates.firma_inspector_base64 = firma_inspector_base64;
+      await upsertFirma(id, 'inspector', firma_inspector_base64);
     }
     if (firma_responsable_base64) {
-      updates.firma_responsable_base64 = firma_responsable_base64;
+      await upsertFirma(id, 'responsable', firma_responsable_base64);
     }
 
-    if (firma_inspector_base64 && firma_responsable_base64) {
-      updates.estado = 'firmado';
+    const firmas = await fetchFirmas(id);
+    if (firmas.firma_inspector_base64 && firmas.firma_responsable_base64) {
+      const { error: estadoError } = await supabase
+        .from('actas')
+        .update({ estado: 'firmado' })
+        .eq('id', id);
+      if (estadoError) throw estadoError;
     }
 
-    const { data, error } = await supabase
+    const { data: actaData, error: actaError } = await supabase
       .from('actas')
-      .update(updates)
+      .select('*, inspector:usuarios!actas_inspector_id_fkey(nombre, dni)')
       .eq('id', id)
-      .select()
       .single();
 
-    if (error) throw error;
-    res.json(data);
+    if (actaError || !actaData) throw actaError || new Error('Acta no encontrada');
+    res.json({ ...actaData, ...firmas });
   } catch (err) {
     console.error('Error signing acta:', err);
     res.status(500).json({ error: 'Error al firmar acta' });
