@@ -933,7 +933,10 @@ async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase
 
   const template = handlebars.compile(baseTemplate);
   const tieneRadiofisica = CAMPOS_RADIOFISICA.some(k => datos[k]);
-  const tieneOtros = ['otro_laboratorio', 'otro_hemodialisis', 'cantUnidadesHemodialisis', 'otro_oncologicos', 'cantUnidadesOncologicos', 'otro_pileta'].some(k => datos[k]);
+  const tieneOtros = [
+    'otro_laboratorio', 'otro_hemodialisis', 'cantUnidadesHemodialisisGral', 'cantUnidadesHemodialisisAisladas',
+    'otro_oncologicos', 'cantUnidadesOncologicosGral', 'cantUnidadesOncologicosAisladas', 'otro_pileta'
+  ].some(k => datos[k]);
   const htmlFinal = template({ ...datos, tieneRadiofisica, tieneOtros });
 
   const browser = await launchBrowser();

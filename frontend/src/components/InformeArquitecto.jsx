@@ -71,17 +71,29 @@ export default function InformeArquitecto() {
     navigate('/informe/nuevo', { state: { tipologia_id: tipologia.id, tipologia_nombre: tipologia.nombre } });
   };
 
+  const normalizeString = (value) =>
+    (value || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const isGeriatricoName = (nombre) => normalizeString(nombre).includes('geriatr');
+
   // Detecta el tipo del informe - prioriza tipologia_nombre guardado en datos_formulario (el valor real)
   // informe.tipo solo se usa como fallback para informes antiguos
   const detectarTipo = (informe) => {
     const nombreTipologia = informe.datos_formulario?.tipologia_nombre;
-    if (nombreTipologia) {
-      return nombreTipologia.toLowerCase().includes('geriátrico') ? 'geriatrico' : nombreTipologia;
+    if (isGeriatricoName(nombreTipologia)) {
+      return 'geriatrico';
     }
-    return informe.datos_formulario?.generales?.tipologia
+
+    const tipoFallback = informe.datos_formulario?.generales?.tipologia
       || informe.datos_formulario?.tipo
       || informe.tipo
-      || 'geriatrico';
+      || '';
+
+    if (isGeriatricoName(tipoFallback)) {
+      return 'geriatrico';
+    }
+
+    return tipoFallback || nombreTipologia || informe.tipo || 'geriatrico';
   };
 
   const editarInforme = (informe) => {
