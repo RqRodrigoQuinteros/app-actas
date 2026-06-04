@@ -1,12 +1,12 @@
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { fotosAPI } from '../utils/api';
 
 /**
  * Comprime una imagen usando Canvas antes de subirla.
- * maxWidth/maxHeight: resolución máxima (1920px por defecto)
- * quality: calidad JPEG (0.82 = buen balance tamaño/calidad)
+ * maxWidth/maxHeight: resolución máxima (1200px — óptimo para PDF en celular)
+ * quality: calidad JPEG (0.70 = buena calidad, archivo ~40% más liviano)
  */
-function comprimirImagen(file, { maxWidth = 1920, maxHeight = 1920, quality = 0.82 } = {}) {
+function comprimirImagen(file, { maxWidth = 1200, maxHeight = 1200, quality = 0.70 } = {}) {
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -48,6 +48,10 @@ export default function SubidaFotos({ onFotosChange, initialUrls = [] }) {
   const [previews, setPreviews] = useState(initialUrls);
   const [uploading, setUploading] = useState(false);
   const [comprimiendo, setComprimiendo] = useState(false);
+
+  useEffect(() => {
+    setPreviews(initialUrls);
+  }, [initialUrls]);
 
   const inputGaleriaRef = useRef();
   const inputCamaraRef = useRef();

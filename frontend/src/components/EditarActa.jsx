@@ -519,10 +519,12 @@ export default function EditarActa() {
         },
       });
 
-      if (firmaInspector || firmaResponsable) {
+      const firmaInspectorNeedsSave = firmaInspector?.startsWith('data:');
+      const firmaResponsableNeedsSave = firmaResponsable?.startsWith('data:');
+      if (firmaInspectorNeedsSave || firmaResponsableNeedsSave) {
         await actasAPI.firmar(id, {
-          firma_inspector_base64: firmaInspector,
-          firma_responsable_base64: firmaResponsable,
+          ...(firmaInspectorNeedsSave && { firma_inspector_base64: firmaInspector }),
+          ...(firmaResponsableNeedsSave && { firma_responsable_base64: firmaResponsable }),
         });
       }
 
@@ -878,7 +880,7 @@ export default function EditarActa() {
                     <img src={firmaInspector} alt="Firma inspector" className="max-h-16 mx-auto" />
                   </div>
                 )}
-                <FirmaCanvas onFirma={setFirmaInspector} label={firmaInspector ? 'Reemplazar firma del Inspector' : 'Firma del Inspector *'} />
+                <FirmaCanvas actaId={id} tipo="inspector" onFirma={setFirmaInspector} label={firmaInspector ? 'Reemplazar firma del Inspector' : 'Firma del Inspector *'} />
                 {firmaInspector && <span className="text-green-600 text-sm mt-1 inline-block">✓ Firma guardada</span>}
               </div>
               <hr className="border-gray-200" />
@@ -890,7 +892,7 @@ export default function EditarActa() {
                     <img src={firmaResponsable} alt="Firma responsable" className="max-h-16 mx-auto" />
                   </div>
                 )}
-                <FirmaCanvas onFirma={setFirmaResponsable} label={firmaResponsable ? 'Reemplazar firma del Responsable' : 'Firma del Responsable *'} />
+                <FirmaCanvas actaId={id} tipo="responsable" onFirma={setFirmaResponsable} label={firmaResponsable ? 'Reemplazar firma del Responsable' : 'Firma del Responsable *'} />
                 {firmaResponsable && <span className="text-green-600 text-sm mt-1 inline-block">✓ Firma guardada</span>}
               </div>
             </div>

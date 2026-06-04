@@ -672,10 +672,12 @@ export default function NuevaActa() {
         fotos_urls: datos.fotos_urls,
       });
 
-      if (datos.firma_inspector_base64 || datos.firma_responsable_base64) {
+      const firmaInspectorNeedsSave = datos.firma_inspector_base64?.startsWith('data:');
+      const firmaResponsableNeedsSave = datos.firma_responsable_base64?.startsWith('data:');
+      if (firmaInspectorNeedsSave || firmaResponsableNeedsSave) {
         await actasAPI.firmar(idParaUsar, {
-          firma_inspector_base64: datos.firma_inspector_base64,
-          firma_responsable_base64: datos.firma_responsable_base64,
+          ...(firmaInspectorNeedsSave && { firma_inspector_base64: datos.firma_inspector_base64 }),
+          ...(firmaResponsableNeedsSave && { firma_responsable_base64: datos.firma_responsable_base64 }),
         });
       }
 
@@ -1256,7 +1258,7 @@ export default function NuevaActa() {
               <h2 className="text-xl font-bold mb-4">Firmas</h2>
 
               <div className="mb-8">
-                <FirmaCanvas onFirma={f => setDatos(prev => ({ ...prev, firma_inspector_base64: f }))}
+                <FirmaCanvas actaId={actaId} tipo="inspector" onFirma={f => setDatos(prev => ({ ...prev, firma_inspector_base64: f }))}
                   label="Firma del Inspector *" />
                 {datos.firma_inspector_base64 && (
                   <span className="text-green-600 text-sm mt-1 inline-block">✓ Firmado</span>
@@ -1264,7 +1266,7 @@ export default function NuevaActa() {
               </div>
 
               <div className="mb-8">
-                <FirmaCanvas onFirma={f => setDatos(prev => ({ ...prev, firma_responsable_base64: f }))}
+                <FirmaCanvas actaId={actaId} tipo="responsable" onFirma={f => setDatos(prev => ({ ...prev, firma_responsable_base64: f }))}
                   label="Firma del Responsable *" />
                 {datos.firma_responsable_base64 && (
                   <span className="text-green-600 text-sm mt-1 inline-block">✓ Firmado</span>

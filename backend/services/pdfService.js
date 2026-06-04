@@ -2,8 +2,43 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const http = require('http');
+const https = require('https');
+const { URL } = require('url');
 
 const handlebars = require('handlebars')
+
+async function descargarImagenComoBase64(url, timeout = 15000) {
+  if (!url) return '';
+  if (url.startsWith('data:')) return url;
+  return new Promise((resolve) => {
+    try {
+      const parsedUrl = new URL(url);
+      const mod = parsedUrl.protocol === 'https:' ? https : http;
+      const req = mod.get(url, { timeout }, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          res.resume();
+          return resolve(descargarImagenComoBase64(res.headers.location, timeout));
+        }
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          res.resume();
+          return resolve(url);
+        }
+        const chunks = [];
+        res.on('data', chunk => chunks.push(chunk));
+        res.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          const mime = res.headers['content-type'] || 'image/png';
+          resolve(`data:${mime};base64,${buffer.toString('base64')}`);
+        });
+      });
+      req.on('error', () => resolve(url));
+      req.on('timeout', () => { req.destroy(); resolve(url); });
+    } catch {
+      resolve(url);
+    }
+  });
+}
 
 // Detectar la ruta de Chromium disponible (para Railway/producción)
 function getChromiumPath() {
@@ -588,6 +623,17 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
       console.log(`[PDF] Secciones renderizadas dinámicamente`);
 
+      const fotosBase64 = await Promise.all(
+        (acta.fotos_urls || []).map(url => descargarImagenComoBase64(url))
+      );
+      console.log(`[PDF] Fotos pre-descargadas: ${fotosBase64.filter(Boolean).length} de ${(acta.fotos_urls || []).length}`);
+
+      const [firmaInspectorBase64, firmaResponsableBase64] = await Promise.all([
+        descargarImagenComoBase64(acta.firma_inspector_base64),
+        descargarImagenComoBase64(acta.firma_responsable_base64),
+      ]);
+      console.log(`[PDF] Firmas pre-descargadas (inspector: ${firmaInspectorBase64 ? 'OK' : 'vacía'}, responsable: ${firmaResponsableBase64 ? 'OK' : 'vacía'})`);
+
       // Descomponer fecha para el formato de Equipamiento
       const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
       let dia_texto = '', mes_texto = '', anio_texto = '';
@@ -642,9 +688,9 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
           }
           return tipo;
         })(),
-        firma_inspector: acta.firma_inspector_base64 || '',
-        firma_responsable: acta.firma_responsable_base64 || '',
-        fotos: acta.fotos_urls || [],
+        firma_inspector: firmaInspectorBase64 || acta.firma_inspector_base64 || '',
+        firma_responsable: firmaResponsableBase64 || acta.firma_responsable_base64 || '',
+        fotos: fotosBase64.length > 0 ? fotosBase64 : (acta.fotos_urls || []),
         logo_ministerio_base64: logoMinisterioBase64 || '',
         logo_cordoba_base64: logoCordobaBase64 || ''
       });
@@ -655,8 +701,8 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       console.log(`[PDF] Puppeteer launch OK`);
 
       const page = await browser.newPage();
-      page.setDefaultNavigationTimeout(60000);
-      await page.setContent(htmlFinal, { waitUntil: 'load' });
+      page.setDefaultNavigationTimeout(180000);
+      await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
       console.log(`[PDF] Contenido seteado en página`);
 
       const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
@@ -723,8 +769,8 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
   const browser = await launchBrowser();
 
   const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(60000);
-  await page.setContent(htmlFinal, { waitUntil: 'load' });
+  page.setDefaultNavigationTimeout(180000);
+  await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
   const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
   const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
@@ -796,8 +842,8 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
       const browser = await launchBrowser();
 
       const page = await browser.newPage();
-      page.setDefaultNavigationTimeout(60000);
-      await page.setContent(htmlFinal, { waitUntil: 'load' });
+      page.setDefaultNavigationTimeout(180000);
+      await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
       const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
       const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
@@ -842,8 +888,8 @@ async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCord
 
   const browser = await launchBrowser();
   const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(60000);
-  await page.setContent(htmlFinal, { waitUntil: 'load' });
+  page.setDefaultNavigationTimeout(180000);
+  await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
   const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
   const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
@@ -889,8 +935,8 @@ async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase
 
   const browser = await launchBrowser();
   const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(60000);
-  await page.setContent(htmlFinal, { waitUntil: 'load' });
+  page.setDefaultNavigationTimeout(180000);
+  await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
   const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
   const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';

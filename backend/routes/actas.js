@@ -119,7 +119,7 @@ async function upsertFirma(actaId, tipo, firmaBase64) {
   } else {
     const { error } = await supabase
       .from('actas_firmas')
-      .insert({ acta_id: actaId, tipo, firma_base64 });
+      .insert({ acta_id: actaId, tipo, firma_base64: firmaBase64 });
     if (error) throw error;
   }
 }
@@ -371,22 +371,45 @@ router.put('/:id', async (req, res) => {
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (!updateResult.error && fotosUrls !== null) {
       await replaceFotos(id, fotosUrls);
     }
 
     if (updateResult.error && removeMissingColumnsFromPayload(updateResult.error, updates)) {
+      console.log('=== PUT: reintentando update sin columnas faltantes');
       updateResult = await supabase
         .from('actas')
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
+      if (!updateResult.error && fotosUrls !== null) {
+        await replaceFotos(id, fotosUrls);
+      }
     }
 
     if (updateResult.error) throw updateResult.error;
+
+    if (!updateResult.data) {
+      console.warn('=== PUT: update devolvió 0 filas (maybeSingle). Payload:', JSON.stringify(updates));
+      const { data: fallbackActa } = await supabase
+        .from('actas')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (fallbackActa) {
+        const fotos = await fetchFotos(id);
+        const mergedData = { ...fallbackActa, ...fotos };
+        if ((!mergedData.fotos_urls || mergedData.fotos_urls.length === 0) && Array.isArray(fallbackActa.fotos_urls)) {
+          mergedData.fotos_urls = fallbackActa.fotos_urls;
+        }
+        return res.json(mergedData);
+      }
+      return res.status(500).json({ error: 'Error al actualizar acta: no se encontró el registro' });
+    }
+
     const fotos = await fetchFotos(id);
     const mergedData = { ...updateResult.data, ...fotos };
     if ((!mergedData.fotos_urls || mergedData.fotos_urls.length === 0) && Array.isArray(updateResult.data.fotos_urls)) {

@@ -66,6 +66,15 @@ export const fotosAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  firmar: (file, actaId, tipo) => {
+    const formData = new FormData();
+    formData.append('firma', file);
+    if (actaId) formData.append('acta_id', actaId);
+    if (tipo) formData.append('tipo', tipo);
+    return api.post('/fotos/firmar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export const informesAPI = {
