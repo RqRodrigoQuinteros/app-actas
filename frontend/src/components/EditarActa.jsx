@@ -408,6 +408,7 @@ export default function EditarActa() {
         virtual: a.virtual || false,
         presencial: a.presencial !== false,
         observaciones: a.observaciones || '',
+        sin_emplazamiento: a.sin_emplazamiento || false,
         emplazamiento_valor: a.emplazamiento_valor ?? 48,
         emplazamiento_tipo: a.emplazamiento_tipo || 'HORAS',
       });
@@ -759,15 +760,36 @@ export default function EditarActa() {
               </div>
 
               <div>
-                <label className="label-field font-semibold">Plazo de Emplazamiento *</label>
+                <label className="label-field font-semibold">
+                  Plazo de Emplazamiento
+                  {!datos.sin_emplazamiento && ' *'}
+                </label>
+                <div className="flex items-center gap-3 mt-1">
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input type="checkbox" checked={datos.sin_emplazamiento}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setDatos(p => ({
+                          ...p,
+                          sin_emplazamiento: checked,
+                          emplazamiento_valor: checked ? null : p.emplazamiento_valor,
+                          emplazamiento_tipo: checked ? null : p.emplazamiento_tipo,
+                        }));
+                      }}
+                      className="w-5 h-5" />
+                    Sin emplazamiento
+                  </label>
+                </div>
                 <div className="flex gap-3 mt-1">
-                  <input type="number" className="input-field w-24" min="1" value={datos.emplazamiento_valor}
-                    onChange={e => setDatos(p => ({ ...p, emplazamiento_valor: parseInt(e.target.value) || 0 }))} />
+                  <input type="number" className="input-field w-24" min="1" value={datos.emplazamiento_valor ?? ''}
+                    onChange={e => setDatos(p => ({ ...p, emplazamiento_valor: parseInt(e.target.value) || 0 }))}
+                    disabled={datos.sin_emplazamiento} />
                   <div className="flex gap-2 flex-1">
                     {['HORAS','DÍAS'].map(tipo => (
                       <button key={tipo} type="button"
                         onClick={() => setDatos(p => ({ ...p, emplazamiento_tipo: tipo }))}
-                        className={`flex-1 py-3 rounded-lg font-semibold text-lg transition-colors ${datos.emplazamiento_tipo===tipo?'bg-blue-600 text-white':'bg-gray-200 text-gray-700'}`}>
+                        disabled={datos.sin_emplazamiento}
+                        className={`flex-1 py-3 rounded-lg font-semibold text-lg transition-colors ${datos.emplazamiento_tipo===tipo?'bg-blue-600 text-white':'bg-gray-200 text-gray-700'} disabled:opacity-40 disabled:cursor-not-allowed`}>
                         {tipo}
                       </button>
                     ))}
@@ -883,6 +905,8 @@ export default function EditarActa() {
                 <FirmaCanvas actaId={id} tipo="inspector" onFirma={setFirmaInspector} label={firmaInspector ? 'Reemplazar firma del Inspector' : 'Firma del Inspector *'} />
                 {firmaInspector && <span className="text-green-600 text-sm mt-1 inline-block">✓ Firma guardada</span>}
               </div>
+              {!datos.virtual && (
+              <>
               <hr className="border-gray-200" />
               <div>
                 <p className="label-field mb-2">Firma del Responsable *</p>
@@ -895,6 +919,13 @@ export default function EditarActa() {
                 <FirmaCanvas actaId={id} tipo="responsable" onFirma={setFirmaResponsable} label={firmaResponsable ? 'Reemplazar firma del Responsable' : 'Firma del Responsable *'} />
                 {firmaResponsable && <span className="text-green-600 text-sm mt-1 inline-block">✓ Firma guardada</span>}
               </div>
+              </>
+              )}
+              {datos.virtual && (
+                <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-500">
+                  Inspección virtual — no requiere firma del responsable
+                </div>
+              )}
             </div>
           )}
 

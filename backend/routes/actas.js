@@ -368,6 +368,7 @@ router.put('/:id', async (req, res) => {
     delete updates.fotos_urls;
     delete updates.firma_inspector_base64;
     delete updates.firma_responsable_base64;
+    delete updates.sin_emplazamiento;
 
     if (updates.datos_formulario) {
       updates.estado = 'borrador';

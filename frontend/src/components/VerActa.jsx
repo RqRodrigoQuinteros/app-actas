@@ -305,14 +305,16 @@ export default function VerActa() {
         )}
 
         {/* Emplazamiento */}
+        {(acta.emplazamiento_valor || acta.emplazamiento_dias) > 0 && (
         <div className="card mb-4">
           <p className="uppercase font-semibold">
             SE EMPLAZA POR EL TÉRMINO DE <strong>{acta.emplazamiento_valor} {acta.emplazamiento_tipo}</strong>
           </p>
         </div>
+        )}
 
         {/* Firmas */}
-        {(acta.firma_inspector_base64 || acta.firma_responsable_base64) && (
+        {(acta.firma_inspector_base64 || (acta.firma_responsable_base64 && !acta.virtual)) && (
           <div className="card mb-4">
             <h3 className="font-bold text-lg mb-4">Firmas</h3>
             <div className="flex justify-between">
@@ -323,6 +325,7 @@ export default function VerActa() {
                 <p className="font-semibold mt-2">{acta.inspector?.nombre}</p>
                 <p className="text-sm text-gray-600">Inspector</p>
               </div>
+              {!acta.virtual && (
               <div className="text-center w-1/2">
                 {acta.firma_responsable_base64 && (
                   <img src={acta.firma_responsable_base64} alt="Firma Responsable" className="max-h-20 mx-auto" />
@@ -330,6 +333,7 @@ export default function VerActa() {
                 <p className="font-semibold mt-2">{acta.responsable_nombre}</p>
                 <p className="text-sm text-gray-600">Responsable</p>
               </div>
+              )}
             </div>
           </div>
         )}

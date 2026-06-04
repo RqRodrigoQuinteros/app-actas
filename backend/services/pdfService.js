@@ -658,6 +658,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         hora: acta.hora,
         tipo_inspeccion: acta.tipo_inspeccion || 'RUTINA',
         virtual: acta.virtual ? 'SI' : 'NO',
+        es_virtual: acta.virtual ? true : false,
         presencial: acta.presencial ? 'SI' : 'NO',
         inspector_nombre: acta.inspector_nombre || '',
         inspector_dni: acta.inspector_dni || '',
@@ -678,6 +679,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         seccionesHTML,
         datos_formulario: acta.datos_formulario || {},
         observaciones: acta.observaciones || '',
+        sin_emplazamiento: acta.sin_emplazamiento === true || !(acta.emplazamiento_valor || acta.emplazamiento_dias || 0) > 0,
         show_emplazamiento: !/^equipamiento$/i.test((acta.establecimiento_tipologia || acta.tipologia || '').trim()),
         emplazamiento_valor: acta.emplazamiento_valor || acta.emplazamiento_dias || 0,
         emplazamiento_tipo: (() => {
@@ -824,6 +826,7 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
         responsable_caracter: acta.responsable_caracter || '',
         observaciones: acta.observaciones || '',
         datos_formulario: acta.datos_formulario || {},
+        sin_emplazamiento: acta.sin_emplazamiento === true || !(acta.emplazamiento_valor || acta.emplazamiento_dias || 0) > 0,
         emplazamiento_valor: acta.emplazamiento_valor || acta.emplazamiento_dias || 0,
         emplazamiento_tipo: (() => {
           const tipo = acta.emplazamiento_tipo || 'HORAS';

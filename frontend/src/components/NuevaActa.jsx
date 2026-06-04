@@ -446,6 +446,7 @@ export default function NuevaActa() {
     observaciones: '',
     emplazamiento_valor: 48,
     emplazamiento_tipo: 'HORAS',
+    sin_emplazamiento: false,
     fotos_urls: [],
     firma_inspector_base64: '',
     firma_responsable_base64: '',
@@ -650,9 +651,11 @@ export default function NuevaActa() {
     if (!datos.establecimiento_nombre?.trim()) errores.push('Nombre del establecimiento');
     if (!datos.responsable_nombre?.trim()) errores.push('Responsable del establecimiento');
     if (!datos.firma_inspector_base64) errores.push('Firma del inspector');
-    if (!datos.firma_responsable_base64) errores.push('Firma del responsable');
-    if (!datos.emplazamiento_valor || datos.emplazamiento_valor <= 0) errores.push('Plazo de emplazamiento');
-    if (!datos.emplazamiento_tipo) errores.push('Tipo de plazo (días u horas)');
+    if (!datos.virtual && !datos.firma_responsable_base64) errores.push('Firma del responsable');
+    if (!datos.sin_emplazamiento) {
+      if (!datos.emplazamiento_valor || datos.emplazamiento_valor <= 0) errores.push('Plazo de emplazamiento');
+      if (!datos.emplazamiento_tipo) errores.push('Tipo de plazo (días u horas)');
+    }
     return errores;
   };
 
@@ -1127,18 +1130,39 @@ export default function NuevaActa() {
               </div>
 
               <div className="mb-4">
-                <label className="label-field font-semibold">Plazo de Emplazamiento *</label>
+                <label className="label-field font-semibold">
+                  Plazo de Emplazamiento
+                  {!datos.sin_emplazamiento && ' *'}
+                </label>
+                <div className="flex items-center gap-3 mt-2">
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input type="checkbox" checked={datos.sin_emplazamiento}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setDatos(prev => ({
+                          ...prev,
+                          sin_emplazamiento: checked,
+                          emplazamiento_valor: checked ? null : prev.emplazamiento_valor,
+                          emplazamiento_tipo: checked ? null : prev.emplazamiento_tipo,
+                        }));
+                      }}
+                      className="w-5 h-5" />
+                    Sin emplazamiento
+                  </label>
+                </div>
                 <div className="flex gap-3 mt-2">
-                  <input type="number" value={datos.emplazamiento_valor}
+                  <input type="number" value={datos.emplazamiento_valor ?? ''}
                     onChange={e => setDatos(prev => ({ ...prev, emplazamiento_valor: parseInt(e.target.value) || 0 }))}
-                    className="input-field w-24" min="1" required />
+                    className="input-field w-24" min="1" required
+                    disabled={datos.sin_emplazamiento} />
                   <div className="flex gap-2 flex-1">
                     {['HORAS', 'DÍAS'].map(tipo => (
                       <button key={tipo} type="button"
                         onClick={() => setDatos(prev => ({ ...prev, emplazamiento_tipo: tipo }))}
+                        disabled={datos.sin_emplazamiento}
                         className={`flex-1 py-3 px-4 rounded-lg font-semibold text-lg transition-colors ${
                           datos.emplazamiento_tipo === tipo ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                        }`}>
+                        } disabled:opacity-40 disabled:cursor-not-allowed`}>
                         {tipo}
                       </button>
                     ))}
@@ -1214,18 +1238,39 @@ export default function NuevaActa() {
               </div>
 
               <div className="mb-4">
-                <label className="label-field font-semibold">Plazo de Emplazamiento *</label>
+                <label className="label-field font-semibold">
+                  Plazo de Emplazamiento
+                  {!datos.sin_emplazamiento && ' *'}
+                </label>
+                <div className="flex items-center gap-3 mt-2">
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input type="checkbox" checked={datos.sin_emplazamiento}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setDatos(prev => ({
+                          ...prev,
+                          sin_emplazamiento: checked,
+                          emplazamiento_valor: checked ? null : prev.emplazamiento_valor,
+                          emplazamiento_tipo: checked ? null : prev.emplazamiento_tipo,
+                        }));
+                      }}
+                      className="w-5 h-5" />
+                    Sin emplazamiento
+                  </label>
+                </div>
                 <div className="flex gap-3 mt-2">
-                  <input type="number" value={datos.emplazamiento_valor}
+                  <input type="number" value={datos.emplazamiento_valor ?? ''}
                     onChange={e => setDatos(prev => ({ ...prev, emplazamiento_valor: parseInt(e.target.value) || 0 }))}
-                    className="input-field w-24" min="1" required />
+                    className="input-field w-24" min="1" required
+                    disabled={datos.sin_emplazamiento} />
                   <div className="flex gap-2 flex-1">
                     {['HORAS', 'DÍAS'].map(tipo => (
                       <button key={tipo} type="button"
                         onClick={() => setDatos(prev => ({ ...prev, emplazamiento_tipo: tipo }))}
+                        disabled={datos.sin_emplazamiento}
                         className={`flex-1 py-3 px-4 rounded-lg font-semibold text-lg transition-colors ${
                           datos.emplazamiento_tipo === tipo ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                        }`}>
+                        } disabled:opacity-40 disabled:cursor-not-allowed`}>
                         {tipo}
                       </button>
                     ))}
@@ -1265,6 +1310,7 @@ export default function NuevaActa() {
                 )}
               </div>
 
+              {!datos.virtual && (
               <div className="mb-8">
                 <FirmaCanvas actaId={actaId} tipo="responsable" onFirma={f => setDatos(prev => ({ ...prev, firma_responsable_base64: f }))}
                   label="Firma del Responsable *" />
@@ -1272,6 +1318,12 @@ export default function NuevaActa() {
                   <span className="text-green-600 text-sm mt-1 inline-block">✓ Firmado</span>
                 )}
               </div>
+              )}
+              {datos.virtual && (
+                <div className="mb-8 p-4 bg-gray-50 rounded-lg text-center text-gray-500">
+                  Inspección virtual — no requiere firma del responsable
+                </div>
+              )}
 
               <div className="flex gap-4">
                 <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
