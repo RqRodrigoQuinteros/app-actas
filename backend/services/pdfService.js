@@ -924,7 +924,7 @@ async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCord
 const CAMPOS_RADIOFISICA = [
   'rad_convencional', 'rad_acelerador', 'rad_ortopanto', 'rad_tomografia',
   'rad_litotricia', 'rad_laser', 'rad_hemodinamia', 'rad_pet',
-  'rad_resonancia', 'rad_densitometria', 'hemoterapia',
+  'rad_resonancia', 'rad_densitometria', 'rad_mamografia', 'hemoterapia',
 ];
 
 async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {

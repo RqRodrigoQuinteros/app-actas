@@ -107,6 +107,7 @@ const SECCIONES = [
       { id: "rad_pet",           label: "PET / SPECT / Tomografía por emisión de positrones",     tipo: "sino" },
       { id: "rad_resonancia",    label: "Resonancia Magnética",                                   tipo: "sino" },
       { id: "rad_densitometria", label: "Densitometría Ósea",                                    tipo: "sino" },
+      { id: "rad_mamografia",    label: "Mamografía",                                             tipo: "sino" },
       { id: "hemoterapia",       label: "Hemoterapia",                                            tipo: "sino" },
     ]
   },
@@ -190,7 +191,7 @@ const GENERALES_VACÍO = {
   // Radiofísica
   rad_convencional: "", rad_acelerador: "", rad_ortopanto: "", rad_tomografia: "",
   rad_litotricia: "", rad_laser: "", rad_hemodinamia: "", rad_pet: "",
-  rad_resonancia: "", rad_densitometria: "", hemoterapia: "",
+  rad_resonancia: "", rad_densitometria: "", rad_mamografia: "", hemoterapia: "",
   // Otros
   otro_laboratorio: "", otro_hemodialisis: "",
   cantUnidadesHemodialisis: "", cantUnidadesHemodialisisAisladas: "",
