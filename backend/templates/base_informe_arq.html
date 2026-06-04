@@ -175,13 +175,13 @@
     {{#if rad_resonancia}}<tr><td>Resonancia Magnética</td><td>{{rad_resonancia}}</td></tr>{{/if}}
     {{#if rad_densitometria}}<tr><td>Densitometría Ósea</td><td>{{rad_densitometria}}</td></tr>{{/if}}
     {{#if rad_mamografia}}<tr><td>Mamografía</td><td>{{rad_mamografia}}</td></tr>{{/if}}
-    {{#if hemoterapia}}<tr><td>Hemoterapia</td><td>{{hemoterapia}}</td></tr>{{/if}}
   </table>
   {{/if}}
 
   {{#if tieneOtros}}
   <h3 class="seccion-titulo">Otros</h3>
   <table class="tabla-campos">
+    {{#if hemoterapia}}<tr><td>Hemoterapia</td><td>{{hemoterapia}}</td></tr>{{/if}}
     {{#if otro_laboratorio}}<tr><td>Laboratorio</td><td>{{otro_laboratorio}}</td></tr>{{/if}}
     {{#if otro_hemodialisis}}<tr><td>Hemodiálisis</td><td>{{otro_hemodialisis}}</td></tr>{{/if}}
     {{#if cantUnidadesHemodialisisGral}}<tr><td>Cant. unidades en Hemodiálisis Generales</td><td>{{cantUnidadesHemodialisisGral}}</td></tr>{{/if}}

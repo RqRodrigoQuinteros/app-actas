@@ -108,12 +108,12 @@ const SECCIONES = [
       { id: "rad_resonancia",    label: "Resonancia Magnética",                                   tipo: "sino" },
       { id: "rad_densitometria", label: "Densitometría Ósea",                                    tipo: "sino" },
       { id: "rad_mamografia",    label: "Mamografía",                                             tipo: "sino" },
-      { id: "hemoterapia",       label: "Hemoterapia",                                            tipo: "sino" },
     ]
   },
   {
     titulo: "Otros",
     campos: [
+      { id: "hemoterapia",            label: "Hemoterapia",                                       tipo: "sino" },
       { id: "otro_laboratorio",       label: "Laboratorio",                           tipo: "sino" },
       { id: "otro_hemodialisis",      label: "Hemodiálisis",                          tipo: "sino" },
       { id: "cantUnidadesHemodialisisGral", label: "Cant. unidades en Hemodiálisis Generales",      tipo: "numero", placeholder: "0" },
@@ -191,9 +191,9 @@ const GENERALES_VACÍO = {
   // Radiofísica
   rad_convencional: "", rad_acelerador: "", rad_ortopanto: "", rad_tomografia: "",
   rad_litotricia: "", rad_laser: "", rad_hemodinamia: "", rad_pet: "",
-  rad_resonancia: "", rad_densitometria: "", rad_mamografia: "", hemoterapia: "",
+  rad_resonancia: "", rad_densitometria: "", rad_mamografia: "",
   // Otros
-  otro_laboratorio: "", otro_hemodialisis: "",
+  hemoterapia: "", otro_laboratorio: "", otro_hemodialisis: "",
   cantUnidadesHemodialisis: "", cantUnidadesHemodialisisAisladas: "",
   otro_oncologicos: "",
   cantUnidadesOncologicosGral: "", cantUnidadesOncologicosAisladas: "",
