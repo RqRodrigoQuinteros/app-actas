@@ -54,11 +54,11 @@ async function attachFirmasToActa(acta) {
       return acta;
     }
 
-    const firmas = (data || []).reduce((acc, item) => {
-      if (item.tipo === 'inspector') acc.firma_inspector_base64 = item.firma_base64 || null;
-      if (item.tipo === 'responsable') acc.firma_responsable_base64 = item.firma_base64 || null;
-      return acc;
-    }, { firma_inspector_base64: null, firma_responsable_base64: null });
+    const firmas = {};
+    (data || []).forEach(item => {
+      if (item.tipo === 'inspector' && item.firma_base64) firmas.firma_inspector_base64 = item.firma_base64;
+      if (item.tipo === 'responsable' && item.firma_base64) firmas.firma_responsable_base64 = item.firma_base64;
+    });
 
     return { ...acta, ...firmas };
   } catch (err) {

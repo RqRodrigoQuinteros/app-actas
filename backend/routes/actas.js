@@ -44,11 +44,12 @@ async function fetchFirmas(actaId) {
       return {};
     }
 
-    return (data || []).reduce((acc, item) => {
-      if (item.tipo === 'inspector') acc.firma_inspector_base64 = item.firma_base64 || null;
-      if (item.tipo === 'responsable') acc.firma_responsable_base64 = item.firma_base64 || null;
-      return acc;
-    }, { firma_inspector_base64: null, firma_responsable_base64: null });
+    const result = {};
+    (data || []).forEach(item => {
+      if (item.tipo === 'inspector' && item.firma_base64) result.firma_inspector_base64 = item.firma_base64;
+      if (item.tipo === 'responsable' && item.firma_base64) result.firma_responsable_base64 = item.firma_base64;
+    });
+    return result;
   } catch (err) {
     console.error('Error fetching firmas for acta', actaId, err);
     return {};
@@ -225,6 +226,12 @@ router.get('/:id', async (req, res) => {
     };
     if ((!merged.fotos_urls || merged.fotos_urls.length === 0) && Array.isArray(data.fotos_urls)) {
       merged.fotos_urls = data.fotos_urls;
+    }
+    if (!merged.firma_inspector_base64 && data.firma_inspector_base64) {
+      merged.firma_inspector_base64 = data.firma_inspector_base64;
+    }
+    if (!merged.firma_responsable_base64 && data.firma_responsable_base64) {
+      merged.firma_responsable_base64 = data.firma_responsable_base64;
     }
 
     res.json(merged);
@@ -454,7 +461,9 @@ router.post('/:id/firmar', async (req, res) => {
     }
 
     const firmas = await fetchFirmas(id);
-    if (firmas.firma_inspector_base64 && firmas.firma_responsable_base64) {
+    const firmaInspectorOK = firmas.firma_inspector_base64;
+    const firmaResponsableOK = existingActa.virtual || firmas.firma_responsable_base64;
+    if (firmaInspectorOK && firmaResponsableOK) {
       const { error: estadoError } = await supabase
         .from('actas')
         .update({ estado: 'firmado' })
