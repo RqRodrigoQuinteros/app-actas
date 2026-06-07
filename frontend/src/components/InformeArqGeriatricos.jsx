@@ -89,6 +89,10 @@ const SECCIONES = [
       { id: "cantUTIPAisladas",   label: "Cant. unidades UTIP Aisladas",         tipo: "numero", placeholder: "0" },
       { id: "cantUTINGral",   label: "Cant. unidades UTIN Generales",         tipo: "numero", placeholder: "0" },
       { id: "cantUTINAisladas",   label: "Cant. unidades UTIN Aisladas",         tipo: "numero", placeholder: "0" },
+      { id: "cantQuirOfanos", label: "Cantidad de quirófanos",               tipo: "numero", placeholder: "0" },
+      { id: "cantSalasParto", label: "Cantidad de salas de parto",           tipo: "numero", placeholder: "0" },
+      { id: "cantSalasProcedimientos", label: "Cantidad de Sala de procedimientos", tipo: "numero", placeholder: "0" },
+      { id: "cantSalasEndoscopia", label: "Cantidad de Salas de endoscopia",   tipo: "numero", placeholder: "0" },
       { id: "pileta",      label: "Pileta",                     tipo: "select", opciones: ["Si", "Si, de uso para el establecimiento", "No"] },
       { id: "ascensor",    label: "Ascensor",                   tipo: "sino" },
       { id: "instalacionesDeportivas", label: "Instalaciones Deportivas", tipo: "select", opciones: ["Si","Si, de uso del establecimiento", "No"] },
@@ -121,6 +125,9 @@ const SECCIONES = [
       { id: "otro_oncologicos",       label: "Oncológicos",                           tipo: "sino" },
       { id: "cantUnidadesOncologicosGral", label: "Cant. unidades Oncológicas Generales",           tipo: "numero", placeholder: "0" },
       { id: "cantUnidadesOncologicosAisladas", label: "Cant. unidades Oncológicas Aisladas",           tipo: "numero", placeholder: "0" },
+      { id: "cantPuestosGral",        label: "Cantidad de puestos generales",         tipo: "numero", placeholder: "0" },
+      { id: "cantPuestosAislados",    label: "Cantidad de puestos aislados",          tipo: "numero", placeholder: "0" },
+      { id: "servicioDPCA",           label: "Cuenta con Servicio de Diálisis Peritoneal (DPCA)", tipo: "sino" },
       { id: "otro_pileta",            label: "Pileta",                                tipo: "sino" },
     ]
   },
@@ -185,6 +192,7 @@ const GENERALES_VACÍO = {
   cantUCIGral: "", cantUCIAisladas: "",
   cantUTIPGral: "", cantUTIPAisladas: "",
   cantUTINGral: "", cantUTINAisladas: "",
+  cantQuirOfanos: "", cantSalasParto: "", cantSalasProcedimientos: "", cantSalasEndoscopia: "",
   pileta: "", ascensor: "", instalacionesDeportivas: "",
   habMunicipal: "", nomenclaturaCatastral: "",
   verificarInsp: "", observaciones: "", conclusion: "",
@@ -194,10 +202,12 @@ const GENERALES_VACÍO = {
   rad_resonancia: "", rad_densitometria: "", rad_mamografia: "",
   // Otros
   hemoterapia: "", otro_laboratorio: "", otro_hemodialisis: "",
-  cantUnidadesHemodialisis: "", cantUnidadesHemodialisisAisladas: "",
+  cantUnidadesHemodialisisGral: "", cantUnidadesHemodialisisAisladas: "",
   otro_oncologicos: "",
   cantUnidadesOncologicosGral: "", cantUnidadesOncologicosAisladas: "",
   otro_pileta: "",
+  // Nuevos: puestos y DPCA
+  cantPuestosGral: "", cantPuestosAislados: "", servicioDPCA: "",
 };
 
 // ─── CAMPO INDIVIDUAL ─────────────────────────────────────────────────────────
