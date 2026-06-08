@@ -990,6 +990,16 @@ export default function InformeArqGeriatricos() {
           }}>
             {guardando ? "Guardando..." : esNuevo ? "Crear informe" : "Guardar cambios"}
           </button>
+          {!esNuevo && (
+            <button type="button" onClick={handleGenerarPDF} disabled={generandoPDF} style={{
+              padding: "9px 20px", fontSize: "13px", fontWeight: 700,
+              borderRadius: "8px", cursor: generandoPDF ? "not-allowed" : "pointer",
+              border: "none", background: generandoPDF ? "#9ca3af" : "#7c3aed",
+              color: "#fff", transition: "background 0.15s",
+            }}>
+              {generandoPDF ? "Generando PDF..." : "🔄 Rehacer PDF"}
+            </button>
+          )}
         </div>
       </div>
 
