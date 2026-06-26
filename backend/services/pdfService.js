@@ -80,6 +80,9 @@ function getChromiumPath() {
 }
 
 async function launchBrowser() {
+  // Matar procesos Chrome zombies que hayan quedado colgados de generaciones previas
+  try { execSync('pkill -f "chrome.*--headless" 2>/dev/null || true', { timeout: 3000 }); } catch {}
+
   const executablePath = getChromiumPath();
   const hasValidPath = executablePath && (executablePath.startsWith('/') || executablePath.startsWith('C:'));
   
@@ -92,6 +95,7 @@ async function launchBrowser() {
       '--disable-gpu',
       '--no-first-run',
       '--no-zygote',
+      '--single-process',
       '--disable-extensions',
       '--disable-accelerated-2d-canvas',
       '--disable-web-security',
@@ -701,39 +705,40 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
       const browser = await launchBrowser();
       console.log(`[PDF] Puppeteer launch OK`);
+      try {
+        const page = await browser.newPage();
+        page.setDefaultNavigationTimeout(180000);
+        await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
+        console.log(`[PDF] Contenido seteado en página`);
 
-      const page = await browser.newPage();
-      page.setDefaultNavigationTimeout(180000);
-      await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
-      console.log(`[PDF] Contenido seteado en página`);
+        const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+        const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+        const headerContent = membreteBase64
+          ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+          : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
 
-      const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
-      const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
-      const headerContent = membreteBase64
-        ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
-        : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
-
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
-        displayHeaderFooter: true,
-        headerTemplate: `
-          <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
-            ${headerContent}
-          </div>
-        `,
-        footerTemplate: `
-          <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
-            Página <span class="pageNumber"></span> de <span class="totalPages"></span>
-          </div>
-        `
-      });
-      console.log(`[PDF] PDF generado, tamaño: ${pdfBuffer.length} bytes`);
-
-      await browser.close();
-      console.log(`[PDF] Browser cerrado, retorna PDF`);
-      return pdfBuffer;
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
+          displayHeaderFooter: true,
+          headerTemplate: `
+            <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+              ${headerContent}
+            </div>
+          `,
+          footerTemplate: `
+            <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+              Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+            </div>
+          `
+        });
+        console.log(`[PDF] PDF generado, tamaño: ${pdfBuffer.length} bytes`);
+        return pdfBuffer;
+      } finally {
+        await browser.close().catch(() => {});
+        console.log(`[PDF] Browser cerrado`);
+      }
     } catch (err) {
       lastError = err;
       console.log(`[PDF] ERROR intento ${attempt}/${maxRetries}:`, err.message, err.stack);
@@ -769,36 +774,38 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
   });
 
   const browser = await launchBrowser();
+  try {
+    const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(180000);
+    await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
-  const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(180000);
-  await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
+    const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+    const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+    const headerContent = membreteBase64
+      ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+      : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
 
-  const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
-  const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
-  const headerContent = membreteBase64
-    ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
-    : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
+      displayHeaderFooter: true,
+      headerTemplate: `
+        <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+          ${headerContent}
+        </div>
+      `,
+      footerTemplate: `
+        <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+          Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+        </div>
+      `
+    });
 
-  const pdfBuffer = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
-    displayHeaderFooter: true,
-    headerTemplate: `
-      <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
-        ${headerContent}
-      </div>
-    `,
-    footerTemplate: `
-      <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
-        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
-      </div>
-    `
-  });
-
-  await browser.close();
-  return pdfBuffer;
+    return pdfBuffer;
+  } finally {
+    await browser.close().catch(() => {});
+  }
 }
 
 
@@ -843,36 +850,38 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
       });
 
       const browser = await launchBrowser();
+      try {
+        const page = await browser.newPage();
+        page.setDefaultNavigationTimeout(180000);
+        await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
-      const page = await browser.newPage();
-      page.setDefaultNavigationTimeout(180000);
-      await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
+        const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+        const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+        const headerContent = membreteBase64
+          ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+          : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
 
-      const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
-      const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
-      const headerContent = membreteBase64
-        ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
-        : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
+          displayHeaderFooter: true,
+          headerTemplate: `
+            <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+              ${headerContent}
+            </div>
+          `,
+          footerTemplate: `
+            <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+              Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+            </div>
+          `
+        });
 
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '25mm', bottom: '15mm', left: '20mm', right: '20mm' },
-        displayHeaderFooter: true,
-        headerTemplate: `
-          <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
-            ${headerContent}
-          </div>
-        `,
-        footerTemplate: `
-          <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
-            Página <span class="pageNumber"></span> de <span class="totalPages"></span>
-          </div>
-        `
-      });
-
-      await browser.close();
-      return pdfBuffer;
+        return pdfBuffer;
+      } finally {
+        await browser.close().catch(() => {});
+      }
     } catch (err) {
       lastError = err;
       console.log(`Notificación intento ${attempt}/3 falló:`, err.message);
@@ -890,35 +899,38 @@ async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCord
   const htmlFinal = template(datos);
 
   const browser = await launchBrowser();
-  const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(180000);
-  await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
+  try {
+    const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(180000);
+    await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
-  const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
-  const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
-  const headerContent = membreteBase64
-    ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
-    : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+    const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+    const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+    const headerContent = membreteBase64
+      ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+      : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
 
-  const pdfBuffer = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '28mm', bottom: '15mm', left: '20mm', right: '20mm' },
-    displayHeaderFooter: true,
-    headerTemplate: `
-      <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
-        ${headerContent}
-      </div>
-    `,
-    footerTemplate: `
-      <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
-        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
-      </div>
-    `
-  });
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '28mm', bottom: '15mm', left: '20mm', right: '20mm' },
+      displayHeaderFooter: true,
+      headerTemplate: `
+        <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+          ${headerContent}
+        </div>
+      `,
+      footerTemplate: `
+        <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+          Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+        </div>
+      `
+    });
 
-  await browser.close();
-  return pdfBuffer;
+    return pdfBuffer;
+  } finally {
+    await browser.close().catch(() => {});
+  }
 }
 
 const CAMPOS_RADIOFISICA = [
@@ -941,35 +953,38 @@ async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase
   const htmlFinal = template({ ...datos, tieneRadiofisica, tieneOtros });
 
   const browser = await launchBrowser();
-  const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(180000);
-  await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
+  try {
+    const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(180000);
+    await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
-  const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
-  const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
-  const headerContent = membreteBase64
-    ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
-    : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
+    const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
+    const headerLogoCordoba = logoCordobaBase64 ? `<img src="${logoCordobaBase64}" style="height: 40px;" />` : '';
+    const headerContent = membreteBase64
+      ? `<img src="${membreteBase64}" style="height: 50px; max-width: 100%; object-fit: contain;" />`
+      : `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">${headerLogoMinisterio}<div style="text-align:center;font-size:9pt;"><div style="font-weight:bold;">DIRECCIÓN GENERAL DE REGULACIÓN SANITARIA</div><div>MINISTERIO DE SALUD - PROVINCIA DE CÓRDOBA</div></div>${headerLogoCordoba}</div>`;
 
-  const pdfBuffer = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '28mm', bottom: '15mm', left: '20mm', right: '20mm' },
-    displayHeaderFooter: true,
-    headerTemplate: `
-      <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
-        ${headerContent}
-      </div>
-    `,
-    footerTemplate: `
-      <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
-        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
-      </div>
-    `
-  });
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '28mm', bottom: '15mm', left: '20mm', right: '20mm' },
+      displayHeaderFooter: true,
+      headerTemplate: `
+        <div style="width: 100%; padding: 0 20mm; box-sizing: border-box; text-align: center;">
+          ${headerContent}
+        </div>
+      `,
+      footerTemplate: `
+        <div style="width: 100%; text-align: center; font-size: 10px; font-family: Arial, sans-serif;">
+          Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+        </div>
+      `
+    });
 
-  await browser.close();
-  return pdfBuffer;
+    return pdfBuffer;
+  } finally {
+    await browser.close().catch(() => {});
+  }
 }
 
 module.exports = {
