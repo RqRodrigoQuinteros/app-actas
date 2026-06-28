@@ -161,22 +161,24 @@ function FormTestigos({ testigos, onChange }) {
 function RenderCampoRepetible({ campo, valor, onChange }) {
   if (campo.tipo === 'si_no') {
     return (
-      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-        <span className="text-base">{campo.etiqueta}</span>
-        <div className="flex gap-2">
+      <div className="p-3 bg-gray-50 rounded-lg border">
+        <div className="mb-3">
+          <span className="text-base font-medium">{campo.etiqueta}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button type="button"
             onClick={() => onChange(valor === 'SI' ? '' : 'SI')}
-            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'SI' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${valor === 'SI' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             SI
           </button>
           <button type="button"
             onClick={() => onChange(valor === 'NO' ? '' : 'NO')}
-            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${valor === 'NO' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             NO
           </button>
           <button type="button"
             onClick={() => onChange(valor === 'N/A' ? '' : 'N/A')}
-            className={`px-5 py-2 rounded-lg font-semibold text-lg transition-colors ${valor === 'N/A' ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${valor === 'N/A' ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             N/A
           </button>
         </div>

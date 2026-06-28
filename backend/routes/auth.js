@@ -15,20 +15,22 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'DNI, rol y contraseña son requeridos' });
     }
 
-    // HARDCODE - Usuario superadmin para RodrigoAdmin
-    if (dni === '00000000' && password === 'Admin2026') {
-      const hardcodeUsuario = {
+    // Superadmin desde variables de entorno
+    const SUPER_ADMIN_DNI = process.env.SUPER_ADMIN_DNI || '';
+    const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || '';
+    if (SUPER_ADMIN_DNI && dni === SUPER_ADMIN_DNI && password === SUPER_ADMIN_PASSWORD) {
+      const superadminUsuario = {
         id: '00000000-0000-0000-0000-000000000000',
-        nombre: 'Rodrigo Admin',
-        dni: '00000000',
+        nombre: process.env.SUPER_ADMIN_NOMBRE || 'Super Admin',
+        dni: SUPER_ADMIN_DNI,
         rol: rol === 'supervisor' ? 'supervisor' : 'admin'
       };
       const token = jwt.sign(
-        { id: hardcodeUsuario.id, nombre: hardcodeUsuario.nombre, dni: hardcodeUsuario.dni, rol: hardcodeUsuario.rol },
+        { id: superadminUsuario.id, nombre: superadminUsuario.nombre, dni: superadminUsuario.dni, rol: superadminUsuario.rol },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
-      return res.json({ token, usuario: hardcodeUsuario });
+      return res.json({ token, usuario: superadminUsuario });
     }
 
     const { data: usuario, error } = await supabase
