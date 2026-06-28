@@ -39,6 +39,8 @@ export default function Login() {
 
       if (resultado.rol === 'arquitecto') {
         window.location.href = '/informes';
+      } else if (resultado.rol === 'auditor') {
+        window.location.href = '/consultas';
       } else {
         window.location.href = '/';
       }
@@ -51,6 +53,7 @@ export default function Login() {
 
   const inspectores = usuarios.filter(u => u.rol === 'inspector');
   const arquitectos = usuarios.filter(u => u.rol === 'arquitecto');
+  const auditores = usuarios.filter(u => u.rol === 'auditor');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-800 to-blue-600 flex flex-col items-center justify-center p-4">
@@ -90,6 +93,13 @@ export default function Login() {
                 {arquitectos.length > 0 && (
                   <optgroup label="Arquitectos">
                     {arquitectos.map(u => (
+                      <option key={u.dni} value={u.dni}>{u.nombre}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {auditores.length > 0 && (
+                  <optgroup label="Auditores">
+                    {auditores.map(u => (
                       <option key={u.dni} value={u.dni}>{u.nombre}</option>
                     ))}
                   </optgroup>

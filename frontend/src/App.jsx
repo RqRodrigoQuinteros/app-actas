@@ -11,6 +11,7 @@ import InformeArqGeriatricos from './components/InformeArqGeriatricos';
 import AdminTemplates from './components/AdminTemplates';
 import AdminLogin from './components/AdminLogin';
 import EditarActa from './components/EditarActa';
+import Consultas from './components/Consultas';
 
 function ProtectedRoute({ children, roles, loginPath }) {
   const { usuario, loading } = useAuth();
@@ -57,7 +58,15 @@ function AppRoutes() {
               ? <Navigate to="/informes" replace />
               : usuario?.rol === 'admin'
                 ? <Navigate to="/admin/templates" replace />
-                : <Dashboard />}
+                : usuario?.rol === 'auditor'
+                  ? <Navigate to="/consultas" replace />
+                  : <Dashboard />}
+        </ProtectedRoute>
+      } />
+
+      <Route path="/consultas" element={
+        <ProtectedRoute roles={['auditor']}>
+          <Consultas />
         </ProtectedRoute>
       } />
 

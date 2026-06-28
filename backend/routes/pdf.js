@@ -401,7 +401,7 @@ router.post('/generar-notificacion/:id', authenticateToken, async (req, res) => 
 router.post('/geriatrico', authenticateToken, async (req, res) => {
   try {
     const { rol } = req.user;
-    if (rol !== 'arquitecto' && rol !== 'supervisor') {
+    if (!['arquitecto', 'supervisor', 'auditor'].includes(rol)) {
       return res.status(403).json({ error: 'Acceso no autorizado' });
     }
 

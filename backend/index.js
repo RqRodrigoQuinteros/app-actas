@@ -10,6 +10,7 @@ const fotosRoutes = require('./routes/fotos');
 const informesRoutes = require('./routes/informes');
 const templatesRoutes = require('./routes/templates');
 const informesTemplatesRoutes = require('./routes/informes-templates');
+const consultasRoutes = require('./routes/consultas');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,6 +31,7 @@ app.use('/api/fotos', fotosRoutes);
 app.use('/api/informes', informesRoutes);
 app.use('/api/templates', templatesRoutes);
 app.use('/api/informes-templates', informesTemplatesRoutes);
+app.use('/api/consultas', consultasRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
