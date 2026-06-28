@@ -1,130 +1,9 @@
 const express = require('express');
 const supabase = require('../services/supabaseClient');
 const { authenticateToken } = require('../middleware/auth');
+const { fetchFirmas, fetchFotos, getActaWithRelations, replaceFotos, upsertFirma } = require('../services/actaQueries');
 
 const router = express.Router();
-
-const ACTAS_FALLBACK_COLUMNS = [
-  'tipo_inspeccion',
-  'emplazamiento_tipo',
-  'emplazamiento_valor',
-  'fotos_urls',
-  'datos_formulario',
-  'firma_inspector_base64',
-  'firma_responsable_base64',
-  'director_tecnico_nombre',
-  'director_tecnico_apellido',
-  'director_tecnico_dni',
-  'director_tecnico_matricula',
-  'propietario',
-];
-
-function removeMissingColumnsFromPayload(error, payload) {
-  if (!error?.message || typeof payload !== 'object') return false;
-  let removed = false;
-  const message = error.message.toLowerCase();
-  ACTAS_FALLBACK_COLUMNS.forEach((column) => {
-    if (payload.hasOwnProperty(column) && message.includes(column)) {
-      delete payload[column];
-      removed = true;
-    }
-  });
-  return removed;
-}
-
-async function fetchFirmas(actaId) {
-  try {
-    const { data, error } = await supabase
-      .from('actas_firmas')
-      .select('firma_base64, tipo')
-      .eq('acta_id', actaId);
-
-    if (error) {
-      console.error('Error fetching firmas for acta', actaId, error);
-      return {};
-    }
-
-    const result = {};
-    (data || []).forEach(item => {
-      if (item.tipo === 'inspector' && item.firma_base64) result.firma_inspector_base64 = item.firma_base64;
-      if (item.tipo === 'responsable' && item.firma_base64) result.firma_responsable_base64 = item.firma_base64;
-    });
-    return result;
-  } catch (err) {
-    console.error('Error fetching firmas for acta', actaId, err);
-    return {};
-  }
-}
-
-async function fetchFotos(actaId) {
-  try {
-    const { data, error } = await supabase
-      .from('actas_fotos')
-      .select('url')
-      .eq('acta_id', actaId)
-      .order('orden', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching fotos for acta', actaId, error);
-      return { fotos_urls: [] };
-    }
-
-    const fotos = (data || []).map((item) => item.url).filter(Boolean);
-    return { fotos_urls: fotos };
-  } catch (err) {
-    console.error('Error fetching fotos for acta', actaId, err);
-    return { fotos_urls: [] };
-  }
-}
-
-async function replaceFotos(actaId, urls) {
-  if (!Array.isArray(urls)) return;
-
-  const { error: deleteError } = await supabase
-    .from('actas_fotos')
-    .delete()
-    .eq('acta_id', actaId);
-
-  if (deleteError) throw deleteError;
-
-  if (urls.length === 0) return;
-
-  const rows = urls.map((url, index) => ({ acta_id: actaId, url, orden: index }));
-  const { error: insertError } = await supabase
-    .from('actas_fotos')
-    .insert(rows);
-
-  if (insertError) throw insertError;
-}
-
-async function upsertFirma(actaId, tipo, firmaBase64) {
-  if (!firmaBase64) return;
-
-  const { data: existing, error: selectError } = await supabase
-    .from('actas_firmas')
-    .select('id')
-    .eq('acta_id', actaId)
-    .eq('tipo', tipo)
-    .single();
-
-  if (selectError && selectError.code !== 'PGRST116') {
-    throw selectError;
-  }
-
-  if (existing && existing.id) {
-    const { error } = await supabase
-      .from('actas_firmas')
-      .update({ firma_base64: firmaBase64 })
-      .eq('id', existing.id);
-    if (error) throw error;
-  } else {
-    const { error } = await supabase
-      .from('actas_firmas')
-      .insert({ acta_id: actaId, tipo, firma_base64: firmaBase64 });
-    if (error) throw error;
-  }
-}
-
 router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
@@ -150,26 +29,14 @@ router.get('/', async (req, res) => {
       query = query.eq('inspector_id', inspector_id);
     }
 
-    if (estado) {
-      query = query.eq('estado', estado);
-    }
-
-    if (fechaDesde) {
-      query = query.gte('fecha', fechaDesde);
-    }
-
-    if (fechaHasta) {
-      query = query.lte('fecha', fechaHasta);
-    }
-
-    if (subido_cidi !== undefined) {
-      query = query.eq('subido_cidi', subido_cidi === 'true');
-    }
+    if (estado) query = query.eq('estado', estado);
+    if (fechaDesde) query = query.gte('fecha', fechaDesde);
+    if (fechaHasta) query = query.lte('fecha', fechaHasta);
+    if (subido_cidi !== undefined) query = query.eq('subido_cidi', subido_cidi === 'true');
 
     const { data, error } = await query;
 
     if (error) {
-      // Exponer mensaje real para diagnóstico, y fallback si el JOIN falla
       if (error.message && error.message.toLowerCase().includes('usuarios')) {
         console.warn('JOIN con usuarios falló, reintentando sin join:', error.message);
         let q2 = supabase
@@ -200,136 +67,59 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const { rol, id: userId } = req.user;
 
-    const { data, error } = await supabase
-      .from('actas')
-      .select(`
-        *,
-        inspector:usuarios!actas_inspector_id_fkey(nombre, dni)
-      `)
-      .eq('id', id)
-      .single();
+    const merged = await getActaWithRelations(id);
+    if (merged.error) return res.status(404).json({ error: merged.error });
 
-    if (error || !data) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
-
-    if (rol === 'inspector' && data.inspector_id !== userId) {
+    if (rol === 'inspector' && merged.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
-    }
-
-    const firmas = await fetchFirmas(id);
-    const fotos = await fetchFotos(id);
-    const merged = {
-      ...data,
-      ...firmas,
-      ...fotos,
-    };
-    if ((!merged.fotos_urls || merged.fotos_urls.length === 0) && Array.isArray(data.fotos_urls)) {
-      merged.fotos_urls = data.fotos_urls;
-    }
-    if (!merged.firma_inspector_base64 && data.firma_inspector_base64) {
-      merged.firma_inspector_base64 = data.firma_inspector_base64;
-    }
-    if (!merged.firma_responsable_base64 && data.firma_responsable_base64) {
-      merged.firma_responsable_base64 = data.firma_responsable_base64;
     }
 
     res.json(merged);
   } catch (err) {
+    console.error('Error fetching acta:', err);
     res.status(500).json({ error: 'Error al obtener acta' });
   }
 });
 
 router.post('/', async (req, res) => {
-  console.log('=== POST /actas ===');
-  console.log('propietario:', req.body.propietario, '| dt_nombre:', req.body.director_tecnico_nombre);
   try {
     const {
-      inspector_id,
-      expediente,
-      expediente_papel,
-      fecha,
-      hora,
-      virtual,
-      presencial,
-      tipo_inspeccion,
-      director_tecnico_nombre,
-      director_tecnico_apellido,
-      director_tecnico_dni,
-      director_tecnico_matricula,
-      propietario,
-      responsable_nombre,
-      responsable_dni,
-      responsable_caracter,
-      observaciones,
-      emplazamiento_dias,
-      establecimiento_nombre,
-      establecimiento_direccion,
-      establecimiento_localidad,
-      establecimiento_tipologia,
-      datos_formulario,
-      fotos_urls,
-      firma_inspector_base64,
-      firma_responsable_base64,
+      inspector_id, expediente, expediente_papel, fecha, hora,
+      virtual, presencial, tipo_inspeccion,
+      director_tecnico_nombre, director_tecnico_apellido, director_tecnico_dni, director_tecnico_matricula,
+      propietario, responsable_nombre, responsable_dni, responsable_caracter,
+      observaciones, emplazamiento_dias,
+      establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
+      datos_formulario, fotos_urls,
+      firma_inspector_base64, firma_responsable_base64,
     } = req.body;
 
-    const actaData = {
-      inspector_id,
-      expediente,
-      expediente_papel: expediente_papel || null,
-      fecha,
-      hora,
-      virtual: virtual || false,
-      presencial: presencial !== false,
-      tipo_inspeccion: tipo_inspeccion || 'RUTINA',
-      director_tecnico_nombre,
-      director_tecnico_apellido,
-      director_tecnico_dni,
-      director_tecnico_matricula,
-      propietario,
-      responsable_nombre,
-      responsable_dni,
-      responsable_caracter,
-      observaciones,
-      emplazamiento_dias: emplazamiento_dias || 0,
-      establecimiento_nombre,
-      establecimiento_direccion,
-      establecimiento_localidad,
-      establecimiento_tipologia,
-      datos_formulario: datos_formulario || {},
-      estado: 'borrador'
-    };
-
-    let insertResult = await supabase
+    const { data, error } = await supabase
       .from('actas')
-      .insert(actaData)
+      .insert({
+        inspector_id, expediente, expediente_papel: expediente_papel || null,
+        fecha, hora, virtual: virtual || false, presencial: presencial !== false,
+        tipo_inspeccion: tipo_inspeccion || 'RUTINA',
+        director_tecnico_nombre, director_tecnico_apellido, director_tecnico_dni, director_tecnico_matricula,
+        propietario, responsable_nombre, responsable_dni, responsable_caracter,
+        observaciones, emplazamiento_dias: emplazamiento_dias || 0,
+        establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
+        datos_formulario: datos_formulario || {},
+        estado: 'borrador'
+      })
       .select()
       .single();
 
-    if (!insertResult.error && insertResult.data) {
-      const actaId = insertResult.data.id;
-      if (firma_inspector_base64) {
-        await upsertFirma(actaId, 'inspector', firma_inspector_base64);
-      }
-      if (firma_responsable_base64) {
-        await upsertFirma(actaId, 'responsable', firma_responsable_base64);
-      }
-      if (Array.isArray(fotos_urls)) {
-        await replaceFotos(actaId, fotos_urls);
-      }
-    }
+    if (error) throw error;
 
-    if (insertResult.error) {
-      console.error('=== INSERT error:', insertResult.error.message);
-      if (removeMissingColumnsFromPayload(insertResult.error, actaData)) {
-        console.log('=== Reintentando sin columnas faltantes...');
-        insertResult = await supabase.from('actas').insert(actaData).select().single();
-      }
-    }
+    const actaId = data.id;
+    const ops = [];
+    if (firma_inspector_base64) ops.push(upsertFirma(actaId, 'inspector', firma_inspector_base64));
+    if (firma_responsable_base64) ops.push(upsertFirma(actaId, 'responsable', firma_responsable_base64));
+    if (Array.isArray(fotos_urls)) ops.push(replaceFotos(actaId, fotos_urls));
+    await Promise.all(ops);
 
-    console.log('=== INSERT result - propietario:', insertResult.data?.propietario, '| dt:', insertResult.data?.director_tecnico_nombre, '| error:', insertResult.error?.message);
-    if (insertResult.error) throw insertResult.error;
-    res.status(201).json(insertResult.data);
+    res.status(201).json(data);
   } catch (err) {
     console.error('Error creating acta:', err);
     res.status(500).json({ error: err.message || 'Error al crear acta' });
@@ -342,24 +132,16 @@ router.put('/:id', async (req, res) => {
     const { rol, id: userId } = req.user;
     const updates = req.body;
 
-    console.log('=== PUT /actas/:id ===');
-    console.log('ID:', id);
-    console.log('Updates recibidos:', JSON.stringify(updates, null, 2));
-
     const { data: existingActa } = await supabase
       .from('actas')
       .select('inspector_id, estado')
       .eq('id', id)
       .single();
 
-    if (!existingActa) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
-
+    if (!existingActa) return res.status(404).json({ error: 'Acta no encontrada' });
     if (rol === 'inspector' && existingActa.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
-
     if (existingActa.estado === 'cerrado') {
       return res.status(400).json({ error: 'No se puede modificar un acta cerrada' });
     }
@@ -370,38 +152,20 @@ router.put('/:id', async (req, res) => {
     delete updates.firma_responsable_base64;
     delete updates.sin_emplazamiento;
 
-    if (updates.datos_formulario) {
-      updates.estado = 'borrador';
-    }
+    if (updates.datos_formulario) updates.estado = 'borrador';
 
-    let updateResult = await supabase
+    const { data, error } = await supabase
       .from('actas')
       .update(updates)
       .eq('id', id)
       .select()
       .maybeSingle();
 
-    if (!updateResult.error && fotosUrls !== null) {
-      await replaceFotos(id, fotosUrls);
-    }
+    if (error) throw error;
 
-    if (updateResult.error && removeMissingColumnsFromPayload(updateResult.error, updates)) {
-      console.log('=== PUT: reintentando update sin columnas faltantes');
-      updateResult = await supabase
-        .from('actas')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .maybeSingle();
-      if (!updateResult.error && fotosUrls !== null) {
-        await replaceFotos(id, fotosUrls);
-      }
-    }
+    if (fotosUrls !== null) await replaceFotos(id, fotosUrls);
 
-    if (updateResult.error) throw updateResult.error;
-
-    if (!updateResult.data) {
-      console.warn('=== PUT: update devolvió 0 filas (maybeSingle). Payload:', JSON.stringify(updates));
+    if (!data) {
       const { data: fallbackActa } = await supabase
         .from('actas')
         .select('*')
@@ -409,19 +173,15 @@ router.put('/:id', async (req, res) => {
         .single();
       if (fallbackActa) {
         const fotos = await fetchFotos(id);
-        const mergedData = { ...fallbackActa, ...fotos };
-        if ((!mergedData.fotos_urls || mergedData.fotos_urls.length === 0) && Array.isArray(fallbackActa.fotos_urls)) {
-          mergedData.fotos_urls = fallbackActa.fotos_urls;
-        }
-        return res.json(mergedData);
+        return res.json({ ...fallbackActa, ...fotos });
       }
       return res.status(500).json({ error: 'Error al actualizar acta: no se encontró el registro' });
     }
 
     const fotos = await fetchFotos(id);
-    const mergedData = { ...updateResult.data, ...fotos };
-    if ((!mergedData.fotos_urls || mergedData.fotos_urls.length === 0) && Array.isArray(updateResult.data.fotos_urls)) {
-      mergedData.fotos_urls = updateResult.data.fotos_urls;
+    const mergedData = { ...data, ...fotos };
+    if ((!mergedData.fotos_urls || mergedData.fotos_urls.length === 0) && Array.isArray(data.fotos_urls)) {
+      mergedData.fotos_urls = data.fotos_urls;
     }
     res.json(mergedData);
   } catch (err) {
@@ -438,28 +198,22 @@ router.post('/:id/firmar', async (req, res) => {
 
     const { data: existingActa } = await supabase
       .from('actas')
-      .select('inspector_id, estado')
+      .select('inspector_id, estado, virtual')
       .eq('id', id)
       .single();
 
-    if (!existingActa) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
-
+    if (!existingActa) return res.status(404).json({ error: 'Acta no encontrada' });
     if (rol === 'inspector' && existingActa.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
-
     if (existingActa.estado === 'cerrado') {
       return res.status(400).json({ error: 'Esta acta ya está cerrada' });
     }
 
-    if (firma_inspector_base64) {
-      await upsertFirma(id, 'inspector', firma_inspector_base64);
-    }
-    if (firma_responsable_base64) {
-      await upsertFirma(id, 'responsable', firma_responsable_base64);
-    }
+    const ops = [];
+    if (firma_inspector_base64) ops.push(upsertFirma(id, 'inspector', firma_inspector_base64));
+    if (firma_responsable_base64) ops.push(upsertFirma(id, 'responsable', firma_responsable_base64));
+    await Promise.all(ops);
 
     const firmas = await fetchFirmas(id);
     const firmaInspectorOK = firmas.firma_inspector_base64;
@@ -497,10 +251,7 @@ router.patch('/:id/cidi', async (req, res) => {
       .eq('id', id)
       .single();
 
-    if (!acta) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
-
+    if (!acta) return res.status(404).json({ error: 'Acta no encontrada' });
     if (rol === 'inspector' && acta.inspector_id !== userId) {
       return res.status(403).json({ error: 'No tienes acceso a esta acta' });
     }
@@ -513,7 +264,6 @@ router.patch('/:id/cidi', async (req, res) => {
       .single();
 
     if (error) throw error;
-    
     res.json(data);
   } catch (err) {
     console.error('Error toggle CIDI:', err);
@@ -532,21 +282,12 @@ router.delete('/:id', async (req, res) => {
       .eq('id', id)
       .single();
 
-    if (!acta) {
-      return res.status(404).json({ error: 'Acta no encontrada' });
-    }
+    if (!acta) return res.status(404).json({ error: 'Acta no encontrada' });
 
     const puedeEliminar = rol === 'supervisor' || rol === 'admin' || (rol === 'inspector' && acta.inspector_id === userId);
+    if (!puedeEliminar) return res.status(403).json({ error: 'No puedes eliminar esta acta' });
 
-    if (!puedeEliminar) {
-      return res.status(403).json({ error: 'No puedes eliminar esta acta' });
-    }
-
-    const { error } = await supabase
-      .from('actas')
-      .delete()
-      .eq('id', id);
-
+    const { error } = await supabase.from('actas').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Acta eliminada' });
   } catch (err) {

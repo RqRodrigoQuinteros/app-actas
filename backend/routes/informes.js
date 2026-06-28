@@ -1,6 +1,6 @@
 const express = require('express');
 const supabase = require('../services/supabaseClient');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, requireOwnership } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -108,30 +108,13 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireOwnership('informes', 'arquitecto_id'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { rol, id: userId } = req.user;
-
-    const { data: existingInforme } = await supabase
-      .from('informes')
-      .select('arquitecto_id, estado')
-      .eq('id', id)
-      .single();
-
-    if (!existingInforme) {
-      return res.status(404).json({ error: 'Informe no encontrado' });
-    }
-
-    if (rol === 'arquitecto' && existingInforme.arquitecto_id !== userId) {
-      return res.status(403).json({ error: 'No tienes acceso a este informe' });
-    }
-
-    const updates = req.body;
 
     const { data, error } = await supabase
       .from('informes')
-      .update(updates)
+      .update(req.body)
       .eq('id', id)
       .select()
       .single();
@@ -144,38 +127,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// PATCH /api/informes/:id/cidi - Toggle subido a CIDI
-router.patch('/:id/cidi', async (req, res) => {
+router.patch('/:id/cidi', requireOwnership('informes', 'arquitecto_id'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { rol, id: userId } = req.user;
 
-    const { data: existingInforme } = await supabase
-      .from('informes')
-      .select('arquitecto_id')
-      .eq('id', id)
-      .single();
-
-    if (!existingInforme) {
-      return res.status(404).json({ error: 'Informe no encontrado' });
-    }
-
-    if (rol === 'arquitecto' && existingInforme.arquitecto_id !== userId) {
-      return res.status(403).json({ error: 'No tienes acceso a este informe' });
-    }
-
-    // Toggle: invertir el valor actual
     const { data: current } = await supabase
       .from('informes')
       .select('subido_cidi')
       .eq('id', id)
       .single();
 
-    const nuevoValor = !(current?.subido_cidi);
-
     const { data, error } = await supabase
       .from('informes')
-      .update({ subido_cidi: nuevoValor })
+      .update({ subido_cidi: !(current?.subido_cidi) })
       .eq('id', id)
       .select()
       .single();
@@ -188,24 +152,9 @@ router.patch('/:id/cidi', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireOwnership('informes', 'arquitecto_id'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { rol, id: userId } = req.user;
-
-    const { data: existingInforme } = await supabase
-      .from('informes')
-      .select('arquitecto_id')
-      .eq('id', id)
-      .single();
-
-    if (!existingInforme) {
-      return res.status(404).json({ error: 'Informe no encontrado' });
-    }
-
-    if (rol === 'arquitecto' && existingInforme.arquitecto_id !== userId) {
-      return res.status(403).json({ error: 'No tienes acceso a este informe' });
-    }
 
     const { error } = await supabase
       .from('informes')

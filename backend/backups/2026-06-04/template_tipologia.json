@@ -1,0 +1,152 @@
+[
+  {
+    "id": 2,
+    "nombre": "Clínicas",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-16T00:33:05.002747+00:00",
+    "updated_at": "2026-04-16T00:33:05.002747+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 3,
+    "nombre": "Acta de Notificación",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-16T02:16:14.833416+00:00",
+    "updated_at": "2026-04-16T02:16:14.833416+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 4,
+    "nombre": "Geriatricos",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-16T23:51:21.511945+00:00",
+    "updated_at": "2026-04-16T23:51:21.511945+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 5,
+    "nombre": "HEMODINAMIA",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-20T01:14:03.479094+00:00",
+    "updated_at": "2026-04-20T01:14:03.479094+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 6,
+    "nombre": "Oncólogico",
+    "descripcion": "",
+    "activo": false,
+    "version": 1,
+    "created_at": "2026-04-20T01:16:36.85095+00:00",
+    "updated_at": "2026-04-20T01:16:42.670862+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 7,
+    "nombre": "QUIRURGICOS",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-20T01:18:27.937149+00:00",
+    "updated_at": "2026-04-20T01:18:27.937149+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 8,
+    "nombre": "ESTETICA",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-20T01:41:16.843562+00:00",
+    "updated_at": "2026-04-20T01:41:16.843562+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 9,
+    "nombre": "OPTICAS",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-20T01:47:53.270757+00:00",
+    "updated_at": "2026-04-20T01:47:53.270757+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 10,
+    "nombre": "CENTROS AMBULATORIOS",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-20T01:51:23.431439+00:00",
+    "updated_at": "2026-04-20T01:51:23.431439+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 12,
+    "nombre": "Traslado Social",
+    "descripcion": null,
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-27T23:49:52.554925+00:00",
+    "updated_at": "2026-04-27T23:49:52.554925+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 13,
+    "nombre": "Traslado Baja Complejidad",
+    "descripcion": null,
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-27T23:50:03.801705+00:00",
+    "updated_at": "2026-04-27T23:50:03.801705+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 14,
+    "nombre": "Unidades Móviles de Emergencia",
+    "descripcion": null,
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-04-27T23:50:10.060982+00:00",
+    "updated_at": "2026-04-27T23:50:10.060982+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 15,
+    "nombre": "Equipamiento",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-05-08T01:32:02.84103+00:00",
+    "updated_at": "2026-05-08T01:32:02.84103+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 16,
+    "nombre": "Hemodialisis",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-05-20T12:01:38.690511+00:00",
+    "updated_at": "2026-05-20T12:01:38.690511+00:00",
+    "ley_marco": null
+  },
+  {
+    "id": 17,
+    "nombre": "Acta de Notificacion Geriatricos",
+    "descripcion": "",
+    "activo": true,
+    "version": 1,
+    "created_at": "2026-05-22T12:13:51.27412+00:00",
+    "updated_at": "2026-05-22T12:13:51.27412+00:00",
+    "ley_marco": "Ley 7.872, Decreto 657/09 y Resolución Ministerial N° 394/09"
+  }
+]

@@ -190,25 +190,25 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     const esNo = valor === 'NO';
     const esNa = valor === 'N/A';
     return (
-      <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-        <div>
-          <div className="text-base">{campo.etiqueta}</div>
+      <div className="p-3 bg-white rounded-lg border">
+        <div className="mb-3">
+          <div className="text-base font-medium">{campo.etiqueta}</div>
           {renderCampoSubtitulo(campo)}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button type="button"
             onClick={() => onChange(campo.id, esSi ? '' : 'SI')}
-            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esSi ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${esSi ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             SI
           </button>
           <button type="button"
             onClick={() => onChange(campo.id, esNo ? '' : 'NO')}
-            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esNo ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${esNo ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             NO
           </button>
           <button type="button"
             onClick={() => onChange(campo.id, esNa ? '' : 'N/A')}
-            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esNa ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${esNa ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             N/A
           </button>
         </div>
@@ -220,20 +220,20 @@ function RenderCampo({ campo, respuestas, onChange, flotaInstancias = [], campos
     const esSi = valor === 'true';
     const esNo = valor === 'false';
     return (
-      <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-        <div>
-          <div className="text-base">{campo.etiqueta}</div>
+      <div className="p-3 bg-white rounded-lg border">
+        <div className="mb-3">
+          <div className="text-base font-medium">{campo.etiqueta}</div>
           {renderCampoSubtitulo(campo)}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button type="button"
             onClick={() => onChange(campo.id, esSi ? '' : 'true')}
-            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esSi ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${esSi ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             SI
           </button>
           <button type="button"
             onClick={() => onChange(campo.id, esNo ? '' : 'false')}
-            className={`px-6 py-2 rounded-lg font-semibold text-lg transition-colors ${esNo ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+            className={`flex-1 min-w-[80px] px-5 py-3 rounded-lg font-semibold text-lg transition-colors ${esNo ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
             NO
           </button>
         </div>

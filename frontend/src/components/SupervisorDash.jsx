@@ -4,39 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { actasAPI, informesAPI } from '../utils/api';
 import api from '../utils/api';
 
-const S = {
-  pill: (active) => ({
-    padding: '8px 20px', fontSize: '13px', fontWeight: active ? 700 : 500,
-    borderRadius: '8px', border: 'none', cursor: 'pointer',
-    background: active ? '#fff' : 'transparent',
-    color: active ? '#1f2937' : '#6b7280',
-    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-    transition: 'all 0.15s',
-  }),
-  badge: (color) => ({
-    display: 'inline-block', padding: '2px 8px', borderRadius: '4px',
-    fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em',
-    background: color + '20', color,
-  }),
-  filterLabel: {
-    display: 'block', fontSize: '11px', fontWeight: 700,
-    color: '#6b7280', marginBottom: '4px',
-    textTransform: 'uppercase', letterSpacing: '0.06em',
-  },
-  filterInput: {
-    width: '100%', boxSizing: 'border-box',
-    padding: '8px 10px', fontSize: '13px',
-    border: '1.5px solid #e5e7eb', borderRadius: '7px',
-    background: '#f9fafb', color: '#111827', fontFamily: 'inherit',
-  },
-};
 
-const ESTADO_COLORS = {
-  borrador: '#d97706', firmado: '#2563eb', cerrado: '#16a34a',
-};
-const TIPOLOGIA_COLORS = {
-  geriatrico: '#7c3aed', otro: '#6b7280',
-};
 
 const detectarTipoInforme = (informe) => {
   const nombreTipologia = informe.datos_formulario?.tipologia_nombre;
@@ -305,23 +273,22 @@ export default function SupervisorDash() {
      const emplazamientoTipo = acta.emplazamiento_tipo || '';
      const dueText = emplazamientoValor !== undefined && emplazamientoValor !== null ? `${emplazamientoValor} ${emplazamientoTipo}`.trim() : '-';
      
-     let rowBgStyle = {};
-     let statusIndicator = null;
-     
-     if (acta.vencimientoStatus === 'vencida') {
-       rowBgStyle = { backgroundColor: '#fef2f2' }; 
-       statusIndicator = <span className="ml-2 text-red-600 font-bold text-xs" title="Plazo Vencido">⚠️ VENCIDA</span>;
-     } else if (acta.vencimientoStatus === 'proxima') {
-       rowBgStyle = { backgroundColor: '#fffbeb' }; 
-       statusIndicator = <span className="ml-2 text-amber-600 font-bold text-xs" title="Próxima a vencer">⏳ CRÍTICA</span>;
-     }
+      let rowBgClass = '';
+      let statusIndicator = null;
+      
+      if (acta.vencimientoStatus === 'vencida') {
+        rowBgClass = 'bg-red-50';
+        statusIndicator = <span className="ml-2 text-red-600 font-bold text-xs" title="Plazo Vencido">⚠️ VENCIDA</span>;
+      } else if (acta.vencimientoStatus === 'proxima') {
+        rowBgClass = 'bg-amber-50';
+        statusIndicator = <span className="ml-2 text-amber-600 font-bold text-xs" title="Próxima a vencer">⏳ CRÍTICA</span>;
+      }
 
-     return (
-       <tr 
-         key={acta.id} 
-         style={{ ...rowBgStyle, borderTop: i > 0 ? '1px solid #f3f4f6' : 'none', transition: 'background-color 0.15s' }} 
-         className="hover:bg-gray-100"
-       >
+      return (
+        <tr 
+          key={acta.id} 
+          className={`${rowBgClass} ${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-100 transition-colors duration-150`}
+        >
          <td className="p-3 text-base">{formatDateDDMMYYYY(acta.created_at || acta.fecha)}</td>
          <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || acta.inspector?.username || '-'}</td>
          <td className="p-3">
@@ -331,11 +298,11 @@ export default function SupervisorDash() {
            </div>
            <div className="text-xs text-gray-400">{acta.expediente}</div>
          </td>
-         <td className="p-3 text-xs text-gray-500">
-           <span style={S.badge('#2563eb')}>
-             {acta.establecimiento_tipologia || 'General'}
-           </span>
-         </td>
+          <td className="p-3 text-xs text-gray-500">
+            <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-blue-100 text-blue-600">
+              {acta.establecimiento_tipologia || 'General'}
+            </span>
+          </td>
          <td className="p-3 text-sm font-medium">
            <div>{dueText}</div>
            {acta.dueDate && (
@@ -378,11 +345,15 @@ export default function SupervisorDash() {
       <main className="max-w-6xl mx-auto p-4">
 
         {/* TABS */}
-        <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', borderRadius: '10px', padding: '4px', marginBottom: '20px', width: 'fit-content' }}>
-          <button style={S.pill(tab === 'actas')} onClick={() => setTab('actas')}>
+        <div className="flex gap-1 bg-gray-200 rounded-xl p-1 mb-5 w-fit">
+          <button
+            onClick={() => setTab('actas')}
+            className={`px-5 py-2 text-sm rounded-lg border-none cursor-pointer transition-all duration-150 ${tab === 'actas' ? 'bg-white text-gray-800 font-bold shadow-sm' : 'bg-transparent text-gray-500 font-medium'}`}>
             Actas de Inspección {!loadingActas && `(${actasFiltradas.length})`}
           </button>
-          <button style={S.pill(tab === 'informes')} onClick={() => setTab('informes')}>
+          <button
+            onClick={() => setTab('informes')}
+            className={`px-5 py-2 text-sm rounded-lg border-none cursor-pointer transition-all duration-150 ${tab === 'informes' ? 'bg-white text-gray-800 font-bold shadow-sm' : 'bg-transparent text-gray-500 font-medium'}`}>
             Informes de Arquitectura {!loadingInformes && `(${informesFiltrados.length})`}
           </button>
         </div>
@@ -395,10 +366,10 @@ export default function SupervisorDash() {
               <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros Actas</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label style={S.filterLabel}>Inspector</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Inspector</label>
                   <select value={filtrosActas.inspector_id}
                     onChange={e => setFiltrosActas(p => ({ ...p, inspector_id: e.target.value }))}
-                    style={S.filterInput}>
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit">
                     <option value="">Todos</option>
                     {inspectores.map(ins => (
                       <option key={ins.id} value={ins.id}>{ins.nombre}</option>
@@ -406,10 +377,10 @@ export default function SupervisorDash() {
                   </select>
                 </div>
                 <div>
-                  <label style={S.filterLabel}>Tipología</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tipología</label>
                   <select value={filtrosActas.tipologia}
                     onChange={e => setFiltrosActas(p => ({ ...p, tipologia: e.target.value }))}
-                    style={S.filterInput}>
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit">
                     <option value="">Todas</option>
                     {tipologiasActas.map(tipo => (
                       <option key={tipo} value={tipo}>{tipo}</option>
@@ -417,16 +388,16 @@ export default function SupervisorDash() {
                   </select>
                 </div>
                 <div>
-                  <label style={S.filterLabel}>Desde</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Desde</label>
                   <input type="date" value={filtrosActas.fechaDesde}
                     onChange={e => setFiltrosActas(p => ({ ...p, fechaDesde: e.target.value }))}
-                    style={S.filterInput} />
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit" />
                 </div>
                 <div>
-                  <label style={S.filterLabel}>Hasta</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Hasta</label>
                   <input type="date" value={filtrosActas.fechaHasta}
                     onChange={e => setFiltrosActas(p => ({ ...p, fechaHasta: e.target.value }))}
-                    style={S.filterInput} />
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit" />
                 </div>
               </div>
             </div>
@@ -478,8 +449,8 @@ export default function SupervisorDash() {
               <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
                 <table className="w-full">
                    <thead>
-                     <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                       {['Fecha creada', 'Inspector', 'Establecimiento', 'Tipología', 'Plazo Emplazamiento', 'Acciones'].map(h => (
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        {['Fecha creada', 'Inspector', 'Establecimiento', 'Tipología', 'Plazo Emplazamiento', 'Acciones'].map(h => (
                          <th key={h} className="p-3 text-left text-sm font-bold text-gray-500 uppercase tracking-wide">{h}</th>
                        ))}
                      </tr>
@@ -501,10 +472,10 @@ export default function SupervisorDash() {
               <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros Informes</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <label style={S.filterLabel}>Arquitecto</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Arquitecto</label>
                   <select value={filtrosInformes.arquitecto_id}
                     onChange={e => setFiltrosInformes(p => ({ ...p, arquitecto_id: e.target.value }))}
-                    style={S.filterInput}>
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit">
                     <option value="">Todos</option>
                     {arquitectos.map(arq => (
                       <option key={arq?.id} value={arq?.id}>{arq?.nombre}</option>
@@ -512,20 +483,20 @@ export default function SupervisorDash() {
                   </select>
                 </div>
                  <div>
-                   <label style={S.filterLabel}>Tipología</label>
+                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tipología</label>
                    <select value={filtrosInformes.tipo}
                      onChange={e => setFiltrosInformes(p => ({ ...p, tipo: e.target.value }))}
-                     style={S.filterInput}>
+                     className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit">
                      <option value="">Todas</option>
                      <option value="geriatrico">Geriátrico</option>
                      <option value="otro">Otras tipologías</option>
                    </select>
                  </div>
                 <div>
-                  <label style={S.filterLabel}>Estado</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Estado</label>
                   <select value={filtrosInformes.estado}
                     onChange={e => setFiltrosInformes(p => ({ ...p, estado: e.target.value }))}
-                    style={S.filterInput}>
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit">
                     <option value="">Todos</option>
                     <option value="borrador">Borrador</option>
                     <option value="cerrado">Cerrado</option>
@@ -542,7 +513,7 @@ export default function SupervisorDash() {
               <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
                 <table className="w-full">
                   <thead>
-                    <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                    <tr className="bg-gray-50 border-b border-gray-200">
                       {['Fecha', 'Arquitecto', 'Establecimiento', 'Tipología', 'Estado', 'Acciones'].map(h => (
                         <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
                       ))}
@@ -554,9 +525,12 @@ export default function SupervisorDash() {
                        const esGer = esGeriatrico(tipo);
                        const displayTipo = inf.datos_formulario?.tipologia_nombre || tipo;
                        const cargandoEste = pdfCargando === inf.id;
+                       const badgeTipoClass = esGer ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+                       const badgeEstadoClass = inf.estado === 'borrador' ? 'bg-amber-100 text-amber-700'
+                         : inf.estado === 'cerrado' ? 'bg-green-100 text-green-700'
+                         : 'bg-blue-100 text-blue-700';
                        return (
-                         <tr key={inf.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }}
-                           className="hover:bg-gray-50">
+                         <tr key={inf.id} className={`${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50`}>
                            <td className="p-3 text-sm">{inf.fecha || '-'}</td>
                            <td className="p-3 text-sm font-medium">{inf.arquitecto?.nombre || '-'}</td>
                            <td className="p-3">
@@ -564,17 +538,17 @@ export default function SupervisorDash() {
                              <div className="text-xs text-gray-400">{inf.expediente}</div>
                            </td>
                            <td className="p-3">
-                             <span style={S.badge(esGer ? TIPOLOGIA_COLORS.geriatrico : '#1a5fa8')}>
+                             <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${badgeTipoClass}`}>
                                {displayTipo.charAt(0).toUpperCase() + displayTipo.slice(1)}
                              </span>
                            </td>
                            <td className="p-3">
-                             <span style={S.badge(ESTADO_COLORS[inf.estado] || '#6b7280')}>
+                             <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${badgeEstadoClass}`}>
                                {inf.estado?.toUpperCase()}
                              </span>
                            </td>
                            <td className="p-3">
-                             <div style={{ display: 'flex', gap: '6px' }}>
+                             <div className="flex gap-1.5">
                                <button
                                  onClick={() => navigate(`/informe/${inf.id}`)}
                                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200">

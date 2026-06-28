@@ -11,9 +11,6 @@ import InformeArqGeriatricos from './components/InformeArqGeriatricos';
 import AdminTemplates from './components/AdminTemplates';
 import AdminLogin from './components/AdminLogin';
 import EditarActa from './components/EditarActa';
-import RodrigoAdmin from './components/RodrigoAdmin';
-import RodrigoAdminLogin from './components/RodrigoAdminLogin';
-import RodrigoAdminTest from './components/RodrigoAdminTest';
 
 function ProtectedRoute({ children, roles, loginPath }) {
   const { usuario, loading } = useAuth();
@@ -45,9 +42,8 @@ function AppRoutes() {
     <Routes>
        <Route path="/login" element={<Login />} />
        <Route path="/supervisor-login" element={<SupervisorLogin />} />
-       <Route path="/rodrigoAdmin-login" element={<RodrigoAdminLogin />} />
 
-      <Route path="/admin" element={
+       <Route path="/admin" element={
         usuario?.rol === 'admin'
           ? <Navigate to="/admin/templates" replace />
           : <AdminLogin />
@@ -125,7 +121,6 @@ function AppRoutes() {
          </ProtectedRoute>
        } />
 
-         <Route path="/rodrigoAdmin" element={<RodrigoAdmin />} />
      </Routes>
   );
 }

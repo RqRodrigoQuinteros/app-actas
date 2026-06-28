@@ -15,23 +15,16 @@ api.interceptors.request.use((config) => {
 
  api.interceptors.response.use(
    (response) => response,
-   (error) => {
-     if (error.response?.status === 401 || error.response?.status === 403) {
-       const path = window.location.pathname;
-       const esLoginPage = path === '/login' 
-         || path === '/supervisor-login' 
-         || path === '/admin'
-         || path === '/rodrigoAdmin'
-         || path === '/rodrigoAdmin-login';
-       
-       if (!esLoginPage) {
-         localStorage.removeItem('token');
-         localStorage.removeItem('usuario');
-         window.location.href = '/login';
-       }
-     }
-     return Promise.reject(error);
-   }
+    (error) => {
+      if (error.response?.status === 401) {
+        if (window.location.pathname !== '/login') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('usuario');
+          window.location.href = '/login';
+        }
+      }
+      return Promise.reject(error);
+    }
  );
 
 export const authAPI = {
