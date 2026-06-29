@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import CalendarVencimientos from './CalendarVencimientos';
 
 function formatFecha(d) {
   if (!d) return '—';
@@ -15,13 +15,14 @@ const STATUS_CONFIG = {
 };
 
 export default function VencimientosDash() {
-  const { usuario } = useAuth();
   const [actas, setActas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtros, setFiltros] = useState({ status_vencimiento: '', inspector_id: '', fechaDesde: '', fechaHasta: '' });
   const [inspectores, setInspectores] = useState([]);
   const [exportando, setExportando] = useState(false);
   const [reenviando, setReenviando] = useState(null);
+  const [confirmacion, setConfirmacion] = useState(null);
+  const [vista, setVista] = useState('tabla');
 
   useEffect(() => {
     api.get('/auth/usuarios-login').then(r => setInspectores(r.data)).catch(() => {});
@@ -64,13 +65,26 @@ export default function VencimientosDash() {
     setExportando(false);
   };
 
-  const handleReenviar = async (id) => {
+  const abrirConfirmacion = (acta) => {
+    const inspector = inspectores.find(i => i.id === acta.inspector_id);
+    setConfirmacion({ actaId: acta.id, email: inspector?.email || acta.inspector?.email || '—' });
+  };
+
+  const handleReenviarConfirmado = async () => {
+    if (!confirmacion) return;
+    const id = confirmacion.actaId;
     setReenviando(id);
+    setConfirmacion(null);
     try {
-      await api.post(`/actas/reenviar-alerta/${id}`);
-      setActas(prev => prev.map(a => a.id === id ? { ...a, alertaEnviada: true } : a));
+      const res = await api.post(`/actas/reenviar-alerta/${id}`);
+      if (res.data.success) {
+        setActas(prev => prev.map(a => a.id === id ? { ...a, alertaEnviada: true } : a));
+      } else {
+        alert(res.data.error || 'Error al reenviar alerta');
+      }
     } catch (err) {
-      alert('Error al reenviar alerta');
+      const msg = err.response?.data?.error || err.message || 'Error al reenviar alerta';
+      alert(msg);
     }
     setReenviando(null);
   };
@@ -89,10 +103,26 @@ export default function VencimientosDash() {
           <div className="text-base font-bold text-gray-900">Vencimientos y Alertas</div>
           <div className="text-xs text-gray-500">Control de plazos de emplazamiento</div>
         </div>
-        <button onClick={() => window.history.back()}
-          className="px-3.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white cursor-pointer text-gray-700 font-medium">
-          ← Volver
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <button onClick={() => setVista('tabla')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-md cursor-pointer border-none transition-colors ${
+                vista === 'tabla' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}>
+              Tabla
+            </button>
+            <button onClick={() => setVista('calendario')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-md cursor-pointer border-none transition-colors ${
+                vista === 'calendario' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}>
+              Calendario
+            </button>
+          </div>
+          <button onClick={() => window.history.back()}
+            className="px-3.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white cursor-pointer text-gray-700 font-medium">
+            ← Volver
+          </button>
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto p-4">
@@ -135,7 +165,7 @@ export default function VencimientosDash() {
                 className="w-full p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900">
                 <option value="">Todos</option>
                 {inspectores.filter(u => u.rol === 'inspector').map(ins => (
-                  <option key={ins.dni} value={ins.dni}>{ins.nombre}</option>
+                  <option key={ins.id} value={ins.id}>{ins.nombre}</option>
                 ))}
               </select>
             </div>
@@ -160,61 +190,96 @@ export default function VencimientosDash() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                {['Inspector', 'Establecimiento', 'Expediente', 'Fecha Inspección', 'Vencimiento', 'Días', 'Estado', 'Alerta', 'Acciones'].map(h => (
-                  <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="9" className="p-6 text-center text-gray-400">Cargando...</td></tr>
-              ) : actas.length === 0 ? (
-                <tr><td colSpan="9" className="p-6 text-center text-gray-400">Sin resultados</td></tr>
-              ) : actas.map((acta, i) => {
-                const cfg = STATUS_CONFIG[acta.status] || STATUS_CONFIG.al_dia;
-                return (
-                  <tr key={acta.id} className={`${cfg.bg} ${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50 transition-colors`}>
-                    <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || '—'}</td>
-                    <td className="p-3 text-sm">{acta.establecimiento_nombre || '—'}</td>
-                    <td className="p-3 text-xs text-gray-500">{acta.expediente || '—'}</td>
-                    <td className="p-3 text-sm">{formatFecha(acta.fecha)}</td>
-                    <td className="p-3 text-sm">{acta.vencimiento ? formatFecha(acta.vencimiento) : '—'}</td>
-                    <td className="p-3 text-sm font-bold">{acta.diasVencido > 0 ? `${acta.diasVencido}d` : '—'}</td>
-                    <td className="p-3">
-                      <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${cfg.badge}`}>
-                        {cfg.label}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      {acta.alertaEnviada ? (
-                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-green-100 text-green-700">
-                          Enviada
+        {vista === 'tabla' ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  {['Inspector', 'Establecimiento', 'Expediente', 'Fecha Inspección', 'Vencimiento', 'Días', 'Estado', 'Alerta', 'Acciones'].map(h => (
+                    <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="9" className="p-6 text-center text-gray-400">Cargando...</td></tr>
+                ) : actas.length === 0 ? (
+                  <tr><td colSpan="9" className="p-6 text-center text-gray-400">Sin resultados</td></tr>
+                ) : actas.map((acta, i) => {
+                  const cfg = STATUS_CONFIG[acta.status] || STATUS_CONFIG.al_dia;
+                  return (
+                    <tr key={acta.id} className={`${cfg.bg} ${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50 transition-colors`}>
+                      <td className="p-3 text-sm font-medium">{acta.inspector?.nombre || '—'}</td>
+                      <td className="p-3 text-sm">{acta.establecimiento_nombre || '—'}</td>
+                      <td className="p-3 text-xs text-gray-500">{acta.expediente || '—'}</td>
+                      <td className="p-3 text-sm">{formatFecha(acta.fecha)}</td>
+                      <td className="p-3 text-sm">{acta.vencimiento ? formatFecha(acta.vencimiento) : '—'}</td>
+                      <td className="p-3 text-sm font-bold">{acta.diasVencido > 0 ? `${acta.diasVencido}d` : '—'}</td>
+                      <td className="p-3">
+                        <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${cfg.badge}`}>
+                          {cfg.label}
                         </span>
-                      ) : (
-                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-gray-100 text-gray-500">
-                          Pendiente
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex gap-1.5">
-                        <button onClick={() => handleReenviar(acta.id)} disabled={reenviando === acta.id}
-                          className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200 disabled:opacity-50 cursor-pointer border-none">
-                          {reenviando === acta.id ? '...' : 'Reenviar alerta'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                      <td className="p-3">
+                        {acta.alertaEnviada ? (
+                          <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-green-100 text-green-700">
+                            Enviada
+                          </span>
+                        ) : (
+                          <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-gray-100 text-gray-500">
+                            Pendiente
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex gap-1.5">
+                          <button onClick={() => abrirConfirmacion(acta)} disabled={reenviando === acta.id}
+                            className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200 disabled:opacity-50 cursor-pointer border-none">
+                            {reenviando === acta.id ? '...' : 'Reenviar alerta'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <CalendarVencimientos />
+        )}
       </div>
+
+      {confirmacion && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setConfirmacion(null)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6"
+            onClick={e => e.stopPropagation()}>
+            <div className="text-lg font-bold text-gray-900 mb-1">Reenviar alerta</div>
+            <p className="text-sm text-gray-500 mb-4">
+              Se enviará un email al inspector con el detalle de las actas vencidas.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-4 mb-5">
+              <div className="text-xs text-gray-500 uppercase tracking-wide font-bold mb-1">Email del inspector</div>
+              <div className="text-sm font-medium text-gray-900 break-all">
+                {confirmacion.email === '—' ? (
+                  <span className="text-red-500">No tiene email configurado</span>
+                ) : confirmacion.email}
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmacion(null)}
+                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 cursor-pointer">
+                Cancelar
+              </button>
+              <button onClick={handleReenviarConfirmado}
+                className="px-4 py-2 text-sm font-bold rounded-lg border-none bg-blue-600 text-white cursor-pointer">
+                Enviar alerta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

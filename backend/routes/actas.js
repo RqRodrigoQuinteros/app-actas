@@ -63,6 +63,122 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ─── Vencimientos ─────────────────────────────────────────────────────────────
+router.get('/vencimientos', async (req, res) => {
+  try {
+    const { rol } = req.user;
+    if (rol !== 'supervisor' && rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+    const { inspector_id, estado, fechaDesde, fechaHasta, status_vencimiento } = req.query;
+    const actas = await getVencimientos({ inspector_id, estado, fechaDesde, fechaHasta, statusVencimiento: status_vencimiento });
+    const actaIds = actas.map(a => a.id);
+    const alertasMap = await getEstadoAlertas(actaIds);
+    const result = actas.map(a => ({ ...a, ...(alertasMap[a.id] || { alertaEnviada: false, fechaEnvio: null }) }));
+    res.json(result);
+  } catch (err) {
+    console.error('Error fetching vencimientos:', err);
+    res.status(500).json({ error: err.message || 'Error al obtener vencimientos' });
+  }
+});
+
+// ─── Exportar CSV ──────────────────────────────────────────────────────────────
+router.get('/exportar', async (req, res) => {
+  try {
+    const { rol } = req.user;
+    if (rol !== 'supervisor' && rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+    const { inspector_id, estado, fechaDesde, fechaHasta, tipologia } = req.query;
+
+    let query = supabase
+      .from('actas')
+      .select(`
+        id, expediente, fecha, hora, estado, subido_cidi, created_at,
+        establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
+        responsable_nombre, responsable_dni, responsable_caracter,
+        virtual, presencial, inspector_id,
+        emplazamiento_tipo, emplazamiento_valor, emplazamiento_dias,
+        observaciones,
+        inspector:usuarios!actas_inspector_id_fkey(nombre, dni)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (inspector_id) query = query.eq('inspector_id', inspector_id);
+    if (estado) query = query.eq('estado', estado);
+    if (fechaDesde) query = query.gte('fecha', fechaDesde);
+    if (fechaHasta) query = query.lte('fecha', fechaHasta);
+    if (tipologia) query = query.eq('establecimiento_tipologia', tipologia);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const json2csv = require('json2csv');
+    const fields = [
+      'id', 'expediente', 'fecha', 'hora', 'estado',
+      'establecimiento_nombre', 'establecimiento_direccion', 'establecimiento_localidad', 'establecimiento_tipologia',
+      'responsable_nombre', 'responsable_dni',
+      'virtual', 'presencial',
+      'emplazamiento_tipo', 'emplazamiento_valor',
+      'observaciones', 'subido_cidi', 'created_at',
+    ];
+    const rows = (data || []).map(r => ({
+      ...r,
+      inspector: r.inspector?.nombre || '',
+      inspector_dni: r.inspector?.dni || '',
+      virtual: r.virtual ? 'Si' : 'No',
+      presencial: r.presencial ? 'Si' : 'No',
+      subido_cidi: r.subido_cidi ? 'Si' : 'No',
+    }));
+    const parser = new json2csv.Parser({ fields: [...fields, 'inspector', 'inspector_dni'] });
+    const csv = parser.parse(rows);
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=actas_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    res.send('\uFEFF' + csv);
+  } catch (err) {
+    console.error('Error exporting actas:', err);
+    res.status(500).json({ error: err.message || 'Error al exportar actas' });
+  }
+});
+
+// ─── Eventos para calendario visual ────────────────────────────────────────────
+router.get('/eventos-calendario', async (req, res) => {
+  try {
+    const { rol } = req.user;
+    if (rol !== 'supervisor' && rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+    const { mes } = req.query;
+    if (!mes || !/^\d{4}-\d{2}$/.test(mes)) {
+      return res.status(400).json({ error: 'Formato de mes inválido. Use YYYY-MM' });
+    }
+    const [anio, mesNum] = mes.split('-').map(Number);
+    const fechaDesde = new Date(anio, mesNum - 1, 1).toISOString().slice(0, 10);
+    const fechaHasta = new Date(anio, mesNum, 0).toISOString().slice(0, 10);
+
+    const { getVencimientos, getEstadoAlertas } = require('../services/vencimientoService');
+    const actas = await getVencimientos({ fechaDesde, fechaHasta });
+    const actaIds = actas.map(a => a.id);
+    const alertasMap = await getEstadoAlertas(actaIds);
+
+    const eventos = actas.map(a => ({
+      id: a.id,
+      title: a.establecimiento_nombre || '—',
+      date: a.vencimiento ? a.vencimiento.toISOString().slice(0, 10) : '',
+      status: a.status,
+      expediente: a.expediente,
+      inspector: a.inspector?.nombre || '—',
+      alertaEnviada: alertasMap[a.id]?.alertaEnviada || false,
+    }));
+
+    res.json(eventos);
+  } catch (err) {
+    console.error('Error fetching calendario events:', err);
+    res.status(500).json({ error: err.message || 'Error al obtener eventos del calendario' });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -296,85 +412,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// ─── Vencimientos ─────────────────────────────────────────────────────────────
-router.get('/vencimientos', async (req, res) => {
-  try {
-    const { rol } = req.user;
-    if (rol !== 'supervisor' && rol !== 'admin') {
-      return res.status(403).json({ error: 'Acceso no autorizado' });
-    }
-    const { inspector_id, estado, fechaDesde, fechaHasta, status_vencimiento } = req.query;
-    const actas = await getVencimientos({ inspector_id, estado, fechaDesde, fechaHasta, statusVencimiento: status_vencimiento });
-    const actaIds = actas.map(a => a.id);
-    const alertasMap = await getEstadoAlertas(actaIds);
-    const result = actas.map(a => ({ ...a, ...(alertasMap[a.id] || { alertaEnviada: false, fechaEnvio: null }) }));
-    res.json(result);
-  } catch (err) {
-    console.error('Error fetching vencimientos:', err);
-    res.status(500).json({ error: err.message || 'Error al obtener vencimientos' });
-  }
-});
-
-// ─── Exportar CSV ──────────────────────────────────────────────────────────────
-router.get('/exportar', async (req, res) => {
-  try {
-    const { rol } = req.user;
-    if (rol !== 'supervisor' && rol !== 'admin') {
-      return res.status(403).json({ error: 'Acceso no autorizado' });
-    }
-    const { inspector_id, estado, fechaDesde, fechaHasta, tipologia } = req.query;
-
-    let query = supabase
-      .from('actas')
-      .select(`
-        id, expediente, fecha, hora, estado, subido_cidi, created_at,
-        establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
-        responsable_nombre, responsable_dni, responsable_caracter,
-        virtual, presencial, inspector_id,
-        emplazamiento_tipo, emplazamiento_valor, emplazamiento_dias,
-        observaciones,
-        inspector:usuarios!actas_inspector_id_fkey(nombre, dni)
-      `)
-      .order('created_at', { ascending: false });
-
-    if (inspector_id) query = query.eq('inspector_id', inspector_id);
-    if (estado) query = query.eq('estado', estado);
-    if (fechaDesde) query = query.gte('fecha', fechaDesde);
-    if (fechaHasta) query = query.lte('fecha', fechaHasta);
-    if (tipologia) query = query.eq('establecimiento_tipologia', tipologia);
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    const json2csv = require('json2csv');
-    const fields = [
-      'id', 'expediente', 'fecha', 'hora', 'estado',
-      'establecimiento_nombre', 'establecimiento_direccion', 'establecimiento_localidad', 'establecimiento_tipologia',
-      'responsable_nombre', 'responsable_dni',
-      'virtual', 'presencial',
-      'emplazamiento_tipo', 'emplazamiento_valor',
-      'observaciones', 'subido_cidi', 'created_at',
-    ];
-    const rows = (data || []).map(r => ({
-      ...r,
-      inspector: r.inspector?.nombre || '',
-      inspector_dni: r.inspector?.dni || '',
-      virtual: r.virtual ? 'Si' : 'No',
-      presencial: r.presencial ? 'Si' : 'No',
-      subido_cidi: r.subido_cidi ? 'Si' : 'No',
-    }));
-    const parser = new json2csv.Parser({ fields: [...fields, 'inspector', 'inspector_dni'] });
-    const csv = parser.parse(rows);
-
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename=actas_export_${new Date().toISOString().slice(0, 10)}.csv`);
-    res.send('\uFEFF' + csv);
-  } catch (err) {
-    console.error('Error exporting actas:', err);
-    res.status(500).json({ error: err.message || 'Error al exportar actas' });
-  }
-});
-
 // ─── Reenviar alerta manual ────────────────────────────────────────────────────
 router.post('/reenviar-alerta/:id', async (req, res) => {
   try {
@@ -394,9 +431,6 @@ router.post('/reenviar-alerta/:id', async (req, res) => {
 
     const vencimientoService = require('../services/vencimientoService');
     const vto = vencimientoService.calcularVencimiento(acta);
-    if (!vto || vto.status !== 'vencida') {
-      return res.status(400).json({ error: 'El acta no está vencida' });
-    }
 
     const { enviarAlertaVencimiento } = require('../services/emailService');
     const resultado = await enviarAlertaVencimiento({
@@ -407,7 +441,7 @@ router.post('/reenviar-alerta/:id', async (req, res) => {
         establecimiento_nombre: acta.establecimiento_nombre,
         expediente: acta.expediente,
         fecha: acta.fecha,
-        diasVencido: vto.diasVencido,
+        diasVencido: vto ? vto.diasVencido : 0,
       }],
     });
 
@@ -420,7 +454,7 @@ router.post('/reenviar-alerta/:id', async (req, res) => {
       error_msg: resultado.error || null,
     });
 
-    res.json({ success: resultado.success, message: resultado.success ? 'Alerta reenviada' : 'Error al reenviar', error: resultado.error });
+    res.json({ success: resultado.success, message: resultado.success ? 'Alerta reenviada' : resultado.error, error: resultado.error });
   } catch (err) {
     console.error('Error reenviando alerta:', err);
     res.status(500).json({ error: err.message || 'Error al reenviar alerta' });

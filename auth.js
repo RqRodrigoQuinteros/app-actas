@@ -58,7 +58,7 @@ router.get('/usuarios-login', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('nombre, dni, rol')
+      .select('id, nombre, dni, rol, email')
       .in('rol', ['inspector', 'arquitecto'])
       .eq('activo', true)
       .order('rol')
