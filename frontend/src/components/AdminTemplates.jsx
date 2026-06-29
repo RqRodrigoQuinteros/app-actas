@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { templatesAPI, informesTemplatesAPI } from '../utils/api';
+import api from '../utils/api';
 
 // ─── Estilos ────────────────────────────────────────────────────────────────
 const S = {
@@ -1342,6 +1343,101 @@ function TabInformes() {
   );
 }
 
+// ─── Tab: Emails de Inspectores ──────────────────────────────────────────────
+function TabEmails() {
+  const [usuarios, setUsuarios] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [editando, setEditando] = useState({});
+  const [guardando, setGuardando] = useState(null);
+
+  useEffect(() => {
+    api.get('/auth/usuarios-login')
+      .then(r => setUsuarios(r.data.filter(u => u.rol === 'inspector')))
+      .catch(() => {})
+      .finally(() => setCargando(false));
+  }, []);
+
+  const fetchUsuarios = async () => {
+    const r = await api.get('/auth/usuarios-login');
+    setUsuarios(r.data.filter(u => u.rol === 'inspector'));
+  };
+
+  const handleGuardar = async (dni) => {
+    const email = editando[dni];
+    if (!email || !email.includes('@')) return alert('Email inválido');
+    setGuardando(dni);
+    try {
+      await api.put(`/auth/usuarios/${dni}/email`, { email });
+      await fetchUsuarios();
+      setEditando(p => ({ ...p, [dni]: undefined }));
+    } catch (err) {
+      alert('Error al guardar email');
+    }
+    setGuardando(null);
+  };
+
+  if (cargando) return <div style={{ color: '#9ca3af', fontSize: '14px' }}>Cargando inspectores...</div>;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>Emails de Inspectores</div>
+        <div style={{ fontSize: '12px', color: '#6b7280' }}>Configurar emails para recibir alertas de vencimiento</div>
+      </div>
+      <div style={{
+        background: '#fff', borderRadius: '12px', border: '1.5px solid #e5e7eb', overflow: 'hidden',
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Inspector</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>DNI</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {usuarios.map((u, i) => (
+              <tr key={u.dni} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }}>
+                <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#111827' }}>{u.nombre}</td>
+                <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{u.dni}</td>
+                <td style={{ padding: '12px 16px', fontSize: '13px' }}>
+                  <input
+                    type="email"
+                    placeholder={u.email || 'Sin email'}
+                    defaultValue={u.email || ''}
+                    onChange={e => setEditando(p => ({ ...p, [u.dni]: e.target.value }))}
+                    style={{
+                      width: '100%', boxSizing: 'border-box', padding: '7px 10px',
+                      fontSize: '13px', border: '1.5px solid #e5e7eb', borderRadius: '7px',
+                      background: '#f9fafb', color: '#111827', fontFamily: 'inherit',
+                      outline: 'none',
+                    }}
+                  />
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  <button
+                    onClick={() => handleGuardar(u.dni)}
+                    disabled={guardando === u.dni || !editando[u.dni]}
+                    style={{
+                      padding: '6px 14px', fontSize: '12px', fontWeight: 600,
+                      borderRadius: '7px', border: 'none', cursor: editando[u.dni] ? 'pointer' : 'not-allowed',
+                      background: editando[u.dni] ? '#2563eb' : '#e5e7eb',
+                      color: editando[u.dni] ? '#fff' : '#9ca3af',
+                    }}
+                  >
+                    {guardando === u.dni ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─── Componente principal ────────────────────────────────────────────────────
 export default function AdminTemplates() {
   const { usuario } = useAuth();
@@ -1375,11 +1471,15 @@ export default function AdminTemplates() {
           <button style={S.tab(tab === 'informes')} onClick={() => setTab('informes')}>
             Informes de Arquitecto
           </button>
+          <button style={S.tab(tab === 'emails')} onClick={() => setTab('emails')}>
+            Emails Inspectores
+          </button>
         </div>
 
         {tab === 'tipologias' && <TabTipologias />}
         {tab === 'encabezado' && <TabEncabezado />}
         {tab === 'informes' && <TabInformes />}
+        {tab === 'emails' && <TabEmails />}
       </div>
     </div>
   );

@@ -705,8 +705,8 @@ export default function EditarActa() {
               <hr className="border-gray-200" />
 
               <div>
-                <label className="label-field">Responsable presente *</label>
-                <input className="input-field" value={datos.responsable_nombre} onChange={e => setDatos(p => ({ ...p, responsable_nombre: e.target.value }))} />
+                <label className="label-field">Responsable (quien firmará el acta) *</label>
+                <input className="input-field" value={datos.responsable_nombre} onChange={e => setDatos(p => ({ ...p, responsable_nombre: e.target.value }))} placeholder="Nombre y apellido" />
               </div>
               <div>
                 <label className="label-field">DNI Responsable</label>

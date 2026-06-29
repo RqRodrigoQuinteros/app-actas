@@ -73,7 +73,7 @@ router.get('/usuarios-login', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('nombre, dni, rol')
+      .select('id, nombre, dni, rol, email')
       .in('rol', ['inspector', 'arquitecto', 'auditor'])
       .eq('activo', true)
       .order('rol')
@@ -84,6 +84,33 @@ router.get('/usuarios-login', async (req, res) => {
   } catch (err) {
     console.error('Error obteniendo usuarios:', err);
     res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+router.put('/usuarios/:dni/email', authenticateToken, async (req, res) => {
+  try {
+    const { rol } = req.user;
+    if (rol !== 'supervisor' && rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+    const { dni } = req.params;
+    const { email } = req.body;
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Email inválido' });
+    }
+
+    const { data, error } = await supabase
+      .from('usuarios')
+      .update({ email })
+      .eq('dni', dni)
+      .select('nombre, dni, email')
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error('Error actualizando email:', err);
+    res.status(500).json({ error: err.message || 'Error al actualizar email' });
   }
 });
 

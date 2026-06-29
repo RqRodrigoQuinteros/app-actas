@@ -12,6 +12,7 @@ import AdminTemplates from './components/AdminTemplates';
 import AdminLogin from './components/AdminLogin';
 import EditarActa from './components/EditarActa';
 import Consultas from './components/Consultas';
+import VencimientosDash from './components/VencimientosDash';
 
 function ProtectedRoute({ children, roles, loginPath }) {
   const { usuario, loading } = useAuth();
@@ -88,9 +89,15 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      <Route path="/supervisor" element={
-        <ProtectedRoute roles={['supervisor']}>
+       <Route path="/supervisor" element={
+        <ProtectedRoute roles={['supervisor', 'admin']}>
           <SupervisorDash />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/supervisor/vencimientos" element={
+        <ProtectedRoute roles={['supervisor', 'admin']}>
+          <VencimientosDash />
         </ProtectedRoute>
       } />
 

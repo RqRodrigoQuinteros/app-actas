@@ -434,7 +434,6 @@ export default function NuevaActa() {
     tipologia: '',
     propietario: '',
     director_tecnico_nombre: '',
-    director_tecnico_apellido: '',
     director_tecnico_dni: '',
     director_tecnico_matricula: '',
     responsable_nombre: '',
@@ -586,7 +585,6 @@ export default function NuevaActa() {
     tipo_inspeccion: datos.tipo_inspeccion,
     propietario: datos.propietario,
     director_tecnico_nombre: datos.director_tecnico_nombre,
-    director_tecnico_apellido: datos.director_tecnico_apellido,
     director_tecnico_dni: datos.director_tecnico_dni,
     director_tecnico_matricula: datos.director_tecnico_matricula,
     responsable_nombre: datos.responsable_nombre,
@@ -884,17 +882,10 @@ export default function NuevaActa() {
               <hr className="my-4 border-gray-200" />
 
               <div className="mb-4">
-                <label className="label-field">Nombre del Director Técnico *</label>
+                <label className="label-field">Director Técnico *</label>
                 <input type="text" value={datos.director_tecnico_nombre}
                   onChange={e => setDatos(prev => ({ ...prev, director_tecnico_nombre: e.target.value }))}
-                  className="input-field" required />
-              </div>
-
-              <div className="mb-4">
-                <label className="label-field">Apellido</label>
-                <input type="text" value={datos.director_tecnico_apellido}
-                  onChange={e => setDatos(prev => ({ ...prev, director_tecnico_apellido: e.target.value }))}
-                  className="input-field" />
+                  className="input-field" placeholder="Nombre y apellido" required />
               </div>
 
               <div className="mb-4">
@@ -1191,10 +1182,10 @@ export default function NuevaActa() {
               <h2 className="text-xl font-bold mb-4">Datos del Responsable</h2>
 
               <div className="mb-4">
-                <label className="label-field">Nombre y Apellido *</label>
+                <label className="label-field">Responsable (quien firmará el acta) *</label>
                 <input type="text" value={datos.responsable_nombre}
                   onChange={e => setDatos(prev => ({ ...prev, responsable_nombre: e.target.value }))}
-                  className="input-field" required />
+                  className="input-field" placeholder="Nombre y apellido" required />
               </div>
 
               <div className="mb-4">

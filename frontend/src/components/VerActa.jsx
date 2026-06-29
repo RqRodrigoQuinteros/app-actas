@@ -209,13 +209,14 @@ export default function VerActa() {
             {acta.propietario && (
               <p><strong>Propietario:</strong> {acta.propietario}</p>
             )}
-            {acta.director_tecnico_nombre && (
-              <>
-                <p className="mt-2"><strong>Director Técnico:</strong> {acta.director_tecnico_nombre} {acta.director_tecnico_apellido}</p>
-                {acta.director_tecnico_dni && <p><strong>DNI:</strong> {acta.director_tecnico_dni}</p>}
-                {acta.director_tecnico_matricula && <p><strong>Matrícula:</strong> {acta.director_tecnico_matricula}</p>}
-              </>
-            )}
+{acta.director_tecnico_nombre && (
+                <div className="mt-2">
+                  <p className="font-semibold text-gray-500 text-sm uppercase tracking-wide">Director Técnico</p>
+                  <p>{acta.director_tecnico_nombre}</p>
+                  {acta.director_tecnico_dni && <p className="text-sm text-gray-500">DNI: {acta.director_tecnico_dni}</p>}
+                  {acta.director_tecnico_matricula && <p className="text-sm text-gray-500">Matrícula: {acta.director_tecnico_matricula}</p>}
+                </div>
+              )}
           </div>
         )}
 
