@@ -79,6 +79,12 @@ export const informesAPI = {
   remove: (id) => api.delete(`/informes/${id}`),
 };
 
+export const vencimientosAPI = {
+  getVencimientos: (params) => api.get('/actas/vencimientos', { params }),
+  exportar: (params) => api.get('/actas/exportar', { params, responseType: 'blob' }),
+  reenviarAlerta: (id) => api.post(`/actas/reenviar-alerta/${id}`),
+};
+
 export default api;
 
 export const informesTemplatesAPI = {

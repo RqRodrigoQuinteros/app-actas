@@ -10,6 +10,7 @@ const fotosRoutes = require('./routes/fotos');
 const informesRoutes = require('./routes/informes');
 const templatesRoutes = require('./routes/templates');
 const informesTemplatesRoutes = require('./routes/informes-templates');
+const { iniciarCron } = require('./services/cron');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -37,6 +38,8 @@ app.use((err, req, res, next) => {
     error: err.message || 'Error interno del servidor'
   });
 });
+
+iniciarCron();
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);

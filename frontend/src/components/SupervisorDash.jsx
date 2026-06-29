@@ -332,6 +332,9 @@ export default function SupervisorDash() {
             <p className="text-sm text-gray-300">{usuario?.nombre}</p>
           </div>
           <div className="flex gap-3">
+            <Link to="/supervisor/vencimientos" className="px-4 py-2 bg-emerald-700 rounded-lg hover:bg-emerald-600 text-sm">
+              ⏰ Vencimientos
+            </Link>
             <Link to="/login" className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 text-sm">
               Login Inspector
             </Link>
