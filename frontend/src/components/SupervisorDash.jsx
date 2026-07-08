@@ -287,18 +287,35 @@ export default function SupervisorDash() {
   const alDiaCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'alDia').length;
 
    const informesFiltrados = informes.filter(inf => {
-     if (filtrosInformes.arquitecto_id && inf.arquitecto_id !== filtrosInformes.arquitecto_id) return false;
-     if (filtrosInformes.tipo) {
-       const tipoDetectado = detectarTipoInforme(inf);
-       if (filtrosInformes.tipo === 'geriatrico') {
-         if (!esGeriatrico(tipoDetectado)) return false;
-       } else {
-         if (esGeriatrico(tipoDetectado)) return false;
-       }
-     }
-     if (filtrosInformes.estado && inf.estado !== filtrosInformes.estado) return false;
-     return true;
-   });
+  // 1. Filtro por Arquitecto (forzando String para evitar falsos positivos)
+  if (filtrosInformes.arquitecto_id) {
+    const idDelInforme = String(inf.arquitecto_id || inf.arquitecto?.id || '');
+    if (idDelInforme !== String(filtrosInformes.arquitecto_id)) {
+      return false;
+    }
+  }
+
+  // 2. Filtro por Tipología
+  if (filtrosInformes.tipo) {
+    const tipoDetectado = detectarTipoInforme(inf);
+    if (filtrosInformes.tipo === 'geriatrico') {
+      if (!esGeriatrico(tipoDetectado)) return false;
+    } else {
+      if (esGeriatrico(tipoDetectado)) return false;
+    }
+  }
+
+  // 3. Filtro por Estado (Agregando validación de null por seguridad)
+  if (filtrosInformes.estado) {
+    const estadoInforme = String(inf.estado || '').toLowerCase();
+    const estadoFiltro = String(filtrosInformes.estado).toLowerCase();
+    if (estadoInforme !== estadoFiltro) {
+      return false;
+    }
+  }
+
+  return true;
+});
 
    const renderActaRow = (acta, i) => {
      const emplazamientoValor = acta.emplazamiento_valor;
