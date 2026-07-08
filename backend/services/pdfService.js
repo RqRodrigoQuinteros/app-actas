@@ -707,7 +707,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       try {
         const page = await browser.newPage();
         page.setDefaultNavigationTimeout(180000);
-        await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
+        await page.setContent(htmlFinal, { waitUntil: 'networkidle2', timeout: 6000 });
         console.log(`[PDF] Contenido seteado en página`);
 
         const headerLogoMinisterio = logoMinisterioBase64 ? `<img src="${logoMinisterioBase64}" style="height: 40px;" />` : '';
