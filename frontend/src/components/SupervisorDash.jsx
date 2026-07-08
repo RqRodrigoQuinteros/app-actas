@@ -188,10 +188,15 @@ export default function SupervisorDash() {
     try {
       const response = await informesAPI.getAll();
       setInformes(response.data);
-      const uniq = [...new Map(
-        response.data.map(i => [i.arquitecto_id, i.arquitecto])
-      ).values()].filter(Boolean);
-      setArquitectos(uniq);
+      const uniq = [
+  ...new Map(
+    response.data
+      .filter(i => i.arquitecto?.nombre)
+      .map(i => [i.arquitecto.nombre, i.arquitecto])
+  ).values()
+];
+
+setArquitectos(uniq);
     } catch (err) {
       console.error('Error cargando informes:', err);
     } finally {
@@ -280,11 +285,18 @@ export default function SupervisorDash() {
 
   const informesFiltrados = informes.filter(inf => {
     if (filtrosInformes.arquitecto_id) {
-      const idDelInforme = String(inf.arquitecto_id || inf.arquitecto?.id || '');
-      if (idDelInforme !== String(filtrosInformes.arquitecto_id)) {
-        return false;
-      }
-    }
+  const nombreInforme = (inf.arquitecto?.nombre || "")
+    .trim()
+    .toLowerCase();
+
+  const nombreFiltro = filtrosInformes.arquitecto_id
+    .trim()
+    .toLowerCase();
+
+  if (nombreInforme !== nombreFiltro) {
+    return false;
+  }
+}
 
     if (filtrosInformes.tipo) {
       const tipoDetectado = detectarTipoInforme(inf);
@@ -513,8 +525,10 @@ export default function SupervisorDash() {
                     style={S.filterInput}>
                     <option value="">Todos</option>
                     {arquitectos.map(arq => (
-                      <option key={arq?.id} value={arq?.id}>{arq?.nombre}</option>
-                    ))}
+                      <option key={arq?.nombre} value={arq?.nombre}>
+                      {arq?.nombre}
+                        </option>
+))}
                   </select>
                 </div>
                  <div>
