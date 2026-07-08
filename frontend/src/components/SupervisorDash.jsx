@@ -163,7 +163,6 @@ export default function SupervisorDash() {
       const dataActas = response.data || [];
       setActas(dataActas);
       
-      // CORRECCIÓN AQUÍ: Extraer inspectores únicos asegurando que tengan ID válido desde la relación o la raíz
       const mapInspectores = new Map();
       dataActas.forEach(a => {
         const idIns = a.inspector_id || a.inspector?.id;
@@ -174,7 +173,6 @@ export default function SupervisorDash() {
       });
       setInspectores(Array.from(mapInspectores.values()));
 
-      // Extraer tipologías únicas
       const uniqTipologias = [...new Set(dataActas.map(a => a.establecimiento_tipologia).filter(Boolean))];
       setTipologiasActas(uniqTipologias);
       
@@ -227,7 +225,7 @@ export default function SupervisorDash() {
        } else {
          response = await api.post(`/pdf/informe/${informe.id}`, {}, { responseType: 'blob' });
        }
-       const url = window.URL.createObjectURL(new Bl([response.data], { type: 'application/pdf' }));
+       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
        const a = document.createElement('a');
        a.href = url;
        a.download = `informe_${informe.establecimiento_nombre || informe.id}.pdf`;
@@ -245,14 +243,11 @@ export default function SupervisorDash() {
     return { ...acta, dueDate, vencimientoStatus };
   });
 
-  // Filtrado dinámico robusto en cascada
   const actasFiltradas = actasConVencimiento.filter((acta) => {
-    // 1. Filtro KPI
     if (vencimientoFilter && vencimientoFilter !== 'all') {
       if (acta.vencimientoStatus !== vencimientoFilter) return false;
     }
     
-    // 2. CORRECCIÓN CRÍTICA: Compara contra acta.inspector_id o contra acta.inspector.id de forma segura
     if (filtrosActas.inspector_id) {
       const idDelActa = String(acta.inspector_id || acta.inspector?.id || '');
       if (idDelActa !== String(filtrosActas.inspector_id)) {
@@ -260,19 +255,16 @@ export default function SupervisorDash() {
       }
     }
 
-    // 3. Filtro por Tipología
     if (filtrosActas.tipologia && acta.establecimiento_tipologia !== filtrosActas.tipologia) {
       return false;
     }
 
-    // 4. Filtro de Fecha Desde
     if (filtrosActas.fechaDesde) {
       const fechaActa = new Date(acta.created_at || acta.fecha);
       const fDesde = new Date(filtrosActas.fechaDesde + 'T00:00:00');
       if (fechaActa < fDesde) return false;
     }
 
-    // 5. Filtro de Fecha Hasta
     if (filtrosActas.fechaHasta) {
       const fechaActa = new Date(acta.created_at || acta.fecha);
       const fHasta = new Date(filtrosActas.fechaHasta + 'T23:59:59');
@@ -286,36 +278,33 @@ export default function SupervisorDash() {
   const proximasCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'proxima').length;
   const alDiaCount = actasConVencimiento.filter(acta => acta.vencimientoStatus === 'alDia').length;
 
-   const informesFiltrados = informes.filter(inf => {
-  // 1. Filtro por Arquitecto (forzando String para evitar falsos positivos)
-  if (filtrosInformes.arquitecto_id) {
-    const idDelInforme = String(inf.arquitecto_id || inf.arquitecto?.id || '');
-    if (idDelInforme !== String(filtrosInformes.arquitecto_id)) {
-      return false;
+  const informesFiltrados = informes.filter(inf => {
+    if (filtrosInformes.arquitecto_id) {
+      const idDelInforme = String(inf.arquitecto_id || inf.arquitecto?.id || '');
+      if (idDelInforme !== String(filtrosInformes.arquitecto_id)) {
+        return false;
+      }
     }
-  }
 
-  // 2. Filtro por Tipología
-  if (filtrosInformes.tipo) {
-    const tipoDetectado = detectarTipoInforme(inf);
-    if (filtrosInformes.tipo === 'geriatrico') {
-      if (!esGeriatrico(tipoDetectado)) return false;
-    } else {
-      if (esGeriatrico(tipoDetectado)) return false;
+    if (filtrosInformes.tipo) {
+      const tipoDetectado = detectarTipoInforme(inf);
+      if (filtrosInformes.tipo === 'geriatrico') {
+        if (!esGeriatrico(tipoDetectado)) return false;
+      } else {
+        if (esGeriatrico(tipoDetectado)) return false;
+      }
     }
-  }
 
-  // 3. Filtro por Estado (Agregando validación de null por seguridad)
-  if (filtrosInformes.estado) {
-    const estadoInforme = String(inf.estado || '').toLowerCase();
-    const estadoFiltro = String(filtrosInformes.estado).toLowerCase();
-    if (estadoInforme !== estadoFiltro) {
-      return false;
+    if (filtrosInformes.estado) {
+      const estadoInforme = String(inf.estado || '').toLowerCase();
+      const estadoFiltro = String(filtrosInformes.estado).toLowerCase();
+      if (estadoInforme !== estadoFiltro) {
+        return false;
+      }
     }
-  }
 
-  return true;
-});
+    return true;
+  });
 
    const renderActaRow = (acta, i) => {
      const emplazamientoValor = acta.emplazamiento_valor;
