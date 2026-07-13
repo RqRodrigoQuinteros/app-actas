@@ -111,8 +111,16 @@ export default function SupervisorDash() {
   });
   const [pdfCargando, setPdfCargando] = useState(null);
 
+  // ── TRANSFERENCIAS ──────────────────────────────────────────────────────
+  const [transferencias, setTransferencias] = useState([]);
+  const [loadingTransferencias, setLoadingTransferencias] = useState(true);
+  const [filtrosTransferencias, setFiltrosTransferencias] = useState({
+    arquitecto_origen_id: '', arquitecto_destino_id: '', fechaDesde: '', fechaHasta: '',
+  });
+
   useEffect(() => { loadActas(); }, [filtrosActas.fechaDesde, filtrosActas.fechaHasta, filtrosActas.inspector_id]);
   useEffect(() => { loadInformes(); }, []);
+  useEffect(() => { if (tab === 'transferencias') loadTransferencias(); }, [tab]);
 
   const loadActas = async () => {
     setLoadingActas(true);
@@ -166,6 +174,18 @@ export default function SupervisorDash() {
       console.error('Error cargando informes:', err);
     } finally {
       setLoadingInformes(false);
+    }
+  };
+
+  const loadTransferencias = async () => {
+    setLoadingTransferencias(true);
+    try {
+      const response = await informesAPI.getTransferencias();
+      setTransferencias(response.data || []);
+    } catch (err) {
+      console.error('Error cargando transferencias:', err);
+    } finally {
+      setLoadingTransferencias(false);
     }
   };
 
@@ -358,6 +378,11 @@ export default function SupervisorDash() {
             onClick={() => setTab('informes')}
             className={`px-5 py-2 text-sm rounded-lg border-none cursor-pointer transition-all duration-150 ${tab === 'informes' ? 'bg-white text-gray-800 font-bold shadow-sm' : 'bg-transparent text-gray-500 font-medium'}`}>
             Informes de Arquitectura {!loadingInformes && `(${informesFiltrados.length})`}
+          </button>
+          <button
+            onClick={() => setTab('transferencias')}
+            className={`px-5 py-2 text-sm rounded-lg border-none cursor-pointer transition-all duration-150 ${tab === 'transferencias' ? 'bg-white text-gray-800 font-bold shadow-sm' : 'bg-transparent text-gray-500 font-medium'}`}>
+            Transferencias {!loadingTransferencias && `(${transferencias.length})`}
           </button>
         </div>
 
@@ -568,6 +593,100 @@ export default function SupervisorDash() {
                          </tr>
                        );
                      })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── TAB TRANSFERENCIAS ── */}
+        {tab === 'transferencias' && (
+          <>
+            {/* Filtros transferencias */}
+            <div className="card mb-5">
+              <h2 className="font-bold text-sm text-gray-500 uppercase tracking-wide mb-3">Filtros Transferencias</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Arquitecto Origen</label>
+                  <select value={filtrosTransferencias.arquitecto_origen_id}
+                    onChange={e => setFiltrosTransferencias(p => ({ ...p, arquitecto_origen_id: e.target.value }))}
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit">
+                    <option value="">Todos</option>
+                    {arquitectos.map(arq => (
+                      <option key={arq?.id} value={arq?.id}>{arq?.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Arquitecto Destino</label>
+                  <select value={filtrosTransferencias.arquitecto_destino_id}
+                    onChange={e => setFiltrosTransferencias(p => ({ ...p, arquitecto_destino_id: e.target.value }))}
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit">
+                    <option value="">Todos</option>
+                    {arquitectos.map(arq => (
+                      <option key={arq?.id} value={arq?.id}>{arq?.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Desde</label>
+                  <input type="date" value={filtrosTransferencias.fechaDesde}
+                    onChange={e => setFiltrosTransferencias(p => ({ ...p, fechaDesde: e.target.value }))}
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Hasta</label>
+                  <input type="date" value={filtrosTransferencias.fechaHasta}
+                    onChange={e => setFiltrosTransferencias(p => ({ ...p, fechaHasta: e.target.value }))}
+                    className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit" />
+                </div>
+              </div>
+            </div>
+
+            {loadingTransferencias ? (
+              <div className="text-center py-10 text-gray-400">Cargando transferencias...</div>
+            ) : transferencias.length === 0 ? (
+              <div className="card text-center py-8 text-gray-400">No hay transferencias registradas.</div>
+            ) : (
+              <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      {['Fecha', 'Origen', 'Destino', 'Establecimiento', 'Motivo'].map(h => (
+                        <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transferencias
+                      .filter(t => {
+                        if (filtrosTransferencias.arquitecto_origen_id && t.arquitecto_origen_id !== filtrosTransferencias.arquitecto_origen_id) return false;
+                        if (filtrosTransferencias.arquitecto_destino_id && t.arquitecto_destino_id !== filtrosTransferencias.arquitecto_destino_id) return false;
+                        if (filtrosTransferencias.fechaDesde) {
+                          const fecha = new Date(t.created_at);
+                          const fDesde = new Date(filtrosTransferencias.fechaDesde + 'T00:00:00');
+                          if (fecha < fDesde) return false;
+                        }
+                        if (filtrosTransferencias.fechaHasta) {
+                          const fecha = new Date(t.created_at);
+                          const fHasta = new Date(filtrosTransferencias.fechaHasta + 'T23:59:59');
+                          if (fecha > fHasta) return false;
+                        }
+                        return true;
+                      })
+                      .map((t, i) => (
+                        <tr key={t.id} className={`${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50`}>
+                          <td className="p-3 text-sm">{formatDateDDMMYYYY(t.created_at)}</td>
+                          <td className="p-3 text-sm font-medium">{t.arquitecto_origen?.nombre || '-'}</td>
+                          <td className="p-3 text-sm font-medium">{t.arquitecto_destino?.nombre || '-'}</td>
+                          <td className="p-3">
+                            <div className="text-sm font-medium">{t.informe?.establecimiento_nombre || 'Sin nombre'}</div>
+                            <div className="text-xs text-gray-400">{t.informe?.expediente}</div>
+                          </td>
+                          <td className="p-3 text-sm text-gray-600 max-w-[200px] truncate">{t.motivo || '-'}</td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
