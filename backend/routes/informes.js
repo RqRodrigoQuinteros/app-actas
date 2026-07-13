@@ -36,6 +36,32 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/transferencias', async (req, res) => {
+  try {
+    const { rol } = req.user;
+
+    if (rol !== 'supervisor' && rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+
+    const { data, error } = await supabase
+      .from('informe_transferencias')
+      .select(`
+        *,
+        informe:informes(id, establecimiento_nombre, expediente, fecha),
+        arquitecto_origen:usuarios!informe_transferencias_arquitecto_origen_id_fkey(nombre, dni),
+        arquitecto_destino:usuarios!informe_transferencias_arquitecto_destino_id_fkey(nombre, dni)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) {
+    console.error('Error fetching transferencias:', err);
+    res.status(500).json({ error: 'Error al obtener transferencias' });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -149,6 +175,82 @@ router.patch('/:id/cidi', requireOwnership('informes', 'arquitecto_id'), async (
   } catch (err) {
     console.error('Error toggling cidi:', err);
     res.status(500).json({ error: 'Error al actualizar CIDI' });
+  }
+});
+
+router.post('/:id/transferir', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { arquitecto_destino_id, motivo } = req.body;
+    const { rol, id: userId } = req.user;
+
+    if (!arquitecto_destino_id) {
+      return res.status(400).json({ error: 'Debe seleccionar un arquitecto destino' });
+    }
+
+    // Obtener el informe actual
+    const { data: informe, error: informeError } = await supabase
+      .from('informes')
+      .select('id, arquitecto_id')
+      .eq('id', id)
+      .single();
+
+    if (informeError || !informe) {
+      return res.status(404).json({ error: 'Informe no encontrado' });
+    }
+
+    // Verificar permiso: arquitecto dueño o supervisor
+    if (rol === 'arquitecto' && informe.arquitecto_id !== userId) {
+      return res.status(403).json({ error: 'No tienes acceso a este informe' });
+    }
+
+    if (rol !== 'arquitecto' && rol !== 'supervisor' && rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+
+    // Verificar que el destino existe y es arquitecto
+    const { data: destino, error: destinoError } = await supabase
+      .from('usuarios')
+      .select('id, nombre, rol')
+      .eq('id', arquitecto_destino_id)
+      .single();
+
+    if (destinoError || !destino) {
+      return res.status(404).json({ error: 'Arquitecto destino no encontrado' });
+    }
+
+    if (destino.rol !== 'arquitecto') {
+      return res.status(400).json({ error: 'El destino debe ser un arquitecto' });
+    }
+
+    // Actualizar el informe
+    const { data: actualizado, error: updateError } = await supabase
+      .from('informes')
+      .update({ arquitecto_id: arquitecto_destino_id })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    // Registrar la transferencia
+    const { error: transferError } = await supabase
+      .from('informe_transferencias')
+      .insert({
+        informe_id: id,
+        arquitecto_origen_id: informe.arquitecto_id,
+        arquitecto_destino_id,
+        motivo: motivo || null,
+      });
+
+    if (transferError) {
+      console.error('Error registering transfer:', transferError);
+    }
+
+    res.json({ informe: actualizado, transferencia: { desde: informe.arquitecto_id, hacia: arquitecto_destino_id } });
+  } catch (err) {
+    console.error('Error transferring informe:', err);
+    res.status(500).json({ error: 'Error al transferir informe' });
   }
 });
 

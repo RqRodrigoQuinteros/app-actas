@@ -77,6 +77,8 @@ export const informesAPI = {
   update: (id, data) => api.put(`/informes/${id}`, data),
   toggleCidi: (id) => api.patch(`/informes/${id}/cidi`),
   remove: (id) => api.delete(`/informes/${id}`),
+  transferir: (id, data) => api.post(`/informes/${id}/transferir`, data),
+  getTransferencias: (params) => api.get('/informes/transferencias', { params }),
 };
 
 export const vencimientosAPI = {

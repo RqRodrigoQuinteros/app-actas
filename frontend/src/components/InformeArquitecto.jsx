@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { informesAPI, informesTemplatesAPI } from '../utils/api';
+import { informesAPI, informesTemplatesAPI, authAPI } from '../utils/api';
 import api from '../utils/api';
 
 export default function InformeArquitecto() {
@@ -14,6 +14,13 @@ export default function InformeArquitecto() {
   const [tipologias, setTipologias] = useState([]);
   const [modalNuevo, setModalNuevo] = useState(false);
   
+  // Transferencia
+  const [modalTransferir, setModalTransferir] = useState(false);
+  const [informeATransferir, setInformeATransferir] = useState(null);
+  const [arquitectos, setArquitectos] = useState([]);
+  const [formTransferir, setFormTransferir] = useState({ arquitecto_destino_id: '', motivo: '' });
+  const [transferiendo, setTransferiendo] = useState(false);
+  
   // Filtros
   const [filtroCidi, setFiltroCidi] = useState('');
   const [filtroTipologia, setFiltroTipologia] = useState('');
@@ -23,6 +30,12 @@ export default function InformeArquitecto() {
     loadInformes();
     informesTemplatesAPI.getTipologias()
       .then(r => setTipologias(r.data || []))
+      .catch(() => {});
+    authAPI.getUsuariosLogin()
+      .then(r => {
+        const lista = (r.data || []).filter(u => u.rol === 'arquitecto' && u.activo !== false);
+        setArquitectos(lista);
+      })
       .catch(() => {});
   }, []);
 
@@ -188,6 +201,40 @@ export default function InformeArquitecto() {
     }
   };
 
+  const abrirModalTransferir = (informe) => {
+    setInformeATransferir(informe);
+    setFormTransferir({ arquitecto_destino_id: '', motivo: '' });
+    setModalTransferir(true);
+  };
+
+  const cerrarModalTransferir = () => {
+    setModalTransferir(false);
+    setInformeATransferir(null);
+    setFormTransferir({ arquitecto_destino_id: '', motivo: '' });
+  };
+
+  const confirmarTransferencia = async () => {
+    if (!formTransferir.arquitecto_destino_id) {
+      alert('Seleccioná un arquitecto destino');
+      return;
+    }
+    if (!confirm(`¿Transferir este informe a ${arquitectos.find(a => a.id === formTransferir.arquitecto_destino_id)?.nombre}?`)) {
+      return;
+    }
+    setTransferiendo(true);
+    try {
+      await informesAPI.transferir(informeATransferir.id, formTransferir);
+      alert('Informe transferido correctamente');
+      cerrarModalTransferir();
+      loadInformes();
+    } catch (err) {
+      console.error('Error transfiriendo informe:', err);
+      alert(err.response?.data?.error || 'Error al transferir el informe');
+    } finally {
+      setTransferiendo(false);
+    }
+  };
+
   const tipoLabel = (informe) => {
     const tipo = detectarTipo(informe);
     if (tipo === 'geriatrico') return { label: 'Geriátrico', color: '#7c3aed' };
@@ -255,6 +302,92 @@ export default function InformeArquitecto() {
                     </button>
                   ))
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de transferencia */}
+        {modalTransferir && informeATransferir && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1000, padding: '16px',
+          }}>
+            <div style={{
+              background: '#fff', borderRadius: '14px', width: '100%',
+              maxWidth: '420px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{
+                padding: '16px 20px', borderBottom: '1px solid #f3f4f6',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <span style={{ fontWeight: 700, fontSize: '15px' }}>Transferir Informe</span>
+                <button onClick={cerrarModalTransferir} style={{
+                  background: 'none', border: 'none', fontSize: '22px',
+                  cursor: 'pointer', color: '#6b7280', lineHeight: 1,
+                }}>×</button>
+              </div>
+              <div style={{ padding: '16px 20px' }}>
+                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
+                  Informe: <strong>{informeATransferir.establecimiento_nombre || 'Sin nombre'}</strong>
+                </p>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                    Transferir a:
+                  </label>
+                  <select
+                    value={formTransferir.arquitecto_destino_id}
+                    onChange={e => setFormTransferir(p => ({ ...p, arquitecto_destino_id: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '10px 12px', borderRadius: '8px',
+                      border: '1.5px solid #d1d5db', fontSize: '14px', background: '#fff',
+                    }}
+                  >
+                    <option value="">Seleccionar arquitecto...</option>
+                    {arquitectos.filter(a => a.id !== usuario?.id).map(a => (
+                      <option key={a.id} value={a.id}>{a.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                    Motivo (opcional):
+                  </label>
+                  <textarea
+                    value={formTransferir.motivo}
+                    onChange={e => setFormTransferir(p => ({ ...p, motivo: e.target.value }))}
+                    placeholder="Ej: Cambio de carga de trabajo..."
+                    rows={3}
+                    style={{
+                      width: '100%', padding: '10px 12px', borderRadius: '8px',
+                      border: '1.5px solid #d1d5db', fontSize: '14px', resize: 'vertical',
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={cerrarModalTransferir}
+                    style={{
+                      padding: '8px 16px', borderRadius: '8px', border: '1.5px solid #d1d5db',
+                      background: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmarTransferencia}
+                    disabled={transferiendo || !formTransferir.arquitecto_destino_id}
+                    style={{
+                      padding: '8px 16px', borderRadius: '8px', border: 'none',
+                      background: transferiendo || !formTransferir.arquitecto_destino_id ? '#93c5fd' : '#2563eb',
+                      color: '#fff', cursor: transferiendo || !formTransferir.arquitecto_destino_id ? 'not-allowed' : 'pointer',
+                      fontSize: '13px', fontWeight: 600,
+                    }}
+                  >
+                    {transferiendo ? 'Transfiriendo...' : 'Confirmar Transferencia'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -356,6 +489,13 @@ export default function InformeArquitecto() {
                         title={informe.subido_cidi ? 'Marcar como NO subido a CIDI' : 'Marcar como subido a CIDI'}
                       >
                         {informe.subido_cidi ? '✓ CIDI' : 'CIDI'}
+                      </button>
+                      <button
+                        onClick={() => abrirModalTransferir(informe)}
+                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200"
+                        title="Transferir informe a otro arquitecto"
+                      >
+                        ↗ Transferir
                       </button>
                       <button
                         onClick={() => editarInforme(informe)}
