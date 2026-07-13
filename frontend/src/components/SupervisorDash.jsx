@@ -119,6 +119,12 @@ export default function SupervisorDash() {
   const [loadingTransferencias, setLoadingTransferencias] = useState(true);
   const [filtrosTransferencias, setFiltrosTransferencias] = useState({ arquitecto_origen_id: '', arquitecto_destino_id: '', fechaDesde: '', fechaHasta: '' });
 
+  // ── DRILL-DOWN + EXCEL TABLE ───────────────────────────────────────────
+  const [drillDown, setDrillDown] = useState(null);
+  const [excelSearch, setExcelSearch] = useState('');
+  const [excelSort, setExcelSort] = useState({ key: 'fecha', dir: 'desc' });
+  const [excelPage, setExcelPage] = useState(0);
+
   useEffect(() => { loadActas(); }, [filtrosActas.fechaDesde, filtrosActas.fechaHasta, filtrosActas.inspector_id]);
   useEffect(() => { loadInformes(); }, []);
   useEffect(() => { if (tab === 'transferencias') loadTransferencias(); }, [tab]);
@@ -289,6 +295,7 @@ export default function SupervisorDash() {
     });
     const sorted = Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0])).slice(-12);
     return {
+      rawKeys: sorted.map(([k]) => k),
       labels: sorted.map(([m]) => { const [y, mo] = m.split('-'); return `${MES_NAMES[parseInt(mo) - 1]} ${y.slice(2)}`; }),
       datasets: [{ label: 'Actas', data: sorted.map(([, c]) => c), backgroundColor: '#6366f1', borderRadius: 6 }],
     };
@@ -299,6 +306,7 @@ export default function SupervisorDash() {
     actas.forEach(a => { const t = a.establecimiento_tipologia || 'Sin tipología'; counts[t] = (counts[t] || 0) + 1; });
     const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     return {
+      rawKeys: entries.map(([k]) => k),
       labels: entries.map(([k]) => k),
       datasets: [{ data: entries.map(([, v]) => v), backgroundColor: COLORS.slice(0, entries.length) }],
     };
@@ -312,20 +320,22 @@ export default function SupervisorDash() {
     });
     const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     return {
+      rawKeys: entries.map(([k]) => k),
       labels: entries.map(([k]) => k),
       datasets: [{ data: entries.map(([, v]) => v), backgroundColor: COLORS.slice(0, entries.length) }],
     };
   }, [informes]);
 
-  const actasPorInspector = useMemo(() => {
+  const inspectorFullNames = useMemo(() => {
     const counts = {};
     actas.forEach(a => { const name = a.inspector?.nombre || 'Sin inspector'; counts[name] = (counts[name] || 0) + 1; });
-    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    return {
-      labels: entries.map(([k]) => k.split(' ').slice(0, 2).join(' ')),
-      datasets: [{ label: 'Actas', data: entries.map(([, v]) => v), backgroundColor: '#10b981', borderRadius: 6 }],
-    };
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([k]) => k);
   }, [actas]);
+
+  const actasPorInspector = useMemo(() => ({
+    labels: inspectorFullNames.map(k => k.split(' ').slice(0, 2).join(' ')),
+    datasets: [{ label: 'Actas', data: inspectorFullNames.map(name => actas.filter(a => (a.inspector?.nombre || 'Sin inspector') === name).length), backgroundColor: '#10b981', borderRadius: 6 }],
+  }), [actas, inspectorFullNames]);
 
   const recentActas = actas.slice(0, 10);
   const recentInformes = informes.slice(0, 10);
@@ -337,8 +347,105 @@ export default function SupervisorDash() {
     return items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 15);
   }, [recentActas, recentInformes]);
 
-  const chartOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
-  const doughnutOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } } };
+  // ── CHART OPTIONS WITH CLICK HANDLERS ──────────────────────────────────
+  const handleChartClick = (type, rawKeys, elements, chartData) => {
+    if (elements.length > 0) {
+      const idx = elements[0].index;
+      const key = rawKeys[idx];
+      const label = chartData.labels[idx];
+      setDrillDown(prev => (prev && prev.type === type && prev.value === key) ? null : { type, value: key, label });
+    }
+  };
+
+  const mesChartOpts = useMemo(() => ({
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    onClick: (e, el) => handleChartClick('mes', actasPorMes.rawKeys, el, actasPorMes),
+  }), [actasPorMes]);
+
+  const inspectorChartOpts = useMemo(() => ({
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    onClick: (e, el) => handleChartClick('inspector', inspectorFullNames, el, actasPorInspector),
+  }), [actasPorInspector, inspectorFullNames]);
+
+  const tipologiaChartOpts = useMemo(() => ({
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } },
+    onClick: (e, el) => handleChartClick('tipologia', actasPorTipologia.rawKeys, el, actasPorTipologia),
+  }), [actasPorTipologia]);
+
+  const informeTipologiaChartOpts = useMemo(() => ({
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } },
+    onClick: (e, el) => handleChartClick('tipologia_informe', informesPorTipologia.rawKeys, el, informesPorTipologia),
+  }), [informesPorTipologia]);
+
+  // ── DRILL-DOWN FILTERED DATA ───────────────────────────────────────────
+  const drillDownResults = useMemo(() => {
+    if (!drillDown) return { actas: [], informes: [] };
+    const { type, value } = drillDown;
+    const filteredActas = actas.filter(a => {
+      if (type === 'mes') return (a.fecha || '').startsWith(value);
+      if (type === 'inspector') return (a.inspector?.nombre || 'Sin inspector') === value;
+      if (type === 'tipologia') return (a.establecimiento_tipologia || 'Sin tipología') === value;
+      return false;
+    });
+    const filteredInformes = informes.filter(i => {
+      if (type === 'tipologia_informe') {
+        const t = i.datos_formulario?.tipologia_nombre || i.tipo || 'Sin tipología';
+        return t === value;
+      }
+      return false;
+    });
+    return { actas: filteredActas, informes: filteredInformes };
+  }, [drillDown, actas, informes]);
+
+  // ── EXCEL TABLE: COMBINED + SORTED + FILTERED ──────────────────────────
+  const excelTableData = useMemo(() => {
+    const allItems = [
+      ...actas.map(a => ({
+        tipo: 'Acta', fecha: a.created_at || a.fecha, nombre: a.establecimiento_nombre || '-',
+        profesional: a.inspector?.nombre || '-', tipologia: a.establecimiento_tipologia || '-',
+        estado: a.estado, id: a.id, link: `/acta/${a.id}`,
+      })),
+      ...informes.map(i => ({
+        tipo: 'Informe', fecha: i.created_at || i.fecha, nombre: i.establecimiento_nombre || '-',
+        profesional: i.arquitecto?.nombre || '-',
+        tipologia: i.datos_formulario?.tipologia_nombre || i.tipo || '-',
+        estado: i.estado, id: i.id, link: `/informe/${i.id}`,
+      })),
+    ];
+    const search = excelSearch.toLowerCase();
+    const filtered = search ? allItems.filter(item =>
+      item.nombre.toLowerCase().includes(search) ||
+      item.profesional.toLowerCase().includes(search) ||
+      item.tipologia.toLowerCase().includes(search) ||
+      item.tipo.toLowerCase().includes(search) ||
+      item.estado.toLowerCase().includes(search)
+    ) : allItems;
+    const sorted = [...filtered].sort((a, b) => {
+      const valA = a[excelSort.key] || '';
+      const valB = b[excelSort.key] || '';
+      const cmp = String(valA).localeCompare(String(valB), 'es', { sensitivity: 'base' });
+      return excelSort.dir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [actas, informes, excelSearch, excelSort]);
+
+  const EXCEL_PAGE_SIZE = 25;
+  const excelPages = Math.ceil(excelTableData.length / EXCEL_PAGE_SIZE);
+  const excelPageData = excelTableData.slice(excelPage * EXCEL_PAGE_SIZE, (excelPage + 1) * EXCEL_PAGE_SIZE);
+
+  const toggleExcelSort = (key) => {
+    setExcelSort(prev => ({ key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc' }));
+    setExcelPage(0);
+  };
+
+  const SortIcon = ({ colKey }) => {
+    if (excelSort.key !== colKey) return <span className="ml-1 text-gray-300">⇅</span>;
+    return <span className="ml-1 text-indigo-600">{excelSort.dir === 'asc' ? '↑' : '↓'}</span>;
+  };
 
   const renderActaRow = (acta, i) => {
     const emplazamientoValor = acta.emplazamiento_valor;
@@ -446,48 +553,134 @@ export default function SupervisorDash() {
 
             {/* Charts row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-              <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Actas por Mes</h3>
+              <div className="bg-white rounded-2xl p-5 shadow-sm" style={{ cursor: 'pointer' }}>
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Actas por Mes <span className="text-[10px] font-normal text-gray-400 normal-case">(click para filtrar)</span></h3>
                 <div style={{ height: 260 }}>
-                  {actasPorMes.labels.length > 0 ? <Bar data={actasPorMes} options={chartOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
+                  {actasPorMes.labels.length > 0 ? <Bar data={actasPorMes} options={mesChartOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
                 </div>
               </div>
-              <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Actas por Inspector</h3>
+              <div className="bg-white rounded-2xl p-5 shadow-sm" style={{ cursor: 'pointer' }}>
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Actas por Inspector <span className="text-[10px] font-normal text-gray-400 normal-case">(click para filtrar)</span></h3>
                 <div style={{ height: 260 }}>
-                  {actasPorInspector.labels.length > 0 ? <Bar data={actasPorInspector} options={chartOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
+                  {actasPorInspector.labels.length > 0 ? <Bar data={actasPorInspector} options={inspectorChartOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
                 </div>
               </div>
-              <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Actas por Tipología</h3>
+              <div className="bg-white rounded-2xl p-5 shadow-sm" style={{ cursor: 'pointer' }}>
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Actas por Tipología <span className="text-[10px] font-normal text-gray-400 normal-case">(click para filtrar)</span></h3>
                 <div style={{ height: 280 }} className="flex justify-center">
-                  {actasPorTipologia.labels.length > 0 ? <Doughnut data={actasPorTipologia} options={doughnutOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
+                  {actasPorTipologia.labels.length > 0 ? <Doughnut data={actasPorTipologia} options={tipologiaChartOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
                 </div>
               </div>
-              <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Informes por Tipología</h3>
+              <div className="bg-white rounded-2xl p-5 shadow-sm" style={{ cursor: 'pointer' }}>
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Informes por Tipología <span className="text-[10px] font-normal text-gray-400 normal-case">(click para filtrar)</span></h3>
                 <div style={{ height: 280 }} className="flex justify-center">
-                  {informesPorTipologia.labels.length > 0 ? <Doughnut data={informesPorTipologia} options={doughnutOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
+                  {informesPorTipologia.labels.length > 0 ? <Doughnut data={informesPorTipologia} options={informeTipologiaChartOpts} /> : <div className="text-gray-400 text-center pt-10">Sin datos</div>}
                 </div>
               </div>
             </div>
 
-            {/* Recent activity table */}
+            {/* ── DRILL-DOWN TABLE ── */}
+            {drillDown && (
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6 border-2 border-indigo-200">
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-indigo-50">
+                  <div>
+                    <h3 className="text-sm font-bold text-indigo-800 uppercase tracking-wide">
+                      {drillDown.type === 'mes' && `Actas de ${drillDown.label}`}
+                      {drillDown.type === 'inspector' && `Actas de ${drillDown.label}`}
+                      {drillDown.type === 'tipologia' && `Actas tipología: ${drillDown.label}`}
+                      {drillDown.type === 'tipologia_informe' && `Informes tipología: ${drillDown.label}`}
+                    </h3>
+                    <p className="text-xs text-indigo-500 mt-0.5">
+                      {drillDownResults.actas.length} actas
+                      {drillDownResults.informes.length > 0 && `, ${drillDownResults.informes.length} informes`}
+                    </p>
+                  </div>
+                  <button onClick={() => setDrillDown(null)} className="px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 border border-gray-200">
+                    ✕ Limpiar filtro
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        {['Tipo', 'Fecha', 'Establecimiento', 'Profesional', 'Estado'].map(h => (
+                          <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {drillDownResults.actas.map((a, i) => (
+                        <tr key={a.id} className={`${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50 cursor-pointer`} onClick={() => navigate(`/acta/${a.id}`)}>
+                          <td className="p-3"><span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-blue-100 text-blue-600">Acta</span></td>
+                          <td className="p-3 text-sm">{formatDateDDMMYYYY(a.created_at || a.fecha)}</td>
+                          <td className="p-3 text-sm font-medium">{a.establecimiento_nombre || '-'}</td>
+                          <td className="p-3 text-sm">{a.inspector?.nombre || '-'}</td>
+                          <td className="p-3">
+                            <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${a.estado === 'cerrado' ? 'bg-green-100 text-green-700' : a.estado === 'firmado' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {a.estado?.toUpperCase()}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {drillDownResults.informes.map((inf, i) => (
+                        <tr key={inf.id} className={`${i > 0 || drillDownResults.actas.length > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50 cursor-pointer`} onClick={() => navigate(`/informe/${inf.id}`)}>
+                          <td className="p-3"><span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-purple-100 text-purple-600">Informe</span></td>
+                          <td className="p-3 text-sm">{formatDateDDMMYYYY(inf.created_at || inf.fecha)}</td>
+                          <td className="p-3 text-sm font-medium">{inf.establecimiento_nombre || '-'}</td>
+                          <td className="p-3 text-sm">{inf.arquitecto?.nombre || '-'}</td>
+                          <td className="p-3">
+                            <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${inf.estado === 'cerrado' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {inf.estado?.toUpperCase()}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {drillDownResults.actas.length === 0 && drillDownResults.informes.length === 0 && (
+                        <tr><td colSpan={5} className="p-6 text-center text-gray-400">Sin resultados para este filtro</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ── TABLA EXCEL INTERACTIVA ── */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Actividad Reciente</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Todos los Registros</h3>
+                  <span className="text-xs text-gray-400">{excelTableData.length} resultados</span>
+                </div>
+                <input
+                  type="text"
+                  value={excelSearch}
+                  onChange={e => { setExcelSearch(e.target.value); setExcelPage(0); }}
+                  placeholder="Buscar por nombre, profesional, tipología, tipo o estado..."
+                  className="w-full max-w-md p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit"
+                />
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      {['Tipo', 'Fecha', 'Establecimiento', 'Profesional', 'Estado'].map(h => (
-                        <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                      {[
+                        { key: 'tipo', label: 'Tipo' },
+                        { key: 'fecha', label: 'Fecha' },
+                        { key: 'nombre', label: 'Establecimiento' },
+                        { key: 'profesional', label: 'Profesional' },
+                        { key: 'tipologia', label: 'Tipología' },
+                        { key: 'estado', label: 'Estado' },
+                      ].map(col => (
+                        <th key={col.key}
+                          className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide cursor-pointer hover:bg-gray-100 select-none"
+                          onClick={() => toggleExcelSort(col.key)}>
+                          {col.label}<SortIcon colKey={col.key} />
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {recentCombined.map((item, i) => (
+                    {excelPageData.map((item, i) => (
                       <tr key={`${item.tipo}-${item.id}`} className={`${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50 cursor-pointer`} onClick={() => navigate(item.link)}>
                         <td className="p-3">
                           <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${item.tipo === 'Acta' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
@@ -495,8 +688,13 @@ export default function SupervisorDash() {
                           </span>
                         </td>
                         <td className="p-3 text-sm">{formatDateDDMMYYYY(item.fecha)}</td>
-                        <td className="p-3 text-sm font-medium">{item.nombre || '-'}</td>
+                        <td className="p-3 text-sm font-medium">{item.nombre}</td>
                         <td className="p-3 text-sm">{item.profesional}</td>
+                        <td className="p-3">
+                          <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider bg-gray-100 text-gray-600">
+                            {item.tipologia}
+                          </span>
+                        </td>
                         <td className="p-3">
                           <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold tracking-wider ${item.estado === 'cerrado' ? 'bg-green-100 text-green-700' : item.estado === 'firmado' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
                             {item.estado?.toUpperCase()}
@@ -504,12 +702,26 @@ export default function SupervisorDash() {
                         </td>
                       </tr>
                     ))}
-                    {recentCombined.length === 0 && (
-                      <tr><td colSpan={5} className="p-6 text-center text-gray-400">Sin actividad reciente</td></tr>
+                    {excelPageData.length === 0 && (
+                      <tr><td colSpan={6} className="p-6 text-center text-gray-400">Sin resultados</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
+              {/* Pagination */}
+              {excelPages > 1 && (
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+                  <button onClick={() => setExcelPage(p => Math.max(0, p - 1))} disabled={excelPage === 0}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium ${excelPage === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                    ← Anterior
+                  </button>
+                  <span className="text-xs text-gray-500">Página {excelPage + 1} de {excelPages}</span>
+                  <button onClick={() => setExcelPage(p => Math.min(excelPages - 1, p + 1))} disabled={excelPage >= excelPages - 1}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium ${excelPage >= excelPages - 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                    Siguiente →
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}
