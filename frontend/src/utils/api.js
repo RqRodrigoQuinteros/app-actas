@@ -79,11 +79,12 @@ export const informesAPI = {
   remove: (id) => api.delete(`/informes/${id}`),
   transferir: (id, data) => api.post(`/informes/${id}/transferir`, data),
   getTransferencias: (params) => api.get('/informes/transferencias', { params }),
+  exportar: (params, format = 'csv') => api.get('/informes/exportar', { params: { ...params, format }, responseType: 'blob' }),
 };
 
 export const vencimientosAPI = {
   getVencimientos: (params) => api.get('/actas/vencimientos', { params }),
-  exportar: (params) => api.get('/actas/exportar', { params, responseType: 'blob' }),
+  exportar: (params, format = 'csv') => api.get('/actas/exportar', { params: { ...params, format }, responseType: 'blob' }),
   reenviarAlerta: (id) => api.post(`/actas/reenviar-alerta/${id}`),
 };
 
