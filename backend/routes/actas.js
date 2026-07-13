@@ -82,25 +82,26 @@ router.get('/vencimientos', async (req, res) => {
   }
 });
 
-// ─── Exportar CSV ──────────────────────────────────────────────────────────────
+// ─── Exportar CSV / Excel ─────────────────────────────────────────────────────
 router.get('/exportar', async (req, res) => {
   try {
     const { rol } = req.user;
     if (rol !== 'supervisor' && rol !== 'admin') {
       return res.status(403).json({ error: 'Acceso no autorizado' });
     }
-    const { inspector_id, estado, fechaDesde, fechaHasta, tipologia } = req.query;
+    const { inspector_id, estado, fechaDesde, fechaHasta, tipologia, format } = req.query;
 
     let query = supabase
       .from('actas')
       .select(`
-        id, expediente, fecha, hora, estado, subido_cidi, created_at,
+        id, expediente, fecha, hora, estado, created_at,
         establecimiento_nombre, establecimiento_direccion, establecimiento_localidad, establecimiento_tipologia,
-        responsable_nombre, responsable_dni, responsable_caracter,
+        responsable_nombre, responsable_caracter,
         virtual, presencial, inspector_id,
+        tipo_inspeccion,
         emplazamiento_tipo, emplazamiento_valor, emplazamiento_dias,
         observaciones,
-        inspector:usuarios!actas_inspector_id_fkey(nombre, dni)
+        inspector:usuarios!actas_inspector_id_fkey(nombre)
       `)
       .order('created_at', { ascending: false });
 
@@ -113,29 +114,45 @@ router.get('/exportar', async (req, res) => {
     const { data, error } = await query;
     if (error) throw error;
 
-    const json2csv = require('json2csv');
-    const fields = [
-      'id', 'expediente', 'fecha', 'hora', 'estado',
-      'establecimiento_nombre', 'establecimiento_direccion', 'establecimiento_localidad', 'establecimiento_tipologia',
-      'responsable_nombre', 'responsable_dni',
-      'virtual', 'presencial',
-      'emplazamiento_tipo', 'emplazamiento_valor',
-      'observaciones', 'subido_cidi', 'created_at',
-    ];
     const rows = (data || []).map(r => ({
-      ...r,
-      inspector: r.inspector?.nombre || '',
-      inspector_dni: r.inspector?.dni || '',
-      virtual: r.virtual ? 'Si' : 'No',
-      presencial: r.presencial ? 'Si' : 'No',
-      subido_cidi: r.subido_cidi ? 'Si' : 'No',
+      Expediente: r.expediente || '',
+      Fecha: r.fecha || '',
+      Hora: r.hora || '',
+      Estado: r.estado || '',
+      Establecimiento: r.establecimiento_nombre || '',
+      Dirección: r.establecimiento_direccion || '',
+      Localidad: r.establecimiento_localidad || '',
+      Tipología: r.establecimiento_tipologia || '',
+      'Tipo Inspección': r.tipo_inspeccion || '',
+      Responsable: r.responsable_nombre || '',
+      'Carácter Responsable': r.responsable_caracter || '',
+      Virtual: r.virtual ? 'Si' : 'No',
+      Presencial: r.presencial ? 'Si' : 'No',
+      'Emplazamiento Tipo': r.emplazamiento_tipo || '',
+      'Emplazamiento Valor': r.emplazamiento_valor || '',
+      Observaciones: r.observaciones || '',
+      Inspector: r.inspector?.nombre || '',
     }));
-    const parser = new json2csv.Parser({ fields: [...fields, 'inspector', 'inspector_dni'] });
-    const csv = parser.parse(rows);
 
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename=actas_export_${new Date().toISOString().slice(0, 10)}.csv`);
-    res.send('\uFEFF' + csv);
+    if (format === 'xlsx') {
+      const ExcelJS = require('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Actas');
+      sheet.columns = Object.keys(rows[0] || {}).map(key => ({ header: key, key, width: 20 }));
+      sheet.getRow(1).font = { bold: true };
+      rows.forEach(r => sheet.addRow(r));
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=actas_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      await workbook.xlsx.write(res);
+      res.end();
+    } else {
+      const json2csv = require('json2csv');
+      const parser = new json2csv.Parser({ fields: Object.keys(rows[0] || {}) });
+      const csv = parser.parse(rows);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename=actas_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      res.send('\uFEFF' + csv);
+    }
   } catch (err) {
     console.error('Error exporting actas:', err);
     res.status(500).json({ error: err.message || 'Error al exportar actas' });

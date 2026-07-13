@@ -36,6 +36,81 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ─── Exportar CSV / Excel ─────────────────────────────────────────────────────
+router.get('/exportar', async (req, res) => {
+  try {
+    const { rol } = req.user;
+    if (rol !== 'supervisor' && rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+    const { arquitecto_id, tipologia, estado, fechaDesde, fechaHasta, format } = req.query;
+
+    let query = supabase
+      .from('informes')
+      .select(`
+        id, expediente, fecha, estado, created_at,
+        establecimiento_nombre, establecimiento_direccion, establecimiento_localidad,
+        observaciones, tipo,
+        arquitecto:usuarios!informes_arquitecto_id_fkey(nombre)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (arquitecto_id) query = query.eq('arquitecto_id', arquitecto_id);
+    if (estado) query = query.eq('estado', estado);
+    if (fechaDesde) query = query.gte('fecha', fechaDesde);
+    if (fechaHasta) query = query.lte('fecha', fechaHasta);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    let filtered = data || [];
+    if (tipologia) {
+      filtered = filtered.filter(inf => {
+        const tn = inf.datos_formulario?.tipologia_nombre || inf.tipo || '';
+        return tn.toLowerCase().includes(tipologia.toLowerCase());
+      });
+    }
+
+    const rows = filtered.map(r => {
+      const tipologiaNombre = r.datos_formulario?.tipologia_nombre || r.tipo || '';
+      return {
+        Expediente: r.expediente || '',
+        Fecha: r.fecha || '',
+        Estado: r.estado || '',
+        Establecimiento: r.establecimiento_nombre || '',
+        Dirección: r.establecimiento_direccion || '',
+        Localidad: r.establecimiento_localidad || '',
+        Tipología: tipologiaNombre,
+        Arquitecto: r.arquitecto?.nombre || '',
+        Observaciones: r.observaciones || '',
+      };
+    });
+
+    if (format === 'xlsx') {
+      const ExcelJS = require('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Informes');
+      sheet.columns = Object.keys(rows[0] || {}).map(key => ({ header: key, key, width: 20 }));
+      sheet.getRow(1).font = { bold: true };
+      rows.forEach(r => sheet.addRow(r));
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=informes_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      await workbook.xlsx.write(res);
+      res.end();
+    } else {
+      const json2csv = require('json2csv');
+      const parser = new json2csv.Parser({ fields: Object.keys(rows[0] || {}) });
+      const csv = parser.parse(rows);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename=informes_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      res.send('\uFEFF' + csv);
+    }
+  } catch (err) {
+    console.error('Error exporting informes:', err);
+    res.status(500).json({ error: err.message || 'Error al exportar informes' });
+  }
+});
+
 router.get('/transferencias', async (req, res) => {
   try {
     const { rol } = req.user;
