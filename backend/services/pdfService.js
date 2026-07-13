@@ -113,6 +113,51 @@ async function launchBrowser() {
   return puppeteer.launch(launchOpts);
 }
 
+// ============================================================================
+// Browser singleton: reutilizamos UNA instancia de Chromium en vez de lanzar
+// un proceso nuevo por cada PDF. Lanzar Chromium es lo que dispara fork() y
+// agota la cuota de procesos/memoria del contenedor (Railway). Esto reduce
+// drásticamente la cantidad de veces que se llama a puppeteer.launch().
+// ============================================================================
+let browserInstance = null;
+let browserLaunching = null;
+
+async function getBrowser() {
+  if (browserInstance && browserInstance.isConnected()) {
+    return browserInstance;
+  }
+  if (browserLaunching) {
+    return browserLaunching;
+  }
+  browserLaunching = launchBrowser()
+    .then((b) => {
+      browserInstance = b;
+      browserInstance.on('disconnected', () => {
+        console.log('[PDF] Browser desconectado/crasheado, se relanzará en el próximo uso');
+        browserInstance = null;
+      });
+      browserLaunching = null;
+      return b;
+    })
+    .catch((err) => {
+      browserLaunching = null;
+      throw err;
+    });
+  return browserLaunching;
+}
+
+// ============================================================================
+// Cola de generación de PDFs: procesa las tareas de a UNA por vez.
+// Evita que 2+ inspectores generando actas al mismo tiempo saturen la
+// memoria/procesos del contenedor con varias páginas de Chromium en paralelo.
+// ============================================================================
+let colaPDF = Promise.resolve();
+function encolarPDF(tarea) {
+  const resultado = colaPDF.then(tarea, tarea);
+  colaPDF = resultado.then(() => {}, () => {}); // no romper la cadena si una tarea falla
+  return resultado;
+}
+
 // Registrar helpers personalizados
 handlebars.registerHelper('gt', (a, b) => a > b)
 handlebars.registerHelper('lt', (a, b) => a < b)
@@ -344,6 +389,10 @@ const formatFechaTexto = (fechaStr) => {
 };
 
 async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
+  return encolarPDF(() => _generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64));
+}
+
+async function _generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const maxRetries = 3;
   let lastError;
 
@@ -702,10 +751,11 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 
       console.log(`[PDF] HTML generado, tamaño: ${htmlFinal.length} chars`);
 
-      const browser = await launchBrowser();
+      const browser = await getBrowser();
       console.log(`[PDF] Puppeteer launch OK`);
+      let page;
       try {
-        const page = await browser.newPage();
+        page = await browser.newPage();
         page.setDefaultNavigationTimeout(180000);
         await page.setContent(htmlFinal, { waitUntil: 'networkidle2', timeout: 6000 });
         console.log(`[PDF] Contenido seteado en página`);
@@ -735,8 +785,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
         console.log(`[PDF] PDF generado, tamaño: ${pdfBuffer.length} bytes`);
         return pdfBuffer;
       } finally {
-        await browser.close().catch(() => {});
-        console.log(`[PDF] Browser cerrado`);
+        if (page) await page.close().catch(() => {});
       }
     } catch (err) {
       lastError = err;
@@ -750,6 +799,10 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
 }
 
 async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
+  return encolarPDF(() => _generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase64, membreteBase64));
+}
+
+async function _generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const baseTemplatePath = path.join(__dirname, '../templates/base_arquitecto.html');
   const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
 
@@ -772,9 +825,10 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
     logo_cordoba_base64: logoCordobaBase64 || ''
   });
 
-  const browser = await launchBrowser();
+  const browser = await getBrowser();
+  let page;
   try {
-    const page = await browser.newPage();
+    page = await browser.newPage();
     page.setDefaultNavigationTimeout(180000);
     await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
@@ -803,12 +857,16 @@ async function generarInformePDF(informe, logoMinisterioBase64, logoCordobaBase6
 
     return pdfBuffer;
   } finally {
-    await browser.close().catch(() => {});
+    if (page) await page.close().catch(() => {});
   }
 }
 
 
 async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
+  return encolarPDF(() => _generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64));
+}
+
+async function _generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const maxRetries = 3;
   let lastError;
 
@@ -848,9 +906,10 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
         logo_cordoba_base64: logoCordobaBase64 || '',
       });
 
-      const browser = await launchBrowser();
+      const browser = await getBrowser();
+      let page;
       try {
-        const page = await browser.newPage();
+        page = await browser.newPage();
         page.setDefaultNavigationTimeout(180000);
         await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
@@ -879,7 +938,7 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
 
         return pdfBuffer;
       } finally {
-        await browser.close().catch(() => {});
+        if (page) await page.close().catch(() => {});
       }
     } catch (err) {
       lastError = err;
@@ -891,15 +950,20 @@ async function generarNotificacionPDF(acta, logoMinisterioBase64, logoCordobaBas
 }
 
 async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
+  return encolarPDF(() => _generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64));
+}
+
+async function _generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const templatePath = path.join(__dirname, '../templates/base_geriatrico.html');
   const baseTemplate = fs.readFileSync(templatePath, 'utf8');
 
   const template = handlebars.compile(baseTemplate);
   const htmlFinal = template(datos);
 
-  const browser = await launchBrowser();
+  const browser = await getBrowser();
+  let page;
   try {
-    const page = await browser.newPage();
+    page = await browser.newPage();
     page.setDefaultNavigationTimeout(180000);
     await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
@@ -928,7 +992,7 @@ async function generarInformeGeriatricoPDF(datos, logoMinisterioBase64, logoCord
 
     return pdfBuffer;
   } finally {
-    await browser.close().catch(() => {});
+    if (page) await page.close().catch(() => {});
   }
 }
 
@@ -939,6 +1003,10 @@ const CAMPOS_RADIOFISICA = [
 ];
 
 async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
+  return encolarPDF(() => _generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64));
+}
+
+async function _generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase64, membreteBase64) {
   const templatePath = path.join(__dirname, '../templates/base_informe_arq.html');
   const baseTemplate = fs.readFileSync(templatePath, 'utf8');
 
@@ -951,9 +1019,10 @@ async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase
   ].some(k => datos[k]);
   const htmlFinal = template({ ...datos, tieneRadiofisica, tieneOtros });
 
-  const browser = await launchBrowser();
+  const browser = await getBrowser();
+  let page;
   try {
-    const page = await browser.newPage();
+    page = await browser.newPage();
     page.setDefaultNavigationTimeout(180000);
     await page.setContent(htmlFinal, { waitUntil: 'networkidle0', timeout: 180000 });
 
@@ -982,7 +1051,7 @@ async function generarInformeArqPDF(datos, logoMinisterioBase64, logoCordobaBase
 
     return pdfBuffer;
   } finally {
-    await browser.close().catch(() => {});
+    if (page) await page.close().catch(() => {});
   }
 }
 
