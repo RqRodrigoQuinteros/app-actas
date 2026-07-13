@@ -407,6 +407,13 @@ export default function NuevaActa() {
   // Secciones opcionales seleccionadas
   const [seccionesActivas, setSeccionesActivas] = useState([]);
 
+  // Config de pasos por tipología (viene del template)
+  const [configPasos, setConfigPasos] = useState({
+    requiere_propietario_director: true,
+    requiere_responsable: true,
+    requiere_firma_responsable: true,
+  });
+
   // Respuestas campos normales: { campo_id: valor }
   const [respuestas, setRespuestas] = useState({});
   const [totalesManuales, setTotalesManuales] = useState(() => new Set());
@@ -504,12 +511,17 @@ export default function NuevaActa() {
   }, []);
 
   useEffect(() => {
-    if (!datos.tipologia) { setTemplate(null); setSeccionesActivas([]); return; }
+    if (!datos.tipologia) { setTemplate(null); setSeccionesActivas([]); setConfigPasos({ requiere_propietario_director: true, requiere_responsable: true, requiere_firma_responsable: true }); return; }
     setLoadingTemplate(true);
     templatesAPI.getTipologiaPorNombre(datos.tipologia)
       .then(r => {
         setTemplate(r.data);
         setSeccionesActivas((r.data.secciones || []).map(s => s.id));
+        setConfigPasos({
+          requiere_propietario_director: r.data.requiere_propietario_director !== false,
+          requiere_responsable: r.data.requiere_responsable !== false,
+          requiere_firma_responsable: r.data.requiere_firma_responsable !== false,
+        });
       })
       .catch(() => { setTemplate(null); setSeccionesActivas([]); })
       .finally(() => setLoadingTemplate(false));
@@ -598,6 +610,7 @@ export default function NuevaActa() {
       residentes: hayResidentes ? residentes : [],
       testigos,
       secciones_extra: seccionesExtra,
+      config_pasos: configPasos,
     },
   });
 
@@ -649,9 +662,9 @@ export default function NuevaActa() {
   const validarActa = () => {
     const errores = [];
     if (!datos.establecimiento_nombre?.trim()) errores.push('Nombre del establecimiento');
-    if (!datos.responsable_nombre?.trim()) errores.push('Responsable del establecimiento');
+    if (configPasos.requiere_responsable && !datos.responsable_nombre?.trim()) errores.push('Responsable del establecimiento');
     if (!datos.firma_inspector_base64) errores.push('Firma del inspector');
-    if (!datos.virtual && !datos.firma_responsable_base64) errores.push('Firma del responsable');
+    if (!datos.virtual && configPasos.requiere_firma_responsable && !datos.firma_responsable_base64) errores.push('Firma del responsable');
     if (!datos.sin_emplazamiento) {
       if (!datos.emplazamiento_valor || datos.emplazamiento_valor <= 0) errores.push('Plazo de emplazamiento');
       if (!datos.emplazamiento_tipo) errores.push('Tipo de plazo (días u horas)');
@@ -871,21 +884,24 @@ export default function NuevaActa() {
           {paso === 2 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Propiedad y Director Técnico</h2>
+              {!configPasos.requiere_propietario_director && (
+                <p className="text-sm text-blue-600 mb-4">Este paso es opcional para esta tipología. Podés skippearlo con "Siguiente".</p>
+              )}
 
               <div className="mb-4">
-                <label className="label-field">Propietario *</label>
+                <label className="label-field">Propietario{configPasos.requiere_propietario_director ? ' *' : ''}</label>
                 <input type="text" value={datos.propietario}
                   onChange={e => setDatos(prev => ({ ...prev, propietario: e.target.value }))}
-                  className="input-field" placeholder="Nombre del propietario" required />
+                  className="input-field" placeholder="Nombre del propietario" />
               </div>
 
               <hr className="my-4 border-gray-200" />
 
               <div className="mb-4">
-                <label className="label-field">Director Técnico *</label>
+                <label className="label-field">Director Técnico{configPasos.requiere_propietario_director ? ' *' : ''}</label>
                 <input type="text" value={datos.director_tecnico_nombre}
                   onChange={e => setDatos(prev => ({ ...prev, director_tecnico_nombre: e.target.value }))}
-                  className="input-field" placeholder="Nombre y apellido" required />
+                  className="input-field" placeholder="Nombre y apellido" />
               </div>
 
               <div className="mb-4">
@@ -905,8 +921,10 @@ export default function NuevaActa() {
               <div className="flex gap-4">
                 <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={async () => {
-                  if (datos.propietario && datos.director_tecnico_nombre) { await guardarBorrador(); irSiguiente(); }
-                }} disabled={!datos.propietario || !datos.director_tecnico_nombre} className="btn-primary disabled:opacity-50">
+                  if (!configPasos.requiere_propietario_director || (datos.propietario && datos.director_tecnico_nombre)) {
+                    await guardarBorrador(); irSiguiente();
+                  }
+                }} disabled={configPasos.requiere_propietario_director && (!datos.propietario || !datos.director_tecnico_nombre)} className="btn-primary disabled:opacity-50">
                   Siguiente →
                 </button>
               </div>
@@ -1180,12 +1198,15 @@ export default function NuevaActa() {
           {paso === 6 && (
             <div>
               <h2 className="text-xl font-bold mb-4">Datos del Responsable</h2>
+              {!configPasos.requiere_responsable && (
+                <p className="text-sm text-blue-600 mb-4">Este paso es opcional para esta tipología. Podés skippearlo con "Siguiente".</p>
+              )}
 
               <div className="mb-4">
-                <label className="label-field">Responsable (quien firmará el acta) *</label>
+                <label className="label-field">Responsable (quien firmará el acta){configPasos.requiere_responsable ? ' *' : ''}</label>
                 <input type="text" value={datos.responsable_nombre}
                   onChange={e => setDatos(prev => ({ ...prev, responsable_nombre: e.target.value }))}
-                  className="input-field" placeholder="Nombre y apellido" required />
+                  className="input-field" placeholder="Nombre y apellido" />
               </div>
 
               <div className="mb-4">
@@ -1205,8 +1226,10 @@ export default function NuevaActa() {
               <div className="flex gap-4">
                 <button onClick={irAnterior} className="btn-secondary">← Anterior</button>
                 <button onClick={async () => {
-                  if (datos.responsable_nombre) { await guardarBorrador(); irSiguiente(); }
-                }} disabled={!datos.responsable_nombre} className="btn-primary disabled:opacity-50">
+                  if (!configPasos.requiere_responsable || datos.responsable_nombre) {
+                    await guardarBorrador(); irSiguiente();
+                  }
+                }} disabled={configPasos.requiere_responsable && !datos.responsable_nombre} className="btn-primary disabled:opacity-50">
                   Siguiente →
                 </button>
               </div>
@@ -1303,7 +1326,7 @@ export default function NuevaActa() {
                 )}
               </div>
 
-              {!datos.virtual && (
+              {!datos.virtual && configPasos.requiere_firma_responsable && (
               <div className="mb-8">
                 <FirmaCanvas actaId={actaId} tipo="responsable" onFirma={f => setDatos(prev => ({ ...prev, firma_responsable_base64: f }))}
                   label="Firma del Responsable *" />
@@ -1311,6 +1334,16 @@ export default function NuevaActa() {
                   <span className="text-green-600 text-sm mt-1 inline-block">✓ Firmado</span>
                 )}
               </div>
+              )}
+              {!datos.virtual && !configPasos.requiere_firma_responsable && (
+                <div className="mb-8">
+                  <p className="text-sm text-blue-600 mb-2">La firma del responsable es opcional para esta tipología.</p>
+                  <FirmaCanvas actaId={actaId} tipo="responsable" onFirma={f => setDatos(prev => ({ ...prev, firma_responsable_base64: f }))}
+                    label="Firma del Responsable (opcional)" />
+                  {datos.firma_responsable_base64 && (
+                    <span className="text-green-600 text-sm mt-1 inline-block">✓ Firmado</span>
+                  )}
+                </div>
               )}
               {datos.virtual && (
                 <div className="mb-8 p-4 bg-gray-50 rounded-lg text-center text-gray-500">

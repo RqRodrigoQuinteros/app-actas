@@ -295,6 +295,7 @@
       <p class="firma-datos">DNI: {{inspector_dni}}</p>
     </div>
     {{#unless es_virtual}}
+    {{#if requiere_firma_responsable}}
     <div class="bloque-firma">
       {{#if firma_responsable}}
         <img src="{{firma_responsable}}" class="firma-img" alt="Firma Responsable" />
@@ -306,6 +307,7 @@
       <p class="firma-datos">{{responsable_nombre}}</p>
       <p class="firma-datos">DNI: {{responsable_dni}}</p>
     </div>
+    {{/if}}
     {{/unless}}
   </div>
 

@@ -663,6 +663,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       responsable_caracter: acta.responsable_caracter || '',
       es_notificacion_geriatricos: acta.establecimiento_tipologia === 'Acta de Notificacion Geriatricos' || acta.establecimiento_tipologia === 'Geriatricos' || acta.establecimiento_tipologia === 'Geriátricos',
       ley_marco: acta.ley_marco || '',
+      requiere_firma_responsable: acta.datos_formulario?.config_pasos?.requiere_firma_responsable !== false,
       seccionesHTML,
       datos_formulario: acta.datos_formulario || {},
       observaciones: acta.observaciones || '',

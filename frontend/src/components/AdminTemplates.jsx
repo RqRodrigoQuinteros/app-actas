@@ -282,12 +282,15 @@ function TabTipologias() {
   const seleccionar = (tip) => cargarDetalle(tip.id);
 
   // ── Nueva tipología ──────────────────────────────────────────────────────
- function FormNuevaTipologia({ onClose }) {
+  function FormNuevaTipologia({ onClose }) {
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
-    const [leyMarco, setLeyMarco] = useState(''); // <-- 1. NUEVO ESTADO
+    const [leyMarco, setLeyMarco] = useState('');
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
+    const [requierePD, setRequierePD] = useState(true);
+    const [requiereResp, setRequiereResp] = useState(true);
+    const [requiereFirmaResp, setRequiereFirmaResp] = useState(true);
 
     const guardar = async () => {
       if (!nombre.trim()) return setError('El nombre es requerido');
@@ -296,11 +299,13 @@ function TabTipologias() {
         await templatesAPI.crearTipologia({ 
           nombre: nombre.trim(), 
           descripcion,
-          ley_marco: leyMarco.trim() // <-- 2. ENVIAR AL BACKEND
+          ley_marco: leyMarco.trim(),
+          requiere_propietario_director: requierePD,
+          requiere_responsable: requiereResp,
+          requiere_firma_responsable: requiereFirmaResp,
         });
         await cargarTipologias();
         onClose();
-      // ... resto del catch y finally
       } catch (e) {
         setError(e.response?.data?.error || 'Error al crear');
       } finally {
@@ -320,15 +325,32 @@ function TabTipologias() {
           <label style={S.label}>Descripción (opcional)</label>
           <input style={S.input} value={descripcion} onChange={e => setDescripcion(e.target.value)} />
         </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={S.label}>Ley / Marco Legal del Encabezado (Opcional)</label>
+          <input style={S.input} value={leyMarco} onChange={e => setLeyMarco(e.target.value)} placeholder="Ej: Ley N° 8432" />
+        </div>
+        <div style={{ marginBottom: '20px', padding: '12px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+          <label style={{ ...S.label, marginBottom: '10px', display: 'block' }}>Pasos del wizard del inspector</label>
+          {[
+            { label: 'Requiere Propietario y Director Técnico', value: requierePD, set: setRequierePD },
+            { label: 'Requiere Responsable', value: requiereResp, set: setRequiereResp },
+            { label: 'Requiere Firma del Responsable', value: requiereFirmaResp, set: setRequiereFirmaResp },
+          ].map(item => (
+            <label key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', cursor: 'pointer', fontSize: '13px' }}>
+              <input type="checkbox" checked={item.value} onChange={e => item.set(e.target.checked)}
+                style={{ width: '16px', height: '16px' }} />
+              {item.label}
+            </label>
+          ))}
+          <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+            Desmarcá un paso para que sea opcional en el wizard de inspección
+          </p>
+        </div>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button style={S.btnOutline} onClick={onClose}>Cancelar</button>
           <button style={S.btn('blue')} onClick={guardar} disabled={guardando}>
             {guardando ? 'Creando...' : 'Crear tipología'}
           </button>
-        </div>
-        <div style={{ marginBottom: '20px' }}>
-          <label style={S.label}>Ley / Marco Legal del Encabezado (Opcional)</label>
-          <input style={S.input} value={leyMarco} onChange={e => setLeyMarco(e.target.value)} placeholder="Ej: Ley N° 8432" />
         </div>
       </>
     );
@@ -770,6 +792,34 @@ function TabTipologias() {
                   </button>
                 </div>
               </div>
+              {/* Configuración de pasos */}
+              <div style={{ ...S.card, marginBottom: '16px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                  Pasos del wizard del inspector
+                </div>
+                {[
+                  { key: 'requiere_propietario_director', label: 'Requiere Propietario y Director Técnico' },
+                  { key: 'requiere_responsable', label: 'Requiere Responsable' },
+                  { key: 'requiere_firma_responsable', label: 'Requiere Firma del Responsable' },
+                ].map(item => (
+                  <label key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', cursor: 'pointer', fontSize: '13px' }}>
+                    <input
+                      type="checkbox"
+                      checked={seleccionada[item.key] !== false}
+                      onChange={e => {
+                        const val = e.target.checked;
+                        templatesAPI.actualizarTipologia(seleccionada.id, { [item.key]: val })
+                          .then(() => {
+                            setSeleccionada(prev => ({ ...prev, [item.key]: val }));
+                          });
+                      }}
+                      style={{ width: '16px', height: '16px' }}
+                    />
+                    {item.label}
+                  </label>
+                ))}
+              </div>
+
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                 <button style={S.btn('blue')} onClick={() => setModalSeccion(true)}>
                   + Agregar sección
