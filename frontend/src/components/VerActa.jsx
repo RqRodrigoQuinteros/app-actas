@@ -221,12 +221,14 @@ export default function VerActa() {
         )}
 
         {/* Responsable */}
+        {acta.responsable_nombre && (
         <div className="card mb-4">
           <h3 className="font-bold text-lg mb-3">Responsable</h3>
           <p><strong>Nombre:</strong> {acta.responsable_nombre}</p>
-          <p><strong>DNI:</strong> {acta.responsable_dni}</p>
-          <p><strong>Carácter:</strong> {acta.responsable_caracter}</p>
+          {acta.responsable_dni && <p><strong>DNI:</strong> {acta.responsable_dni}</p>}
+          {acta.responsable_caracter && <p><strong>Carácter:</strong> {acta.responsable_caracter}</p>}
         </div>
+        )}
 
         {/* Respuestas dinámicas agrupadas por sección */}
         {Object.keys(seccionesAgrupadas).length > 0 ? (

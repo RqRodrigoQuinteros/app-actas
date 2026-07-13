@@ -188,15 +188,20 @@ router.get('/tipologias/por-nombre/:nombre', async (req, res) => {
 router.post('/tipologias', soloSupervisor, async (req, res) => {
   try {
     // Extraer ley_marco del body
-    const { nombre, descripcion, ley_marco } = req.body; 
+    const { nombre, descripcion, ley_marco, requiere_propietario_director, requiere_responsable, requiere_firma_responsable } = req.body; 
 
     if (!nombre) {
       return res.status(400).json({ error: 'nombre es requerido' });
     }
 
+    const payload = { nombre, descripcion, ley_marco };
+    if (requiere_propietario_director !== undefined) payload.requiere_propietario_director = requiere_propietario_director;
+    if (requiere_responsable !== undefined) payload.requiere_responsable = requiere_responsable;
+    if (requiere_firma_responsable !== undefined) payload.requiere_firma_responsable = requiere_firma_responsable;
+
     const { data, error } = await supabase
       .from('template_tipologia')
-      .insert({ nombre, descripcion, ley_marco }) // <-- AGREGAR AQUÍ
+      .insert(payload)
       .select()
       .single();
 
@@ -219,12 +224,15 @@ router.post('/tipologias', soloSupervisor, async (req, res) => {
 router.put('/tipologias/:id', soloSupervisor, async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, activo } = req.body;
+    const { nombre, descripcion, activo, requiere_propietario_director, requiere_responsable, requiere_firma_responsable } = req.body;
 
     const updates = {};
     if (nombre !== undefined) updates.nombre = nombre;
     if (descripcion !== undefined) updates.descripcion = descripcion;
     if (activo !== undefined) updates.activo = activo;
+    if (requiere_propietario_director !== undefined) updates.requiere_propietario_director = requiere_propietario_director;
+    if (requiere_responsable !== undefined) updates.requiere_responsable = requiere_responsable;
+    if (requiere_firma_responsable !== undefined) updates.requiere_firma_responsable = requiere_firma_responsable;
 
     const { data, error } = await supabase
       .from('template_tipologia')
