@@ -11,6 +11,7 @@ const informesRoutes = require('./routes/informes');
 const templatesRoutes = require('./routes/templates');
 const informesTemplatesRoutes = require('./routes/informes-templates');
 const consultasRoutes = require('./routes/consultas');
+const pedidosRoutes = require('./routes/pedidos');
 const { iniciarCron } = require('./services/cron');
 
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/informes', informesRoutes);
 app.use('/api/templates', templatesRoutes);
 app.use('/api/informes-templates', informesTemplatesRoutes);
 app.use('/api/consultas', consultasRoutes);
+app.use('/api/pedidos', pedidosRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);

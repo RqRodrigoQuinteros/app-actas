@@ -432,11 +432,15 @@ export default function NuevaActa() {
   // Secciones repetibles: { [seccion_id]: [instancia1, instancia2, ...] }
   const [seccionesExtra, setSeccionesExtra] = useState({});
 
+  // Prellenado opcional desde un pedido de inspección tomado (solo expediente y domicilio;
+  // la tipología y el resto los completa el inspector, ya que pueden cambiar en terreno)
+  const paramsPedido = new URLSearchParams(window.location.search);
+
   const [datos, setDatos] = useState({
-    expediente: '',
+    expediente: paramsPedido.get('expediente') || '',
     expediente_papel: '',
     establecimiento_nombre: '',
-    establecimiento_direccion: '',
+    establecimiento_direccion: paramsPedido.get('direccion') || '',
     establecimiento_localidad: '',
     tipologia: '',
     propietario: '',

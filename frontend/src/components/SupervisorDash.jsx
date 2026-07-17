@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { actasAPI, informesAPI, vencimientosAPI } from '../utils/api';
+import { actasAPI, informesAPI, vencimientosAPI, pedidosAPI, authAPI } from '../utils/api';
 import api from '../utils/api';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -119,6 +119,11 @@ export default function SupervisorDash() {
   const [loadingTransferencias, setLoadingTransferencias] = useState(true);
   const [filtrosTransferencias, setFiltrosTransferencias] = useState({ arquitecto_origen_id: '', arquitecto_destino_id: '', fechaDesde: '', fechaHasta: '' });
 
+  const [pedidos, setPedidos] = useState([]);
+  const [loadingPedidos, setLoadingPedidos] = useState(true);
+  const [inspectoresTodos, setInspectoresTodos] = useState([]);
+  const [asignando, setAsignando] = useState(null);
+
   // ── DRILL-DOWN + EXCEL TABLE ───────────────────────────────────────────
   const [drillDown, setDrillDown] = useState(null);
   const [excelSearch, setExcelSearch] = useState('');
@@ -128,6 +133,37 @@ export default function SupervisorDash() {
   useEffect(() => { loadActas(); }, [filtrosActas.fechaDesde, filtrosActas.fechaHasta, filtrosActas.inspector_id]);
   useEffect(() => { loadInformes(); }, []);
   useEffect(() => { if (tab === 'transferencias') loadTransferencias(); }, [tab]);
+  useEffect(() => { if (tab === 'pedidos') loadPedidos(); }, [tab]);
+  useEffect(() => {
+    authAPI.getUsuariosLogin()
+      .then(r => setInspectoresTodos((r.data || []).filter(u => u.rol === 'inspector')))
+      .catch(() => setInspectoresTodos([]));
+  }, []);
+
+  const loadPedidos = async () => {
+    setLoadingPedidos(true);
+    try {
+      const res = await pedidosAPI.getAll();
+      setPedidos(res.data || []);
+    } catch (err) {
+      console.error('Error cargando pedidos:', err);
+    } finally {
+      setLoadingPedidos(false);
+    }
+  };
+
+  const asignarPedido = async (pedidoId, inspectorId) => {
+    if (!inspectorId) return;
+    setAsignando(pedidoId);
+    try {
+      await pedidosAPI.asignar(pedidoId, inspectorId);
+      loadPedidos();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al asignar el pedido');
+    } finally {
+      setAsignando(null);
+    }
+  };
 
   const loadActas = async () => {
     setLoadingActas(true);
@@ -511,6 +547,7 @@ export default function SupervisorDash() {
             { key: 'actas', label: `Actas ${!loadingActas ? `(${actasFiltradas.length})` : ''}` },
             { key: 'informes', label: `Informes ${!loadingInformes ? `(${informesFiltrados.length})` : ''}` },
             { key: 'transferencias', label: `Transferencias ${!loadingTransferencias ? `(${transferencias.length})` : ''}` },
+            { key: 'pedidos', label: `Pedidos ${!loadingPedidos ? `(${pedidos.length})` : ''}` },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`px-5 py-2 text-sm rounded-lg border-none cursor-pointer transition-all duration-150 ${tab === t.key ? 'bg-white text-gray-800 font-bold shadow-sm' : 'bg-transparent text-gray-500 font-medium'}`}>
@@ -989,6 +1026,77 @@ export default function SupervisorDash() {
                             <div className="text-xs text-gray-400">{t.informe?.expediente}</div>
                           </td>
                           <td className="p-3 text-sm text-gray-600 max-w-[200px] truncate">{t.motivo || '-'}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ═══════════════════════ TAB PEDIDOS ═══════════════════════ */}
+        {tab === 'pedidos' && (
+          <>
+            {loadingPedidos ? (
+              <div className="text-center py-10 text-gray-400">Cargando pedidos...</div>
+            ) : pedidos.length === 0 ? (
+              <div className="card text-center py-8 text-gray-400">No hay pedidos de inspección cargados.</div>
+            ) : (
+              <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      {['Expediente', 'Establecimiento', 'Tipología', 'Pedido por', 'Cargado por', 'Estado', 'Asignar a'].map(h => (
+                        <th key={h} className="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pedidos
+                      .slice()
+                      .sort((a, b) => (a.estado === 'pendiente' ? -1 : 1) - (b.estado === 'pendiente' ? -1 : 1))
+                      .map((p, i) => (
+                        <tr key={p.id} className={`${i > 0 ? 'border-t border-gray-100' : ''} hover:bg-gray-50`}>
+                          <td className="p-3 text-sm">{p.expediente}</td>
+                          <td className="p-3">
+                            <div className="text-sm font-medium">{p.establecimiento_nombre}</div>
+                            <div className="text-xs text-gray-400">{p.establecimiento_direccion}</div>
+                            {p.motivo_duplicado && (
+                              <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                ⚠ Reinspección
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-sm">{p.establecimiento_tipologia}</td>
+                          <td className="p-3 text-sm font-medium text-gray-700">{p.pedido_por || '-'}</td>
+                          <td className="p-3 text-sm text-gray-600">{p.creado_por?.nombre || '-'}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              p.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800'
+                              : p.estado === 'asignado' ? 'bg-blue-100 text-blue-800'
+                              : p.estado === 'tomado' ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {p.estado}
+                            </span>
+                            {p.inspector_asignado?.nombre && (
+                              <div className="text-xs text-gray-500 mt-1">{p.inspector_asignado.nombre}</div>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <select
+                              defaultValue=""
+                              disabled={asignando === p.id}
+                              onChange={e => asignarPedido(p.id, e.target.value)}
+                              className="w-full box-border p-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-inherit"
+                            >
+                              <option value="">{p.inspector_asignado?.nombre ? 'Reasignar...' : 'Seleccionar inspector...'}</option>
+                              {inspectoresTodos.map(ins => (
+                                <option key={ins.id} value={ins.id}>{ins.nombre}</option>
+                              ))}
+                            </select>
+                          </td>
                         </tr>
                       ))}
                   </tbody>

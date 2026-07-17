@@ -54,6 +54,7 @@ export default function Login() {
   const inspectores = usuarios.filter(u => u.rol === 'inspector');
   const arquitectos = usuarios.filter(u => u.rol === 'arquitecto');
   const auditores = usuarios.filter(u => u.rol === 'auditor');
+  const cargaInspeccion = usuarios.filter(u => u.rol === 'carga_inspeccion');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-800 to-blue-600 flex flex-col items-center justify-center p-4">
@@ -100,6 +101,13 @@ export default function Login() {
                 {auditores.length > 0 && (
                   <optgroup label="Auditores">
                     {auditores.map(u => (
+                      <option key={u.dni} value={u.dni}>{u.nombre}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {cargaInspeccion.length > 0 && (
+                  <optgroup label="Carga de Inspección">
+                    {cargaInspeccion.map(u => (
                       <option key={u.dni} value={u.dni}>{u.nombre}</option>
                     ))}
                   </optgroup>

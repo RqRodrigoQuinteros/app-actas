@@ -44,6 +44,19 @@ export const actasAPI = {
   delete: (id) => api.delete(`/actas/${id}`),
 };
 
+export const pedidosAPI = {
+  getAll: () => api.get('/pedidos'),
+  buscarCoincidencias: (expediente, direccion) => api.get('/pedidos/buscar-coincidencias', { params: { expediente, direccion } }),
+  create: (data) => api.post('/pedidos', data),
+  asignar: (id, inspectorId) => api.patch(`/pedidos/${id}/asignar`, { inspector_id: inspectorId }),
+  tomar: (id) => api.patch(`/pedidos/${id}/tomar`),
+  completar: (id) => api.patch(`/pedidos/${id}/completar`),
+  getTipologias: (todas = false) => api.get('/pedidos/tipologias', { params: todas ? { todas: true } : {} }),
+  crearTipologia: (data) => api.post('/pedidos/tipologias', data),
+  actualizarTipologia: (id, data) => api.put(`/pedidos/tipologias/${id}`, data),
+  eliminarTipologia: (id) => api.delete(`/pedidos/tipologias/${id}`),
+};
+
 export const pdfAPI = {
   generarActa: (id) => api.post(`/pdf/generar/${id}`, {}, { responseType: 'blob' }),
   generarInforme: (id) => api.post(`/pdf/informe/${id}`, {}, { responseType: 'blob' }),

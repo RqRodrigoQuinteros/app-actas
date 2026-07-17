@@ -39,8 +39,9 @@ Aplicación web para la gestión integral de inspecciones sanitarias. Permite a 
 |-----|--------|----------|
 | **Inspector** | Login público con dropdown | Crear/editar actas propias, firmar, generar PDF |
 | **Arquitecto** | Login con usuario y contraseña | Crear/editar informes de arquitectura, generar PDF |
-| **Supervisor** | URL especial `/supervisor-login` | Ver todas las actas, filtrar, eliminar, marcar "Subido a CIDI" |
+| **Supervisor** | URL especial `/supervisor-login` | Ver todas las actas, filtrar, eliminar, marcar "Subido a CIDI"; asignar pedidos de inspección a inspectores |
 | **Admin** | URL especial `/admin` | Gestionar tipologías, secciones y campos del formulario dinámico |
+| **Carga de Inspección** | Login con usuario y contraseña | Cargar pedidos de inspección (expediente, establecimiento, tipología) para que el supervisor los asigne |
 
 ---
 
@@ -64,7 +65,7 @@ Aplicación web para la gestión integral de inspecciones sanitarias. Permite a 
 ```
 /
 ├── backend/
-│   ├── routes/          # Auth, actas, informes, PDF, fotos, templates
+│   ├── routes/          # Auth, actas, informes, PDF, fotos, templates, pedidos
 │   ├── services/        # pdfService, driveService, supabaseClient
 │   ├── templates/       # Plantillas HTML base (inspector, arquitecto, geriátrico, notificación)
 │   ├── middleware/      # Autenticación JWT
@@ -74,14 +75,16 @@ Aplicación web para la gestión integral de inspecciones sanitarias. Permite a 
 │   └── src/
 │       ├── components/  # Login, Dashboard, NuevaActa, EditarActa, VerActa,
 │       │                # SeccionDinamica, SubidaFotos, FirmaCanvas,
-│       │                # SupervisorDash, AdminTemplates, InformeArquitecto, etc.
+│       │                # SupervisorDash, AdminTemplates, InformeArquitecto,
+│       │                # CargaPedido, etc.
 │       ├── context/     # AuthContext
 │       └── utils/       # api.js, constants.js
 │
 └── supabase/
-    └── schema.sql       # Tablas: usuarios, actas, informes, establecimientos,
-                         # template_tipologia, template_secciones, template_campos,
-                         # actas_respuestas
+    ├── schema.sql       # Tablas: usuarios, actas, informes, establecimientos,
+    │                    # template_tipologia, template_secciones, template_campos,
+    │                    # actas_respuestas
+    └── migration_*.sql  # Migraciones incrementales (correr manualmente en Supabase SQL Editor)
 ```
 
 ---
@@ -109,7 +112,8 @@ npm run dev
 
 1. Crear proyecto en [Supabase](https://supabase.com)
 2. Ejecutar `supabase/schema.sql` en el SQL Editor
-3. Agregar las variables de entorno correspondientes
+3. Ejecutar las migraciones incrementales `supabase/migration_*.sql` en orden (cada una es idempotente vía `IF NOT EXISTS`)
+4. Agregar las variables de entorno correspondientes
 
 ---
 
@@ -169,6 +173,10 @@ VITE_API_URL=http://localhost:3001
 - [x] Informes geriátricos
 - [x] Panel de administración de templates (tipologías, secciones, campos, subsecciones)
 - [x] Clonado de tipologías desde el admin
+- [x] Pedidos de inspección: rol "Carga de Inspección" carga pedidos (expediente, establecimiento, domicilio, tipología)
+- [x] Detección de actas previas del mismo establecimiento al cargar un pedido, con confirmación + motivo obligatorio para reinspecciones
+- [x] Asignación de pedidos a inspectores desde el panel de supervisor
+- [x] Pestaña "Pendientes" en el dashboard del inspector con los pedidos asignados (solo lectura) y acción "Tomar"
 
 ---
 
