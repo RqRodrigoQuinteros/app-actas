@@ -1,7 +1,7 @@
 # PROMPT_INSPECCIONES.md
 # Especificación completa — App de Inspecciones Sanitarias
 # Dirección General de Regulación Sanitaria — Ministerio de Salud, Córdoba, Argentina
-# Última actualización: Abril 2026
+# Última actualización: Julio 2026
 
 ---
 
@@ -40,6 +40,7 @@ y bloque de firmas al final.
 - Puede crear actas, completar formularios, subir fotos, firmar y generar PDF
 - No puede ver actas de otros inspectores
 - No puede modificar actas ya firmadas/cerradas
+- Tiene una pestaña "Pendientes" con los pedidos de inspección que el supervisor le asignó (solo lectura, sin precarga del wizard); puede marcarlos como "Tomado" para sacarlos de la lista. Crear el acta en sí sigue siendo el flujo manual normal, sin relación técnica con el pedido
 
 ### Arquitecto
 - Inicia sesión con usuario y contraseña
@@ -56,13 +57,22 @@ y bloque de firmas al final.
 - Puede ver historial, estados, y marcar "Subido a CIDI"
 - Dashboard con listado general y filtros
 - Tiene acceso al panel de Admin Templates
+- Ve los pedidos de inspección cargados (tab "Pedidos") y los asigna a un inspector
 
 ### Admin
 - Accede por URL especial: /admin-login
 - Gestiona templates dinámicos de actas de inspectores
 - Gestiona tipologías e ítems de informes de arquitecto
 - Puede configurar encabezado y texto de emplazamiento del PDF
-- Panel en /admin/templates con tres tabs: "Tipologías y campos", "Encabezado y emplazamiento", "Informes de Arquitecto"
+- Panel en /admin/templates con cinco tabs: "Tipologías y campos", "Encabezado y emplazamiento", "Informes de Arquitecto", "Emails Inspectores", "Tipologías de Pedido"
+
+### Carga de Inspección
+- Inicia sesión con usuario y contraseña (aparece en el mismo dropdown público que inspector/arquitecto)
+- Carga "pedidos de inspección": expediente, nombre de establecimiento, domicilio y tipología
+- Antes de guardar, el sistema busca si ya existen actas previas para ese establecimiento (por nombre); si hay coincidencias, exige confirmación + motivo obligatorio (reinspección)
+- No crea actas ni interactúa con el wizard del inspector — solo genera el pedido, que queda pendiente de asignación
+
+> Nota: en producción existe además un rol legacy `auditor` (1 usuario), no documentado ni usado por ningún flujo activo del código. No confundir con "Carga de Inspección".
 
 ---
 
@@ -85,7 +95,7 @@ CREATE TABLE usuarios (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nombre TEXT NOT NULL,
   dni TEXT UNIQUE NOT NULL,
-  rol TEXT NOT NULL CHECK (rol IN ('inspector', 'arquitecto', 'supervisor', 'admin')),
+  rol TEXT NOT NULL CHECK (rol IN ('inspector', 'arquitecto', 'supervisor', 'admin', 'auditor', 'carga_inspeccion')),
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT now()
 );
@@ -135,6 +145,44 @@ CREATE TABLE informes (
   created_at TIMESTAMP DEFAULT now()
 );
 ```
+
+### Tabla: `pedidos_inspeccion`
+```sql
+CREATE TABLE pedidos_inspeccion (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  expediente TEXT NOT NULL,
+  establecimiento_nombre TEXT NOT NULL,
+  establecimiento_direccion TEXT NOT NULL,
+  establecimiento_tipologia TEXT NOT NULL,          -- valor de pedido_tipologia.nombre (lista propia, no template_tipologia)
+  pedido_por TEXT NOT NULL,                          -- nombre del auditor (lista fija hardcodeada en el frontend, no FK a usuarios)
+  estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'asignado', 'tomado', 'completado', 'cancelado')),
+  creado_por UUID NOT NULL REFERENCES usuarios(id),       -- usuario rol carga_inspeccion
+  inspector_asignado_id UUID REFERENCES usuarios(id),
+  asignado_por UUID REFERENCES usuarios(id),               -- supervisor que asignó
+  asignado_at TIMESTAMPTZ,
+  tomado_at TIMESTAMPTZ,
+  completado_at TIMESTAMPTZ,                                -- inspector descartó la card tras crear el acta
+  acta_relacionada_id UUID REFERENCES actas(id),           -- acta previa detectada como posible duplicado
+  motivo_duplicado TEXT,                                    -- obligatorio si hubo confirmación de reinspección
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+Sigue el mismo patrón desnormalizado que `actas` (no usa `establecimiento_id`). Se crea vía `supabase/migration_pedidos_inspeccion.sql`.
+
+### Tabla: `pedido_tipologia`
+```sql
+CREATE TABLE pedido_tipologia (
+  id SERIAL PRIMARY KEY,
+  nombre TEXT UNIQUE NOT NULL,
+  activo BOOLEAN DEFAULT true,
+  orden INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+Lista de tipologías propia del formulario de "Carga de Pedido" — **distinta** de `template_tipologia`
+(la que usa el inspector en `NuevaActa.jsx`). Configurable desde `/admin/templates`, tab "Tipologías de Pedido".
 
 ### Tablas del sistema de templates dinámicos (actas de inspector)
 ```sql
@@ -314,7 +362,8 @@ Tres pasos (tabs):
 │   │   │   ├── AdminLogin.jsx             — login para rol admin
 │   │   │   ├── AdminTemplates.jsx         — panel admin: templates + informes arq
 │   │   │   ├── InformeArquitecto.jsx      — listado de informes del arquitecto
-│   │   │   └── InformeArqGeriatricos.jsx  — formulario de informe (todas las tipologías)
+│   │   │   ├── InformeArqGeriatricos.jsx  — formulario de informe (todas las tipologías)
+│   │   │   └── CargaPedido.jsx            — carga de pedidos de inspección (rol carga_inspeccion)
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx
 │   │   ├── utils/
@@ -331,7 +380,8 @@ Tres pasos (tabs):
 │   │   ├── informes-templates.js  — CRUD tipologías e items de arquitecto
 │   │   ├── templates.js           — CRUD templates dinámicos de inspector
 │   │   ├── pdf.js                 — generación de PDFs (actas + informes)
-│   │   └── fotos.js
+│   │   ├── fotos.js
+│   │   └── pedidos.js             — CRUD pedidos de inspección + asignación
 │   ├── templates/
 │   │   ├── base_inspector.html    — template acta de inspector
 │   │   ├── base_geriatrico.html   — template informe arquitecto geriátricos
@@ -427,6 +477,20 @@ DELETE /api/informes-templates/items/:id             (solo admin/supervisor)
 POST /api/fotos/subir                    → multipart/form-data, retorna URLs
 ```
 
+### Pedidos de inspección
+```
+GET   /api/pedidos                        — filtrado por rol: carga_inspeccion (propios), inspector (asignados), supervisor/admin (todos)
+GET   /api/pedidos/buscar-coincidencias   ?expediente=&direccion=  (solo carga_inspeccion) — actas previas por expediente o domicilio (NO por nombre, hay muchos similares)
+POST  /api/pedidos                        (solo carga_inspeccion) — 409 si hay coincidencia por expediente/domicilio sin confirmar_duplicado+motivo_duplicado
+PATCH /api/pedidos/:id/asignar            (solo supervisor/admin) — { inspector_id }
+PATCH /api/pedidos/:id/tomar              (solo inspector asignado) — pasa a "tomado", aparece como card en "Mis Actas"
+PATCH /api/pedidos/:id/completar          (solo inspector asignado) — descarta la card ("completado")
+GET   /api/pedidos/tipologias             ?todas=true para incluir inactivas — lista propia, no template_tipologia
+POST  /api/pedidos/tipologias             (solo admin/supervisor)
+PUT   /api/pedidos/tipologias/:id         (solo admin/supervisor)
+DELETE /api/pedidos/tipologias/:id        (solo admin/supervisor, desactiva)
+```
+
 ---
 
 ## 10. API CLIENT (frontend/src/utils/api.js)
@@ -441,6 +505,8 @@ export const templatesAPI   // encabezado, tipologías, secciones, campos, respu
 export const informesTemplatesAPI  // getTipologias, getTipologiaPorNombre, getItems,
                                    // crearTipologia, actualizarTipologia,
                                    // crearItem, actualizarItem, eliminarItem
+export const pedidosAPI     // getAll, buscarCoincidencias, create, asignar, tomar, completar,
+                             // getTipologias, crearTipologia, actualizarTipologia, eliminarTipologia
 export default api          // instancia axios base
 ```
 
@@ -506,6 +572,38 @@ tipologia_nombre !== 'Geriátricos'
 
 ---
 
+## 13.5. FLUJO DE PEDIDOS DE INSPECCIÓN
+
+1. **Carga** (rol `carga_inspeccion`, `/carga-pedido`): completa expediente, nombre de
+   establecimiento, domicilio, tipología (lista propia `pedido_tipologia`, no la del
+   inspector) y "Pedido por" (nombre del auditor, lista fija hardcodeada en
+   `CargaPedido.jsx`, no vinculada a `usuarios`). Al guardar, el sistema busca actas
+   previas por **expediente o domicilio** (`ILIKE`, nunca por nombre — hay muchos
+   establecimientos con nombres muy similares); si encuentra alguna, exige un motivo
+   obligatorio antes de permitir guardar igual (reinspección). La sección "Mis Pedidos
+   Cargados" tiene su propio selector para filtrar por auditor ("Pedido por"), sin
+   persistencia — es independiente del login (una misma cuenta `carga_inspeccion` puede
+   cargar pedidos para distintos auditores).
+2. **Asignación** (rol `supervisor`, tab "Pedidos" en `SupervisorDash.jsx`): ve todos los
+   pedidos (con columnas "Pedido por" y "Cargado por" — la primera es el auditor, la
+   segunda la cuenta de login), con badge de "reinspección" si tienen `motivo_duplicado`,
+   y asigna cada uno a un inspector desde un `<select>`.
+3. **Pendientes** (rol `inspector`, tab "Pendientes" en `Dashboard.jsx`): ve los pedidos
+   asignados a él (`estado='asignado'`), en solo lectura. Botón "Tomar" marca
+   `estado='tomado'`, lo saca de "Pendientes" y cambia automáticamente a la tab "Mis Actas".
+4. **Tomado** (tab "Mis Actas"): los pedidos con `estado='tomado'` aparecen como cards
+   destacadas (fondo ámbar) arriba de la lista de actas reales, con expediente,
+   establecimiento, tipología y "Pedido por". Tienen dos acciones:
+   - **"Crear Acta"** → navega a `/nueva-acta?expediente=...&direccion=...`; `NuevaActa.jsx`
+     lee esos query params y prellena **solo** `expediente` y `establecimiento_direccion`
+     en el Paso 1 (no la tipología ni el nombre, que el inspector puede necesitar ajustar
+     en terreno) — sin ningún otro vínculo técnico con el pedido (no hay `pedido_id` en `actas`).
+   - **"Descartar"** → `PATCH /:id/completar`, marca `estado='completado'` y la card
+     desaparece (dismiss manual del inspector, no hay reconciliación automática con la
+     acta creada).
+
+---
+
 ## 14. UI/UX
 
 ### Inspectores (tablet Android)
@@ -552,7 +650,12 @@ VITE_API_URL=https://tu-backend.railway.app
 - Las tipologías de inspector deben configurarse desde `/admin/templates`
 - Las tipologías de arquitecto (con sus artículos y grupos) se configuran desde el mismo panel, tab "Informes de Arquitecto"
 - `base_arquitecto.html` existe pero es legacy — no se usa en el flujo actual
+- **Supabase SQL pendiente**: correr `supabase/migration_pedidos_inspeccion.sql` (agrega el rol
+  `carga_inspeccion` al CHECK de `usuarios.rol` y crea la tabla `pedidos_inspeccion`). Requiere
+  además crear al menos un usuario `rol='carga_inspeccion'` con password bcrypt-hasheada.
+- Existe en producción un rol legacy `rol='auditor'` (1 usuario) no documentado ni usado por
+  ningún flujo activo del código — no confundir con el rol `carga_inspeccion`.
 
 ---
 
-*Fin del documento — versión abril 2026*
+*Fin del documento — versión julio 2026*

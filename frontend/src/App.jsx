@@ -12,6 +12,7 @@ import AdminTemplates from './components/AdminTemplates';
 import AdminLogin from './components/AdminLogin';
 import EditarActa from './components/EditarActa';
 import VencimientosDash from './components/VencimientosDash';
+import CargaPedido from './components/CargaPedido';
 
 function ProtectedRoute({ children, roles, loginPath }) {
   const { usuario, loading } = useAuth();
@@ -58,13 +59,21 @@ function AppRoutes() {
               ? <Navigate to="/informes" replace />
               : usuario?.rol === 'admin'
                 ? <Navigate to="/admin/templates" replace />
-                : <Dashboard />}
+                : usuario?.rol === 'carga_inspeccion'
+                  ? <Navigate to="/carga-pedido" replace />
+                  : <Dashboard />}
         </ProtectedRoute>
       } />
 
       <Route path="/nueva-acta" element={
         <ProtectedRoute roles={['inspector']}>
           <NuevaActa />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/carga-pedido" element={
+        <ProtectedRoute roles={['carga_inspeccion']}>
+          <CargaPedido />
         </ProtectedRoute>
       } />
 

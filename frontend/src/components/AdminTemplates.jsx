@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { templatesAPI, informesTemplatesAPI } from '../utils/api';
+import { templatesAPI, informesTemplatesAPI, pedidosAPI } from '../utils/api';
 import api from '../utils/api';
 
 // ─── Estilos ────────────────────────────────────────────────────────────────
@@ -1488,6 +1488,141 @@ function TabEmails() {
   );
 }
 
+function TabPedidosTipologias() {
+  const [tipologias, setTipologias] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [nuevoNombre, setNuevoNombre] = useState('');
+  const [guardando, setGuardando] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
+  const [editandoNombre, setEditandoNombre] = useState('');
+
+  const cargar = () => {
+    setCargando(true);
+    pedidosAPI.getTipologias(true)
+      .then(r => setTipologias(r.data || []))
+      .catch(() => setTipologias([]))
+      .finally(() => setCargando(false));
+  };
+
+  useEffect(() => { cargar(); }, []);
+
+  const handleCrear = async (e) => {
+    e.preventDefault();
+    if (!nuevoNombre.trim()) return;
+    setGuardando(true);
+    try {
+      await pedidosAPI.crearTipologia({ nombre: nuevoNombre.trim() });
+      setNuevoNombre('');
+      cargar();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al crear tipología');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleGuardarEdicion = async (id) => {
+    if (!editandoNombre.trim()) return;
+    try {
+      await pedidosAPI.actualizarTipologia(id, { nombre: editandoNombre.trim() });
+      setEditandoId(null);
+      cargar();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al actualizar tipología');
+    }
+  };
+
+  const handleToggleActivo = async (t) => {
+    try {
+      await pedidosAPI.actualizarTipologia(t.id, { activo: !t.activo });
+      cargar();
+    } catch (err) {
+      alert('Error al actualizar tipología');
+    }
+  };
+
+  if (cargando) return <div style={{ color: '#9ca3af', fontSize: '14px' }}>Cargando tipologías...</div>;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>Tipologías de Pedido de Inspección</div>
+        <div style={{ fontSize: '12px', color: '#6b7280' }}>Lista propia, distinta de las tipologías del inspector</div>
+      </div>
+
+      <form onSubmit={handleCrear} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        <input
+          type="text"
+          placeholder="Nueva tipología..."
+          value={nuevoNombre}
+          onChange={e => setNuevoNombre(e.target.value)}
+          style={S.input}
+        />
+        <button type="submit" disabled={guardando} style={S.btn('blue')}>
+          {guardando ? 'Agregando...' : 'Agregar'}
+        </button>
+      </form>
+
+      <div style={S.card}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Nombre</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Estado</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tipologias.length === 0 ? (
+              <tr><td colSpan={3} style={{ padding: '16px', fontSize: '13px', color: '#9ca3af' }}>No hay tipologías cargadas</td></tr>
+            ) : tipologias.map((t, i) => (
+              <tr key={t.id} style={{ borderTop: i > 0 ? '1px solid #f3f4f6' : 'none' }}>
+                <td style={{ padding: '12px 16px', fontSize: '13px' }}>
+                  {editandoId === t.id ? (
+                    <input
+                      type="text"
+                      value={editandoNombre}
+                      onChange={e => setEditandoNombre(e.target.value)}
+                      style={S.input}
+                      autoFocus
+                    />
+                  ) : (
+                    <span style={{ fontWeight: 600, color: '#111827' }}>{t.nombre}</span>
+                  )}
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  <span style={{
+                    padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 700,
+                    background: t.activo ? '#dcfce7' : '#f3f4f6',
+                    color: t.activo ? '#16a34a' : '#9ca3af',
+                  }}>
+                    {t.activo ? 'Activa' : 'Inactiva'}
+                  </span>
+                </td>
+                <td style={{ padding: '12px 16px', display: 'flex', gap: '8px' }}>
+                  {editandoId === t.id ? (
+                    <>
+                      <button style={S.btn('green')} onClick={() => handleGuardarEdicion(t.id)}>Guardar</button>
+                      <button style={S.btnOutline} onClick={() => setEditandoId(null)}>Cancelar</button>
+                    </>
+                  ) : (
+                    <>
+                      <button style={S.btnOutline} onClick={() => { setEditandoId(t.id); setEditandoNombre(t.nombre); }}>Editar</button>
+                      <button style={S.btn(t.activo ? 'red' : 'green')} onClick={() => handleToggleActivo(t)}>
+                        {t.activo ? 'Desactivar' : 'Activar'}
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─── Componente principal ────────────────────────────────────────────────────
 export default function AdminTemplates() {
   const { usuario } = useAuth();
@@ -1524,12 +1659,16 @@ export default function AdminTemplates() {
           <button style={S.tab(tab === 'emails')} onClick={() => setTab('emails')}>
             Emails Inspectores
           </button>
+          <button style={S.tab(tab === 'pedidos')} onClick={() => setTab('pedidos')}>
+            Tipologías de Pedido
+          </button>
         </div>
 
         {tab === 'tipologias' && <TabTipologias />}
         {tab === 'encabezado' && <TabEncabezado />}
         {tab === 'informes' && <TabInformes />}
         {tab === 'emails' && <TabEmails />}
+        {tab === 'pedidos' && <TabPedidosTipologias />}
       </div>
     </div>
   );

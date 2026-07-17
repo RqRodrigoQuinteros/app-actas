@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { actasAPI } from '../utils/api';
+import { actasAPI, pedidosAPI } from '../utils/api';
 
 export default function Dashboard() {
   const { usuario, logout } = useAuth();
+  const [tab, setTab] = useState('mis-actas');
+
   const [actas, setActas] = useState([]);
   const [actasOriginal, setActasOriginal] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,9 +15,55 @@ export default function Dashboard() {
   const [busqueda, setBusqueda] = useState('');
   const [mostrarModal, setMostrarModal] = useState(null);
 
+  const [pedidos, setPedidos] = useState([]);
+  const [loadingPedidos, setLoadingPedidos] = useState(true);
+  const [tomando, setTomando] = useState(null);
+  const [completando, setCompletando] = useState(null);
+
+  const pedidosPendientes = pedidos.filter(p => p.estado === 'asignado');
+  const pedidosTomados = pedidos.filter(p => p.estado === 'tomado');
+
   useEffect(() => {
     loadActas();
+    loadPedidos();
   }, []);
+
+  const loadPedidos = async () => {
+    setLoadingPedidos(true);
+    try {
+      const res = await pedidosAPI.getAll();
+      setPedidos((res.data || []).filter(p => p.estado === 'asignado' || p.estado === 'tomado'));
+    } catch (err) {
+      console.error('Error cargando pedidos:', err);
+    } finally {
+      setLoadingPedidos(false);
+    }
+  };
+
+  const tomarPedido = async (id) => {
+    setTomando(id);
+    try {
+      await pedidosAPI.tomar(id);
+      setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: 'tomado' } : p));
+      setTab('mis-actas');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al tomar el pedido');
+    } finally {
+      setTomando(null);
+    }
+  };
+
+  const completarPedido = async (id) => {
+    setCompletando(id);
+    try {
+      await pedidosAPI.completar(id);
+      setPedidos(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al descartar el pedido');
+    } finally {
+      setCompletando(null);
+    }
+  };
 
   const loadActas = async () => {
     try {
@@ -105,6 +153,67 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-4xl mx-auto p-4">
+        <div className="flex gap-1 bg-gray-200 rounded-xl p-1 mb-5 w-fit flex-wrap">
+          {[
+            { key: 'mis-actas', label: 'Mis Actas' },
+            { key: 'pendientes', label: `Pendientes ${!loadingPedidos ? `(${pedidosPendientes.length})` : ''}` },
+          ].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`px-5 py-2 text-sm rounded-lg border-none cursor-pointer transition-all duration-150 ${tab === t.key ? 'bg-white text-gray-800 font-bold shadow-sm' : 'bg-transparent text-gray-500 font-medium'}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'pendientes' && (
+          <div className="space-y-4">
+            {loadingPedidos ? (
+              <div className="text-center py-8 text-gray-500">Cargando pendientes...</div>
+            ) : pedidosPendientes.length === 0 ? (
+              <div className="card text-center py-8">
+                <p className="text-gray-500">No tenés pedidos de inspección pendientes</p>
+              </div>
+            ) : (
+              pedidosPendientes.map(p => (
+                <div key={p.id} className="card">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-semibold text-lg">{p.establecimiento_nombre}</h3>
+                      <p className="text-sm text-gray-600">{p.establecimiento_direccion}</p>
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                      {p.establecimiento_tipologia}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500 mt-2">
+                    <span>Expte: {p.expediente}</span>
+                    {p.asignado_at && <span>Asignado: {new Date(p.asignado_at).toLocaleDateString('es-AR')}</span>}
+                  </div>
+                  {p.pedido_por && (
+                    <p className="text-xs text-gray-400 mt-1">Pedido por: {p.pedido_por}</p>
+                  )}
+                  {p.motivo_duplicado && (
+                    <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">
+                      ⚠ Reinspección — motivo: {p.motivo_duplicado}
+                    </p>
+                  )}
+                  <div className="mt-3 pt-3 border-t border-gray-200 flex justify-end">
+                    <button
+                      onClick={() => tomarPedido(p.id)}
+                      disabled={tomando === p.id}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {tomando === p.id ? 'Tomando...' : 'Tomar pedido'}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {tab === 'mis-actas' && (
+        <>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Mis Actas</h2>
           <Link
@@ -114,6 +223,48 @@ export default function Dashboard() {
             + Nueva Acta
           </Link>
         </div>
+
+        {pedidosTomados.length > 0 && (
+          <div className="space-y-3 mb-6">
+            {pedidosTomados.map(p => (
+              <div key={p.id} className="rounded-lg p-4 bg-amber-50 border-2 border-amber-300">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <span className="inline-block mb-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-800">
+                      PEDIDO TOMADO — pendiente de crear acta
+                    </span>
+                    <h3 className="font-semibold text-lg">{p.establecimiento_nombre}</h3>
+                    <p className="text-sm text-gray-600">{p.establecimiento_direccion} — {p.establecimiento_tipologia}</p>
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                  <span>Expte: {p.expediente}</span>
+                  {p.pedido_por && <span>Pedido por: {p.pedido_por}</span>}
+                </div>
+                {p.motivo_duplicado && (
+                  <p className="text-xs text-amber-800 bg-amber-100 rounded p-2 mt-2">
+                    ⚠ Reinspección — motivo: {p.motivo_duplicado}
+                  </p>
+                )}
+                <div className="mt-3 pt-3 border-t border-amber-200 flex justify-end gap-2">
+                  <button
+                    onClick={() => completarPedido(p.id)}
+                    disabled={completando === p.id}
+                    className="px-3 py-2 bg-white border border-amber-300 text-amber-800 rounded-lg text-sm font-semibold hover:bg-amber-100 disabled:opacity-50"
+                  >
+                    {completando === p.id ? 'Descartando...' : 'Descartar'}
+                  </button>
+                  <Link
+                    to={`/nueva-acta?expediente=${encodeURIComponent(p.expediente || '')}&direccion=${encodeURIComponent(p.establecimiento_direccion || '')}`}
+                    className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-semibold hover:bg-amber-700"
+                  >
+                    Crear Acta
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex gap-4 mb-4 flex-wrap">
           <input
@@ -206,6 +357,8 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        )}
+        </>
         )}
       </main>
 
