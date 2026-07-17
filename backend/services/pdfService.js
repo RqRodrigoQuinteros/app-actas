@@ -28,7 +28,8 @@ async function descargarImagenComoBase64(url, timeout = 15000) {
         }
         if (res.statusCode < 200 || res.statusCode >= 300) {
           res.resume();
-          return resolve(url);
+          console.log(`[PDF] Descarga de imagen falló (status ${res.statusCode}), se omite: ${url}`);
+          return resolve('');
         }
         const chunks = [];
         res.on('data', chunk => chunks.push(chunk));
@@ -41,10 +42,18 @@ async function descargarImagenComoBase64(url, timeout = 15000) {
           resolve(result);
         });
       });
-      req.on('error', () => resolve(url));
-      req.on('timeout', () => { req.destroy(); resolve(url); });
-    } catch {
-      resolve(url);
+      req.on('error', (err) => {
+        console.log(`[PDF] Error descargando imagen, se omite: ${url}`, err.message);
+        resolve('');
+      });
+      req.on('timeout', () => {
+        req.destroy();
+        console.log(`[PDF] Timeout descargando imagen, se omite: ${url}`);
+        resolve('');
+      });
+    } catch (err) {
+      console.log(`[PDF] Excepción descargando imagen, se omite: ${url}`, err.message);
+      resolve('');
     }
   });
 }
@@ -134,7 +143,7 @@ async function renderPdf({ html, logoMinisterio, logoCordoba, membrete, margin =
   try {
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(180000);
-    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 180000 });
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 180000 });
 
     const headerContent = buildPdfHeader(logoMinisterio, logoCordoba, membrete);
 
@@ -680,7 +689,7 @@ async function generarActaPDF(acta, logoMinisterioBase64, logoCordobaBase64, mem
       })(),
       firma_inspector: firmaInspectorBase64 || acta.firma_inspector_base64 || '',
       firma_responsable: firmaResponsableBase64 || acta.firma_responsable_base64 || '',
-      fotos: fotosBase64.length > 0 ? fotosBase64 : (acta.fotos_urls || []),
+      fotos: fotosBase64.filter(Boolean),
       logo_ministerio_base64: logoMinisterioBase64 || '',
       logo_cordoba_base64: logoCordobaBase64 || ''
     });
